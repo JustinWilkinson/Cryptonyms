@@ -1,0 +1,64 @@
+﻿@using Codenames.Shared;
+
+@inject LocalStorage Storage
+
+<li class="draggable list-group-item" draggable="true" @ondragstart="@(() => HandleDragStart(Player))">
+    <h3 class="float-left" style="margin-bottom: 0;">@Player.Name</h3>
+    <div class="float-right">
+        @if (Storage.GetItem("playerName") == null && !Player.Identified)
+        {
+            <button class="btn btn-success" @onclick="() => ToggleIdentifyPlayerAsync(Player, true)">Identify as @Player.Name</button>
+        }
+        else if (Storage.GetItem("playerName") == Player.Name)
+        {
+            <button class="btn btn-danger" @onclick="() => ToggleIdentifyPlayerAsync(Player, false)">Unidentify as @Player.Name</button>
+        }
+        @if (Player.Team.HasValue)
+        {
+            if (Player.IsSpymaster)
+            {
+                <button class="btn btn-danger" @onclick="() => ToggleSpymasterAsync(Player, false)">Unset as Spymaster</button>
+            }
+            else if (!Container.Players.Any(p => p.IsSpymaster && p.Team == Player.Team))
+            {
+                <button class="btn btn-success" @onclick="() => ToggleSpymasterAsync(Player, true)">Set as Spymaster</button>
+            }
+        }
+        <button class="btn btn-danger" @onclick="() => RemovePlayerAsync(Player)">Remove</button>
+    </div>
+</li>
+
+@code {
+    [CascadingParameter]
+    public TeamContainer Container { get; set; }
+
+    [Parameter]
+    public Player Player { get; set; }
+
+    private void HandleDragStart(Player player)
+    {
+        Container.Payload = player;
+    }
+
+    private async Task ToggleIdentifyPlayerAsync(Player player, bool identified)
+    {
+        if (identified)
+        {
+            Storage.SetItem("playerName", player.Name);
+        }
+        else
+        {
+            Storage.RemoveItem("playerName");
+        }
+        player.Identified = identified;
+        await Container.UpdatePlayerAsync(player);
+    }
+
+    private async Task ToggleSpymasterAsync(Player player, bool isSpymaster)
+    {
+        player.IsSpymaster = isSpymaster;
+        await Container.UpdatePlayerAsync(player);
+    }
+
+    private async Task RemovePlayerAsync(Player player) => await Container.DeletePlayerAsync(player);
+}

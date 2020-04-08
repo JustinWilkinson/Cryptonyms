@@ -1,0 +1,211 @@
+﻿@page "/NewGame"
+
+@using Codenames.Shared;
+@using Codenames.Client.Components;
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject LocalStorage Storage
+@inject IJSRuntime JSRuntime
+
+<h1>New Game</h1>
+
+@if (players == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="content">
+        @if (showCreateNewPlayer)
+        {
+            <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Create New Player</h5>
+                            <button type="button" class="close" @onclick="CloseNewPlayerPopup"><span aria-hidden="true">X</span></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <input id="newPlayerName" type="text" class="form-control" @bind="NewPlayerName" />
+                                @if (createNewPlayerErrorMessage != null)
+                                {
+                                    <label class="text-danger">@createNewPlayerErrorMessage</label>
+                                }
+                            </div>
+                            <button id="saveNewPlayer" type="button" class="btn btn-primary" @onclick="AddNewPlayerAsync">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (validationErrors.Count > 0)
+        {
+            <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Could not start game!</h5>
+                            <button type="button" class="close" @onclick="CloseValidationPopup"><span aria-hidden="true">X</span></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <ul>
+                                    @foreach (var error in validationErrors)
+                                    {
+                                        <li class="text-danger">@error</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="row" style="height: 80vh;">
+            <TeamContainer Players="players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@deviceId">
+                <div class="col-sm-6 col-lg-6 border" style="padding: 1em; margin-bottom: 1em;">
+                    <PlayerList Team="null" />
+                </div>
+                <div class="col-sm-6 col-lg-6">
+                    <div class="bg-primary" style="height: 39vh; padding: 1em; margin-bottom: 1em; overflow-y: auto;">
+                        <PlayerList Team="Team.Blue" />
+                    </div>
+                    <div class="bg-danger" style="height: 39vh; padding: 1em; overflow-y: auto">
+                        <PlayerList Team="Team.Red" />
+                    </div>
+                </div>
+            </TeamContainer>
+        </div>
+        <div class="row">
+            <div class="form-inline">
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { showCreateNewPlayer = true; }">Add New Player</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="RandomiseTeamsAsync">Random Teams</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="StartGameAsync">Start game</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Player> players;
+    private string NewPlayerName { get; set; }
+
+    private bool showCreateNewPlayer;
+    private string createNewPlayerErrorMessage;
+
+    private List<string> validationErrors = new List<string>();
+    private string deviceId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        deviceId = Storage.GetItem("deviceId");
+        if (deviceId == null)
+        {
+            deviceId = Guid.NewGuid().ToString();
+            Storage.SetItem("deviceId", deviceId);
+            players = new List<Player>();
+        }
+        else
+        {
+            players = JsonConvert.DeserializeObject<IEnumerable<Player>>(await Http.GetStringAsync($"api/Player/List?deviceId={deviceId}")).ToList();
+        }
+        RemoveIdentificationIfNotFound();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (showCreateNewPlayer)
+        {
+            await JSRuntime.InvokeVoidAsync("codenames.setFocus", "newPlayerName");
+        }
+    }
+
+    private async Task StartGameAsync()
+    {
+        if (TeamsValid())
+        {
+            var gameId = await Http.PutJsonAsync<Guid>("api/Game/New", JsonConvert.SerializeObject(players.Where(x => x.Team != null)));
+            NavigationManager.NavigateTo($"PlayGame/{gameId}");
+        }
+    }
+
+    private async Task AddNewPlayerAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(NewPlayerName))
+        {
+            if (!players.Any(p => p.Name == NewPlayerName))
+            {
+                var player = new Player { Name = NewPlayerName };
+                players.Add(player);
+                await Http.PutJsonAsync("api/Player/New", new { DeviceId = deviceId, Player = JsonConvert.SerializeObject(player) });
+                CloseNewPlayerPopup();
+            }
+            else
+            {
+                createNewPlayerErrorMessage = $"Player named '{NewPlayerName}' already exists!";
+            }
+        }
+        else
+        {
+            createNewPlayerErrorMessage = "Please enter a non-empty player name!";
+        }
+    }
+
+    private async Task RandomiseTeamsAsync()
+    {
+        players = await Http.PostJsonAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={deviceId}", null);
+    }
+
+    private bool TeamsValid()
+    {
+        validationErrors.Clear();
+
+        if (!players.Any(p => p.Team == Team.Red && p.IsSpymaster))
+        {
+            validationErrors.Add("The Red Team must have a Spymaster!");
+        }
+
+        if (!players.Any(p => p.Team == Team.Red && !p.IsSpymaster))
+        {
+            validationErrors.Add("The Red Team must have at least one guesser!");
+        }
+
+        if (!players.Any(p => p.Team == Team.Blue && p.IsSpymaster))
+        {
+            validationErrors.Add("The Blue Team must have a Spymaster!");
+        }
+
+        if (!players.Any(p => p.Team == Team.Blue && !p.IsSpymaster))
+        {
+            validationErrors.Add("The Blue Team must have at least one guesser!");
+        }
+
+        return validationErrors.Count == 0;
+    }
+
+    private void CloseValidationPopup() => validationErrors.Clear();
+
+    private void CloseNewPlayerPopup()
+    {
+        showCreateNewPlayer = false;
+        NewPlayerName = null;
+        createNewPlayerErrorMessage = null;
+    }
+
+    private void RemoveIdentificationIfNotFound()
+    {
+        if (!players.Any(x => x.Name == Storage.GetItem("playerName")))
+        {
+            Storage.RemoveItem("playerName");
+        }
+    }
+
+    private void HandleDeletedPlayer(Player player)
+    {
+        players = players.Where(p => p.Name != player.Name).ToList();
+        StateHasChanged();
+    }
+}

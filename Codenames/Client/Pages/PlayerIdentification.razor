@@ -1,0 +1,98 @@
+﻿@page "/Game/{GameId}/PlayerIdentification"
+
+@using Codenames.Shared
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject HttpClient Http
+@inject LocalStorage Storage
+@inject NavigationManager NavigationManager
+
+<h1>Play Game</h1>
+
+@if (game == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div style="width: 50vw;">
+        <ul class="list-group" style="margin-bottom: 1em;">
+            @foreach (var player in game.Players)
+            {
+                <li class="list-group-item">
+                    <h3 class="float-left" style="margin-bottom: 0;">@player.Name</h3>
+                    <div class="float-right">
+                        @if (!player.Identified)
+                        {
+                            if (Storage.GetItem("playerName") == null)
+                            {
+                                <button class="btn btn-success" @onclick="() => ToggleIdentifyPlayer(player, true)">Identify as @player.Name</button>
+                            }
+                            else if (Storage.GetItem("playerName") == player.Name)
+                            {
+                                <button class="btn btn-danger" @onclick="() => ToggleIdentifyPlayer(player, false)">Unidentify as @player.Name</button>
+                            }
+                        }
+                        else
+                        {
+                            <button class="btn btn-success" disabled>Player has already been identified.</button>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+        <button type="button" class="btn btn-primary" @onclick="ConfirmAsync">Confirm</button>
+    </div>
+}
+
+@code {
+    private HubConnection _hubConnection;
+
+    private Game game;
+    private Player identifiedPlayer;
+
+    [Parameter]
+    public string GameId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Storage.RemoveItem("playerName");
+        game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
+
+        _hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/GameHub")).WithAutomaticReconnect().Build();
+        _hubConnection.On("UpdatePlayerIdentification", async () =>
+        {
+            game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
+            StateHasChanged();
+        });
+        await _hubConnection.StartAsync();
+    }
+
+    private void ToggleIdentifyPlayer(Player player, bool identified)
+    {
+        if (identified)
+        {
+            Storage.SetItem("playerName", player.Name);
+            identifiedPlayer = player;
+        }
+        else
+        {
+            Storage.RemoveItem("playerName");
+            identifiedPlayer = null;
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        if (identifiedPlayer != null)
+        {
+            await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = identifiedPlayer }));
+            await _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", GameId);
+            NavigationManager.NavigateTo($"PlayGame/{GameId}");
+        }
+        else
+        {
+            Storage.RemoveItem("playerName");
+        }
+    }
+}

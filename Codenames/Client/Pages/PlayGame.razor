@@ -1,0 +1,273 @@
+﻿@page "/PlayGame/{GameId}"
+
+@using Codenames.Shared
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject HttpClient Http
+@inject LocalStorage Storage
+@inject NavigationManager NavigationManager
+
+@if (game == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="d-inline-block" style="width: 100%;">
+        <div class="@(identifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") d-inline-block rounded float-left" style="padding: 0.25em;">
+            <h6 class="text-white mb-0">Hi @identifiedPlayer.Name, you are playing as @(identifiedPlayer.IsSpymaster ? "the Spymaster" : "a guesser") on the @identifiedPlayer.Team team.</h6>
+        </div>
+        <div class="d-inline-block float-right" style="font-size: 0.8em;">
+            <p class="d-inline-block">Started game with @string.Join(", ", game.Players.Select(x => x.Name)) at @game.StartedAt.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    </div>
+    <div class="container">
+        @if (game.CompletedMessage != null && showCompletionMessage)
+        {
+            <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Game Over!</h5>
+                            <button type="button" class="close" @onclick="ClosePopup"><span aria-hidden="true">X</span></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6>@game.CompletedMessage</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="row">
+            <div class="col-sm-2 col-lg-2 card bg-primary padded-card">
+                <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@BlueWordsRemaining words left</div>
+            </div>
+            <div class="col-sm-1 col-lg-1 padded-card"></div>
+            <div class="col-sm-4 col-lg-4 padded-card border border-secondary rounded">
+                <div class="card-body text-center font-weight-bold" style="padding: 0;">
+                    @if (game.CurrentTurn.Clue != null)
+                    {
+                        <span>@game.CurrentTurn.Team.ToString() team's turn: @(game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{game.CurrentTurn.Clue} - {game.CurrentTurn.NumberOfGuesses - 1}")</span>
+                    }
+                    else
+                    {
+                        <span>@game.CurrentTurn.Team.ToString() team's turn</span>
+                    }
+                </div>
+            </div>
+            <div class="col-sm-1 col-lg-1 padded-card"></div>
+            <div class="col-sm-2 col-lg-2 card bg-danger padded-card">
+                <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@RedWordsRemaining words left</div>
+            </div>
+        </div>
+        @for (var i = 0; i < 5; i++)
+        {
+            <div class="row">
+                @for (var j = 0; j < 5; j++)
+                {
+                    var wordIndex = 5 * i + j;
+                    if (game.GuessedWords.Contains(wordIndex))
+                    {
+                        <div class="col-sm-2 col-lg-2 card @GetBackgroundColourClass(wordIndex) empty-padded-card"></div>
+                    }
+                    else
+                    {
+                        <div class="col-sm-2 col-lg-2 card padded-card @GetBackgroundColourClassForSpymaster(wordIndex)" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@game.Words[wordIndex]</div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+        @if (game.CurrentTurn.Clue == null && identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
+        {
+            <div class="row" style="padding: 1em;">
+                <div class="form-inline">
+                    <div class="form-group" style="margin-right: 1em;">
+                        <label for="Clue" class="font-weight-bold" style="margin-right: 0.5em;">Clue:</label>
+                        <input id="Clue" type="text" @bind-value="currentClue" class="form-control" />
+                    </div>
+                    <div class="form-group" style="margin-right: 1em;">
+                        <label for="NumberOfGuesses" class="font-weight-bold" style="margin-right: 0.5em;">Number of words linked:</label>
+                        <input id="NumberOfGuesses" type="number" min="1" max="@WordsRemainingForCurrentTeam" @bind-value="currentNumberOfWordsLinked" class="form-control" />
+                    </div>
+                    <button type="button" class="btn btn-primary" @onclick="GiveClueAsync">Give clue</button>
+                    @if (clueErrorMessage != null)
+                    {
+                        <label class="text-danger" style="margin-left: 0.5em;">@clueErrorMessage</label>
+                    }
+                </div>
+            </div>
+        }
+        else if (game.CurrentTurn.Clue != null && !identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
+        {
+            <div class="row" style="padding: 1em;">
+                <div class="form-inline">
+                    <button class="btn btn-danger" @onclick="PassTurnAsync">Pass</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private HubConnection _hubConnection;
+
+    private Game game;
+    private bool showCompletionMessage;
+    private string clueErrorMessage;
+    private int RedWordsRemaining => game.RedWords.Except(game.GuessedWords).Count();
+    private int BlueWordsRemaining => game.BlueWords.Except(game.GuessedWords).Count();
+    private int WordsRemainingForCurrentTeam => game.CurrentTurn.Team == Team.Red ? RedWordsRemaining : BlueWordsRemaining;
+    private Player identifiedPlayer;
+
+    private string currentClue = null;
+    private int currentNumberOfWordsLinked = 1;
+
+    [Parameter]
+    public string GameId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
+
+        identifiedPlayer = game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
+        if (identifiedPlayer == null)
+        {
+            NavigationManager.NavigateTo($"Game/{GameId}/PlayerIdentification/");
+        }
+        else if (!identifiedPlayer.Identified)
+        {
+            await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = identifiedPlayer }));
+        }
+
+        _hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/GameHub")).WithAutomaticReconnect().Build();
+        _hubConnection.On<string>("UpdateGame", updatedGame =>
+        {
+            game = JsonConvert.DeserializeObject<Game>(updatedGame);
+            if (game.WinnningTeam.HasValue)
+            {
+                showCompletionMessage = true;
+            }
+            StateHasChanged();
+        });
+        await _hubConnection.StartAsync();
+        await _hubConnection.InvokeAsync("AddToGameGroupAsync", GameId);
+    }
+
+    private async Task HandleWordGuessedAsync(int wordIndex)
+    {
+        if (game.CurrentTurn.Clue != null && !identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
+        {
+            if (game.CompletedMessage == null)
+            {
+                game.GuessedWords.Add(wordIndex);
+
+                if (game.Assassin == wordIndex)
+                {
+                    game.CompletedMessage = $"{identifiedPlayer.Name} bumped into the assassin, and was killed!";
+                    game.WinnningTeam = (Team)(1 - game.CurrentTurn.Team);
+                }
+                else if (game.BlueWords.All(bw => game.GuessedWords.Contains(bw)))
+                {
+                    game.CompletedMessage = "Team blue wins!";
+                    game.WinnningTeam = Team.Blue;
+                }
+                else if (game.RedWords.All(rw => game.GuessedWords.Contains(rw)))
+                {
+                    game.CompletedMessage = "Team red wins!";
+                    game.WinnningTeam = Team.Red;
+                }
+
+                if (game.CompletedMessage != null)
+                {
+                    showCompletionMessage = true;
+                    game.CompletedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    game.CurrentTurn.NumberOfGuesses = game.CurrentTurn.NumberOfGuesses - 1;
+
+                    if (game.CurrentTurn.NumberOfGuesses == 0)
+                    {
+                        game.CurrentTurn = new Turn { Team = (Team)(1 - game.CurrentTurn.Team) };
+                    }
+                    else if (game.CurrentTurn.Team == Team.Red && !game.RedWords.Contains(wordIndex))
+                    {
+                        game.CurrentTurn = new Turn { Team = Team.Blue };
+                    }
+                    else if (game.CurrentTurn.Team == Team.Blue && !game.BlueWords.Contains(wordIndex))
+                    {
+                        game.CurrentTurn = new Turn { Team = Team.Red };
+                    }
+                }
+            }
+
+            await UpdateGameAsync();
+        }
+    }
+
+    private async Task PassTurnAsync()
+    {
+        game.CurrentTurn = new Turn { Team = (Team)(1 - game.CurrentTurn.Team) };
+        await UpdateGameAsync();
+    }
+
+    private string GetBackgroundColourClass(int wordIndex)
+    {
+        if (game.Assassin == wordIndex)
+        {
+            return "bg-dark";
+        }
+        else if (game.BlueWords.Contains(wordIndex))
+        {
+            return "bg-primary";
+        }
+        else if (game.RedWords.Contains(wordIndex))
+        {
+            return "bg-danger";
+        }
+        else
+        {
+            return "bg-warning";
+        }
+    }
+
+    private string GetBackgroundColourClassForSpymaster(int wordIndex) => identifiedPlayer.IsSpymaster ? GetBackgroundColourClass(wordIndex) : "bg-warning";
+
+    private void ClosePopup() => showCompletionMessage = false;
+
+    private async Task GiveClueAsync()
+    {
+        if (string.IsNullOrWhiteSpace(currentClue))
+        {
+            clueErrorMessage = "Clue cannot be blank!";
+        }
+        else if (game.Words.Any(x => x.Value.ToLower() == currentClue.ToLower() && !game.GuessedWords.Contains(x.Key)))
+        {
+            clueErrorMessage = "Clue cannot be an uncovered word!";
+        }
+        else if (currentClue.Contains(' '))
+        {
+            clueErrorMessage = "Clue must be a single word!";
+        }
+        else if (currentNumberOfWordsLinked < 1 || currentNumberOfWordsLinked > WordsRemainingForCurrentTeam)
+        {
+            clueErrorMessage = $"Number of words linked must be between 1 and {WordsRemainingForCurrentTeam}!";
+        }
+        else
+        {
+            game.CurrentTurn.Clue = currentClue;
+            game.CurrentTurn.NumberOfGuesses = currentNumberOfWordsLinked + 1;
+            clueErrorMessage = null;
+            await UpdateGameAsync();
+        }
+    }
+
+    private async Task UpdateGameAsync()
+    {
+        var serializedGame = JsonConvert.SerializeObject(game);
+        await Http.PostJsonAsync("api/Game/Save", serializedGame);
+        await _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame);
+    }
+}

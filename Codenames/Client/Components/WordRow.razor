@@ -1,0 +1,74 @@
+﻿@using Codenames.Client.Pages;
+@inject HttpClient Http
+
+<tr>
+    <td style="width: 50%; vertical-align: middle;">
+        @if (InEditMode)
+        {
+            <div>
+                <input class="form-control d-inline col-sm-3 col-lg-3" type="text" value="@Word" @oninput="@(e => ValidateWord(e))" />
+                @if (errorMessage != null)
+                {
+                    <span class="col-sm-3 col-lg-3 text-danger">@errorMessage</span>
+                }
+            </div>
+        }
+        else
+        {
+            <span>@Word</span>
+        }
+    </td>
+    <td style="width: 50%; vertical-align: middle;">
+        @if (InEditMode)
+        {
+            <button class="btn btn-success mr-2" @onclick="SaveWordAsync" disabled="@(errorMessage != null)">Save</button>
+            <button class="btn btn-danger" @onclick="ToggleEdit">Cancel</button>
+        }
+        else
+        {
+            <button class="btn btn-primary mr-2" @onclick="ToggleEdit">Enable Edit</button>
+            <button class="btn btn-danger" @onclick="RemoveWordAsync">Remove</button>
+        }
+    </td>
+</tr>
+
+@code {
+    [CascadingParameter]
+    public Words WordsPage { get; set; }
+
+    [Parameter]
+    public string Word { get; set; }
+
+    private string _editedWord;
+    public string EditedWord { get => _editedWord ?? Word; set => _editedWord = value; }
+
+    public bool InEditMode { get; set; }
+
+    private string errorMessage;
+
+    private void ValidateWord(ChangeEventArgs e)
+    {
+        EditedWord = e.Value.ToString();
+        if (EditedWord != Word)
+        {
+            errorMessage = WordsPage.GetValidationMessage(EditedWord);
+        }
+    }
+
+    private async Task SaveWordAsync()
+    {
+        await Http.PostJsonAsync("api/Word/Save", new[] { Word, EditedWord });
+        WordsPage.RemoveWord(EditedWord);
+        WordsPage.AddEditedWord(EditedWord);
+        Word = EditedWord;
+        InEditMode = false;
+    }
+
+    private async Task RemoveWordAsync()
+    {
+        await Http.DeleteAsync($"api/Word/Delete?word={Word}");
+        WordsPage.RemoveWord(Word);
+    }
+
+    private void ToggleEdit() => InEditMode = !InEditMode;
+}

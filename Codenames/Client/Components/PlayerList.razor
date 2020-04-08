@@ -1,0 +1,52 @@
+﻿@using Codenames.Shared;
+
+<h4 class="@(Team == null ? "" : "text-white")">@(Team == null ? "All Players" : $"{Team} Team")</h4>
+<ul class="dropzone @dropClass list-group" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="HandleDrop" @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave">
+    @foreach (var player in players)
+    {
+        <PlayerListItem Player="player"/>
+    }
+</ul>
+
+@code {
+    [CascadingParameter]
+    public TeamContainer Container { get; set; }
+
+    [Parameter]
+    public Team? Team { get; set; }
+
+    private List<Player> players = new List<Player>();
+    private string dropClass = "";
+
+    protected override void OnParametersSet()
+    {
+        players.Clear();
+        players.AddRange(Container.Players.Where(x => x.Team == Team));
+    }
+
+    private void HandleDragEnter()
+    {
+        if (Team == Container.Payload.Team)
+        {
+            return;
+        }
+        else
+        {
+            dropClass = "can-drop";
+        }
+    }
+
+    private void HandleDragLeave() => dropClass = "";
+
+    private async Task HandleDrop()
+    {
+        dropClass = "";
+        var player = Container.Players.SingleOrDefault(x => x.Name == Container.Payload.Name);
+
+        if (player != null)
+        {
+            player.Team = Team;
+            await Container.UpdatePlayerAsync(player);
+        }
+    }
+}

@@ -1,0 +1,38 @@
+﻿@using Codenames.Shared;
+
+@inject HttpClient Http
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public List<Player> Players { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlayerUpdated { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnPlayerDeleted { get; set; }
+
+    [Parameter]
+    public string DeviceId { get; set; }
+
+    public Player Payload { get; set; }
+
+    public async Task UpdatePlayerAsync(Player player)
+    {
+        await Http.PostJsonAsync("api/Player/Update", new { DeviceId = DeviceId, Player = JsonConvert.SerializeObject(player) });
+        await OnPlayerUpdated.InvokeAsync(null);
+    }
+
+    public async Task DeletePlayerAsync(Player player)
+    {
+        await Http.DeleteAsync($"api/Player/Delete?deviceId={DeviceId}&name={player.Name}");
+        await OnPlayerDeleted.InvokeAsync(player);
+    }
+}

@@ -1,0 +1,17 @@
+﻿@page "/"
+
+
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+
+<h1>Welcome to Codenames Online.</h1>
+
+<div>
+    <NavLink class="nav-link" href="NewGame" Match="NavLinkMatch.All">
+        <span class="oi oi-list-rich" aria-hidden="true"></span> Click here to start a new game...
+    </NavLink>
+</div>
+
+@{
+
+}
