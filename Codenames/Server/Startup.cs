@@ -59,7 +59,6 @@ namespace Codenames.Server
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<GameHub>("/GameHub");
-                endpoints.MapHub<ChatHub>("/ChatHub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }

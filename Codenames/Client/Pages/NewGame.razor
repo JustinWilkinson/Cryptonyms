@@ -8,7 +8,7 @@
 @inject LocalStorage Storage
 @inject IJSRuntime JSRuntime
 
-<h1>New Game</h1>
+<h2 class="mb-0">New Game</h2>
 
 @if (players == null)
 {
@@ -63,16 +63,22 @@ else
                 </div>
             </div>
         }
-        <div class="row" style="height: 80vh;">
+        <div class="row">
+            <p class="pl-2">
+                Create players for your game, and assign them to teams here by dragging and dropping them in the relevant area.<br> 
+                Alternatively, use the random teams button to assign players for you!
+            </p>
+        </div>
+        <div class="row" style="height: 75vh;">
             <TeamContainer Players="players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@deviceId">
-                <div class="col-sm-6 col-lg-6 border" style="padding: 1em; margin-bottom: 1em;">
+                <div class="col-sm-6 col-lg-6 border" style="padding: 1em; height: calc(94% + 1em);">
                     <PlayerList Team="null" />
                 </div>
                 <div class="col-sm-6 col-lg-6">
-                    <div class="bg-primary" style="height: 39vh; padding: 1em; margin-bottom: 1em; overflow-y: auto;">
+                    <div class="bg-primary overflow-auto" style="height: 47%; padding: 1em; margin-bottom: 1em;">
                         <PlayerList Team="Team.Blue" />
                     </div>
-                    <div class="bg-danger" style="height: 39vh; padding: 1em; overflow-y: auto">
+                    <div class="bg-danger overflow-auto" style="height: 47%; padding: 1em;">
                         <PlayerList Team="Team.Red" />
                     </div>
                 </div>

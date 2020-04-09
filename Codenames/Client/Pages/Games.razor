@@ -24,7 +24,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var game in games)
+                @foreach (var game in games.OrderByDescending(g => g.StartedAt))
                 {
                     <tr>
                         <td>@game.StartedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
