@@ -2,6 +2,7 @@ using Cloudcrate.AspNetCore.Blazor.Browser.Storage;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace Codenames.Client
 {
@@ -15,7 +16,7 @@ namespace Codenames.Client
             builder.Services.AddBaseAddressHttpClient();
             builder.Services.AddStorage();
 
-            await builder.Build().RunAsync();
+            await builder.Build().UseLocalTimeZone().RunAsync();
         }
     }
 }

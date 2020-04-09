@@ -24,11 +24,11 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var game in games.OrderByDescending(g => g.StartedAt))
+                @foreach (var game in games.OrderByDescending(g => g.StartedAtUtc))
                 {
                     <tr>
-                        <td>@game.StartedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                        <td>@(game.CompletedAt?.ToString("dd/MM/yyyy HH:mm:ss") ?? "In Progress")</td>
+                        <td>@game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        <td>@(game.CompletedAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "In Progress")</td>
                         <td>@(game.Players?.Count ?? 0)</td>
                         <td>@(game.WinnningTeam.ToString() ?? "Undecided")</td>
                         <td>@game.CompletedMessage</td>

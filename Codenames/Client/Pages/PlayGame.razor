@@ -19,7 +19,7 @@ else
             <h6 class="text-white mb-0">Hi @identifiedPlayer.Name, you are playing as @(identifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @identifiedPlayer.Team team.</h6>
         </div>
         <div class="d-inline-block float-right" style="font-size: 0.8em;">
-            <p class="d-inline-block">Started game with @string.Join(", ", game.Players.Select(x => x.Name)) at @game.StartedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="d-inline-block">Started game with @string.Join(", ", game.Players.Select(x => x.Name)) at @game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
     <div class="row">
@@ -111,7 +111,7 @@ else
             }
         </div>
         <div class="col-sm-2 col-lg-2 mt-3 pl-0">
-            <div class="border rounded p-1 card overflow-auto" style="height: @(showRoleChat ? "40vh" :"80vh")">
+            <div class="border rounded p-1 card overflow-auto" style="height: @(showRoleChat ? "40vh" : "80vh")">
                 <div class="card-header">
                     <h5 class="card-title">Global Chat</h5>
                 </div>
@@ -229,7 +229,7 @@ else
                 if (game.CompletedMessage != null)
                 {
                     showCompletionMessage = true;
-                    game.CompletedAt = DateTime.UtcNow;
+                    game.CompletedAtUtc = DateTime.UtcNow;
                 }
                 else
                 {
