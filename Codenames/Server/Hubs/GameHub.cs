@@ -12,7 +12,7 @@ namespace Codenames.Server.Hubs
 
         Task UpdatePlayerIdentificationAsync(string gameId);
 
-        Task SendChatMessageAsync(string chatId, string eventName, ChatMessage chatMessage);
+        Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage);
     }
 
     public class GameHub : Hub, IGameHub
@@ -23,6 +23,6 @@ namespace Codenames.Server.Hubs
 
         public async Task UpdatePlayerIdentificationAsync(string gameId) => await Clients.OthersInGroup(gameId).SendAsync("UpdatePlayerIdentification");
 
-        public async Task SendChatMessageAsync(string chatId, string eventName, ChatMessage chatMessage) => await Clients.OthersInGroup(chatId).SendAsync(eventName, chatMessage);
+        public async Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage) => await Clients.OthersInGroup(chatId).SendAsync(eventName, chatMessage);
     }
 }

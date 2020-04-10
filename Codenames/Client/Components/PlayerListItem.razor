@@ -1,6 +1,4 @@
-﻿@using Codenames.Shared;
-
-@inject LocalStorage Storage
+﻿@inject LocalStorage Storage
 
 <li class="draggable list-group-item" draggable="true" @ondragstart="@(() => HandleDragStart(Player))">
     <h3 class="float-left" style="margin-bottom: 0;">@Player.Name</h3>
