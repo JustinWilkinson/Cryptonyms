@@ -2,7 +2,7 @@
 
 namespace Codenames.Shared
 {
-    public class ChatMessage
+    public class GameMessage
     {
         public DateTime SentAt { get; set; }
 
@@ -10,12 +10,12 @@ namespace Codenames.Shared
 
         public string Message { get; set; }
 
-        public ChatMessage()
+        public GameMessage()
         {
 
         }
 
-        public ChatMessage(string playerName, string message)
+        public GameMessage(string playerName, string message)
         {
             SentAt = DateTime.UtcNow;
             PlayerName = playerName;

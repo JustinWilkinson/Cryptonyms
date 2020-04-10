@@ -1,7 +1,5 @@
 ﻿@page "/PlayGame/{GameId}"
 
-@using Codenames.Client.Components
-@using Codenames.Shared
 @using Microsoft.AspNetCore.SignalR.Client
 
 @inject HttpClient Http
@@ -87,11 +85,11 @@ else
                     <div class="form-inline">
                         <div class="form-group" style="margin-right: 1em;">
                             <label for="Clue" class="font-weight-bold" style="margin-right: 0.5em;">Clue:</label>
-                            <input id="Clue" type="text" @bind-value="currentClue" class="form-control" />
+                            <input id="Clue" type="text" @bind="currentClue" class="form-control" />
                         </div>
                         <div class="form-group" style="margin-right: 1em;">
                             <label for="NumberOfGuesses" class="font-weight-bold" style="margin-right: 0.5em;">Number of words linked:</label>
-                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind-value="currentNumberOfWordsLinked" class="form-control" />
+                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind="currentNumberOfWordsLinked" @oninput="e => currentNumberOfWordsLinked = Convert.ToInt32(e.Value)" class="form-control" />
                         </div>
                         <button type="button" class="btn btn-primary" @onclick="GiveClueAsync">Give clue</button>
                         @if (clueErrorMessage != null)
@@ -105,17 +103,16 @@ else
             {
                 <div class="row" style="padding: 1em;">
                     <div class="form-inline">
-                        <button class="btn btn-danger" @onclick="PassTurnAsync">Pass</button>
+                        <button class="btn btn-@(identifiedPlayer.Team == Team.Red ? "danger" : "primary")" @onclick="PassTurnAsync">Pass</button>
                     </div>
                 </div>
             }
         </div>
         <div class="col-sm-2 col-lg-2 mt-3 pl-0">
-            <Chat Id="GlobalChat" Title="Global Chat" ChatId="@GameId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="@(showRoleChat ? "40vh" : "80vh")" />
+            <MessageBoard Id="GlobalChat" Title="Global Chat" MessageBoardId="@GameId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="@(showRoleChat ? "40vh" : "80vh")" />
             @if (showRoleChat)
             {
-                <Chat Id="RoleChat" Title="@(identifiedPlayer.IsSpymaster ? "Spymaster" : $"{identifiedPlayer.Team} Team Guessers")" 
-                      ChatId="@roleChatId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="40vh" AdditionalStyleClass="mt-2"/>
+                <MessageBoard Id="RoleChat" Title="@(identifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{identifiedPlayer.Team} Guessers Chat")" MessageBoardId="@roleChatId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="40vh" AdditionalStyleClass="mt-2"/>
             }
         </div>
     </div>

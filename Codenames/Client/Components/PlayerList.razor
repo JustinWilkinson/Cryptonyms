@@ -1,6 +1,4 @@
-﻿@using Codenames.Shared;
-
-<h4 class="@(Team == null ? "" : "text-white")">@(Team == null ? "All Players" : $"{Team} Team")</h4>
+﻿<h4 class="@(Team == null ? "" : "text-white")">@(Team == null ? "All Players" : $"{Team} Team")</h4>
 <ul class="dropzone @dropClass list-group" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="HandleDrop" @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave">
     @foreach (var player in players)
     {

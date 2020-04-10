@@ -1,10 +1,9 @@
-﻿@using Codenames.Shared
-@using Microsoft.AspNetCore.SignalR.Client
+﻿@using Microsoft.AspNetCore.SignalR.Client
 
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
-@if (_chatMessages == null)
+@if (_gameMessages == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -16,25 +15,25 @@ else
         </div>
         <div id="@Id" class="card-body overflow-auto p-0">
             <ul class="list-group">
-                @foreach (var chatMessage in _chatMessages.OrderBy(c => c.SentAt))
+                @foreach (var gameMessage in _gameMessages.OrderBy(c => c.SentAt))
                 {
-                    <li class="list-group-item small" title="Sent at @chatMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
-                        <span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message
+                    <li class="list-group-item small" title="Sent at @gameMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
+                        <span class="font-weight-bold">@gameMessage.PlayerName:</span> @gameMessage.Message
                     </li>
                 }
             </ul>
         </div>
         <div class="card-footer">
-            <input id="newGlobalMessage" type="text" class="form-control" style="width: 100%;" value="@newMessage" @oninput="e => newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" />
+            <input id="@($"new{Id}")" type="text" class="form-control" style="width: 100%;" value="@newMessage" @oninput="e => newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" />
         </div>
     </div>
 }
 
 @code {
-    private List<ChatMessage> _chatMessages;
+    private List<GameMessage> _gameMessages;
 
     [Parameter]
-    public string ChatId { get; set; }
+    public string MessageBoardId { get; set; }
 
     [Parameter]
     public HubConnection HubConnection { get; set; }
@@ -58,18 +57,21 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _chatMessages = JsonConvert.DeserializeObject<List<ChatMessage>>(await Http.GetStringAsync($"api/Chat/GetMessagesForChat?chatId={ChatId}"));
+        _gameMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={MessageBoardId}"));
 
-        HubConnection.On<ChatMessage>(Id, chatMessage =>
+        HubConnection.On<GameMessage>(Id, gameMessage =>
         {
-            _chatMessages.Add(chatMessage);
+            _gameMessages.Add(gameMessage);
             StateHasChanged();
         });
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+        if (!firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+        }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -80,15 +82,15 @@ else
         }
         else if (e.Key == "Enter")
         {
-            await SendChatMessageAsync();
+            await SendGameMessageAsync();
         }
     }
 
-    private async Task SendChatMessageAsync()
+    private async Task SendGameMessageAsync()
     {
-        var chatMessage = new ChatMessage(PlayerName, newMessage);
-        _chatMessages.Add(chatMessage);
-        await Task.WhenAll(Http.PutJsonAsync("api/Chat/AddMessage", new { ChatId = ChatId, ChatMessage = JsonConvert.SerializeObject(chatMessage) }), HubConnection.InvokeAsync("SendChatMessageAsync", ChatId, Id, chatMessage));
+        var gameMessage = new GameMessage(PlayerName, newMessage);
+        _gameMessages.Add(gameMessage);
+        await Task.WhenAll(Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = MessageBoardId, GameMessage = JsonConvert.SerializeObject(gameMessage) }), HubConnection.InvokeAsync("SendGameMessageAsync", MessageBoardId, Id, gameMessage));
         await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
         newMessage = null;
     }
