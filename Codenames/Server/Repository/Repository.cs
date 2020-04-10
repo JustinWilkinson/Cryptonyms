@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Codenames.Server.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
@@ -62,6 +63,11 @@ namespace Codenames.Server.Repository
             {
                 yield return converter(reader);
             }
+        }
+
+        public Func<SQLiteDataReader, T> DeserializeColumn<T>(string columnName)
+        {
+            return reader => reader[columnName].ToString().Deserialize<T>();
         }
     }
 }
