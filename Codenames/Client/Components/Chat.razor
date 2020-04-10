@@ -3,7 +3,7 @@
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
-@if (_gameMessages == null)
+@if (_chatMessages == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -15,10 +15,10 @@ else
         </div>
         <div id="@Id" class="card-body overflow-auto p-0">
             <ul class="list-group">
-                @foreach (var gameMessage in _gameMessages.OrderBy(c => c.SentAt))
+                @foreach (var chatMessage in _chatMessages.OrderBy(c => c.SentAt))
                 {
-                    <li class="list-group-item small" title="Sent at @gameMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
-                        <span class="font-weight-bold">@gameMessage.PlayerName:</span> @gameMessage.Message
+                    <li class="list-group-item small" title="Sent at @chatMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
+                        <span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message
                     </li>
                 }
             </ul>
@@ -30,16 +30,19 @@ else
 }
 
 @code {
-    private List<GameMessage> _gameMessages;
+    private List<GameMessage> _chatMessages;
 
-    [Parameter]
-    public string MessageBoardId { get; set; }
-
-    [Parameter]
+    [CascadingParameter]
     public HubConnection HubConnection { get; set; }
 
+    [CascadingParameter]
+    public Player Player { get; set; }
+
     [Parameter]
-    public string PlayerName { get; set; }
+    public string OverrideHubGroup { get; set; }
+
+    [Parameter]
+    public string ChatId { get; set; }
 
     [Parameter]
     public string Title { get; set; }
@@ -57,11 +60,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _gameMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={MessageBoardId}"));
+        _chatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={ChatId}"));
 
-        HubConnection.On<GameMessage>(Id, gameMessage =>
+        HubConnection.On<GameMessage>(Id, chatMessage =>
         {
-            _gameMessages.Add(gameMessage);
+            _chatMessages.Add(chatMessage);
             StateHasChanged();
         });
     }
@@ -82,15 +85,17 @@ else
         }
         else if (e.Key == "Enter")
         {
-            await SendGameMessageAsync();
+            await SendChatMessageAsync();
         }
     }
 
-    private async Task SendGameMessageAsync()
+    private async Task SendChatMessageAsync()
     {
-        var gameMessage = new GameMessage(PlayerName, newMessage);
-        _gameMessages.Add(gameMessage);
-        await Task.WhenAll(Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = MessageBoardId, GameMessage = JsonConvert.SerializeObject(gameMessage) }), HubConnection.InvokeAsync("SendGameMessageAsync", MessageBoardId, Id, gameMessage));
+        var chatMessage = new GameMessage(Player.Name, newMessage);
+        _chatMessages.Add(chatMessage);
+        await Task.WhenAll(
+            Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
+            HubConnection.InvokeAsync("SendGameMessageAsync", OverrideHubGroup ?? ChatId, Id, chatMessage));
         await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
         newMessage = null;
     }
