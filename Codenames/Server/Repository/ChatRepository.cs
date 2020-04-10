@@ -21,7 +21,7 @@ namespace Codenames.Server.Repository
 
         public void AddMessage(string chatId, ChatMessage message)
         {
-            var command = new SQLiteCommand("INSERT INTO ChatMessages (ChatId, Name, ChatMessageJson) VALUES (@ChatId, @Name, @Json)");
+            var command = new SQLiteCommand("INSERT INTO ChatMessages (ChatId, ChatMessageJson) VALUES (@ChatId, @Json)");
             command.AddParameter("@ChatId", chatId);
             command.AddParameter("@Json", message.Serialize());
             Execute(command);

@@ -1,12 +1,12 @@
 ﻿@page "/PlayGame/{GameId}"
 
+@using Codenames.Client.Components
 @using Codenames.Shared
 @using Microsoft.AspNetCore.SignalR.Client
 
 @inject HttpClient Http
 @inject LocalStorage Storage
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
 
 @if (game == null)
 {
@@ -91,7 +91,7 @@ else
                         </div>
                         <div class="form-group" style="margin-right: 1em;">
                             <label for="NumberOfGuesses" class="font-weight-bold" style="margin-right: 0.5em;">Number of words linked:</label>
-                            <input id="NumberOfGuesses" type="number" min="1" max="@WordsRemainingForCurrentTeam" @bind-value="currentNumberOfWordsLinked" class="form-control" />
+                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind-value="currentNumberOfWordsLinked" class="form-control" />
                         </div>
                         <button type="button" class="btn btn-primary" @onclick="GiveClueAsync">Give clue</button>
                         @if (clueErrorMessage != null)
@@ -111,40 +111,11 @@ else
             }
         </div>
         <div class="col-sm-2 col-lg-2 mt-3 pl-0">
-            <div class="border rounded p-1 card" style="max-height: @(showRoleChat ? "40vh" : "80vh");">
-                <div class="card-header">
-                    <h5 class="card-title">Game Chat</h5>
-                </div>
-                <div id="globalChat" class="card-body overflow-auto">
-                    <ul class="list-group">
-                        @foreach (var chatMessage in globalChatMessages.OrderBy(c => c.SentAt))
-                        {
-                            <li class="list-group-item"><span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message</li>
-                        }
-                    </ul>
-                </div>
-                <div class="card-footer">
-                    <input id="newGlobalMessage" type="text" class="form-control" style="width: 100%;" value="@newGlobalMessage" @oninput="e => newGlobalMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e, "newGlobalMessage"))" />
-                </div>
-            </div>
+            <Chat Id="GlobalChat" Title="Global Chat" ChatId="@GameId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="@(showRoleChat ? "40vh" : "80vh")" />
             @if (showRoleChat)
             {
-                <div class="border rounded p-1 card mt-2" style="min-height:0; max-height: 40vh;">
-                    <div class="card-header">
-                        <h5 class="card-title">Spymaster Chat</h5>
-                    </div>
-                    <div id="roleChat" class="card-body overflow-auto">
-                        <ul class="list-group">
-                            @foreach (var chatMessage in roleChatMessages.OrderBy(c => c.SentAt))
-                            {
-                                <li class="list-group-item"><span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message</li>
-                            }
-                        </ul>
-                    </div>
-                    <div class="card-footer">
-                        <input id="newRoleMessage" type="text" class="form-control" style="width: 100%;" value="@newRoleMessage" @oninput="e => newRoleMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e, "newRoleMessage"))" />
-                    </div>
-                </div>
+                <Chat Id="RoleChat" Title="@(identifiedPlayer.IsSpymaster ? "Spymaster" : $"{identifiedPlayer.Team} Team Guessers")" 
+                      ChatId="@roleChatId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="40vh" AdditionalStyleClass="mt-2"/>
             }
         </div>
     </div>
@@ -162,13 +133,9 @@ else
     private Player identifiedPlayer;
 
     private string currentClue = null;
-    private int currentNumberOfWordsLinked = 1;
+    private int currentNumberOfWordsLinked = 0;
 
-    private List<ChatMessage> globalChatMessages = new List<ChatMessage>();
-    private List<ChatMessage> roleChatMessages = new List<ChatMessage>();
-    private string newGlobalMessage;
     private bool showRoleChat => identifiedPlayer.IsSpymaster || !identifiedPlayer.IsSpymaster && game.Players.Any(p => p.Team == identifiedPlayer.Team && !p.IsSpymaster && p.Name != identifiedPlayer.Name);
-    private string newRoleMessage;
     private string roleChatId => identifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{identifiedPlayer.Team}Guesser";
 
 
@@ -204,22 +171,9 @@ else
             }
             StateHasChanged();
         });
-        _hubConnection.On<ChatMessage>("NewGlobalMessage", async chatMessage =>
-        {
-            globalChatMessages.Add(chatMessage);
-            StateHasChanged();
-            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "globalChat");
-        });
-        _hubConnection.On<ChatMessage>("NewRoleMessage", async chatMessage =>
-        {
-            roleChatMessages.Add(chatMessage);
-            StateHasChanged();
-            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "roleChat");
-        });
 
         await _hubConnection.StartAsync();
-        await _hubConnection.InvokeAsync("AddToGroupAsync", GameId);
-        await _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId);
+        await Task.WhenAll(_hubConnection.InvokeAsync("AddToGroupAsync", GameId), _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId));
     }
 
     private async Task HandleWordGuessedAsync(int wordIndex)
@@ -336,46 +290,6 @@ else
     private async Task UpdateGameAsync()
     {
         var serializedGame = JsonConvert.SerializeObject(game);
-        await Http.PostJsonAsync("api/Game/Save", serializedGame);
-        await _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame);
-    }
-
-    private async Task HandleKeyDown(KeyboardEventArgs e, string id)
-    {
-        if (e.Key == "Escape")
-        {
-            await JSRuntime.InvokeVoidAsync("codenames.blurElement", id);
-        }
-        else if (e.Key == "Enter")
-        {
-            await SendChatMessageAsync(id);
-        }
-    }
-
-    private async Task SendChatMessageAsync(string id)
-    {
-        if (id == "newRoleMessage")
-        {
-            if (!string.IsNullOrWhiteSpace(newRoleMessage))
-            {
-                var chatMessage = new ChatMessage(identifiedPlayer.Name, newRoleMessage);
-                roleChatMessages.Add(chatMessage);
-                await _hubConnection.InvokeAsync("SendRoleMessageAsync", roleChatId, chatMessage);
-                await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "roleChat");
-                newRoleMessage = null;
-            }
-        }
-        else
-        {
-            if (!string.IsNullOrWhiteSpace(newGlobalMessage))
-            {
-                var chatMessage = new ChatMessage(identifiedPlayer.Name, newGlobalMessage);
-                globalChatMessages.Add(chatMessage);
-                await _hubConnection.InvokeAsync("SendGlobalMessageAsync", GameId, chatMessage);
-                await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "globalChat");
-                newGlobalMessage = null;
-            }
-        }
-        StateHasChanged();
+        await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame));
     }
 }
