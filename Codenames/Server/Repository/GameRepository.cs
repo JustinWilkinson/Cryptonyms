@@ -1,5 +1,5 @@
-﻿using Codenames.Shared;
-using Codenames.Server.Extensions;
+﻿using Codenames.Server.Extensions;
+using Codenames.Shared;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
