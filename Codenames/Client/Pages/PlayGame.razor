@@ -111,38 +111,38 @@ else
             }
         </div>
         <div class="col-sm-2 col-lg-2 mt-3 pl-0">
-            <div class="border rounded p-1 card overflow-auto" style="height: @(showRoleChat ? "40vh" : "80vh")">
+            <div class="border rounded p-1 card" style="max-height: @(showRoleChat ? "40vh" : "80vh");">
                 <div class="card-header">
-                    <h5 class="card-title">Global Chat</h5>
+                    <h5 class="card-title">Game Chat</h5>
                 </div>
-                <div class="card-body">
-                    <ul class="list-group-flush">
-                        @foreach (var message in globalChatMessages)
+                <div id="globalChat" class="card-body overflow-auto">
+                    <ul class="list-group">
+                        @foreach (var chatMessage in globalChatMessages.OrderBy(c => c.SentAt))
                         {
-                            <li><span class="font-weight-bold">@message.Key:</span> @message.Value</li>
+                            <li class="list-group-item"><span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message</li>
                         }
                     </ul>
-                    <div class="form-inline" style="position: absolute; bottom: 10px; left: 10px;">
-                        <input id="newGlobalMessage" type="text" class="form-control" style="width: 100%;" @bind="newGlobalMessage" @onkeydown="@(e => HandleKeyDown(e, "newGlobalMessage"))" />
-                    </div>
+                </div>
+                <div class="card-footer">
+                    <input id="newGlobalMessage" type="text" class="form-control" style="width: 100%;" value="@newGlobalMessage" @oninput="e => newGlobalMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e, "newGlobalMessage"))" />
                 </div>
             </div>
             @if (showRoleChat)
             {
-                <div class="border rounded p-1 card overflow-auto" style="height: 40vh;">
+                <div class="border rounded p-1 card mt-2" style="min-height:0; max-height: 40vh;">
                     <div class="card-header">
                         <h5 class="card-title">Spymaster Chat</h5>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group-flush">
-                            @foreach (var message in roleChatMessages)
+                    <div id="roleChat" class="card-body overflow-auto">
+                        <ul class="list-group">
+                            @foreach (var chatMessage in roleChatMessages.OrderBy(c => c.SentAt))
                             {
-                                <li class="list-group-item"><span class="font-weight-bold">@message.Key:</span> @message.Value</li>
+                                <li class="list-group-item"><span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message</li>
                             }
                         </ul>
-                        <div class="form-inline" style="position: absolute; bottom: 10px; left: 10px;">
-                            <input id="newRoleMessage" type="text" class="form-control" style="width: 100%;" @bind="newRoleMessage" @onkeydown="@(e => HandleKeyDown(e, "newRoleMessage"))"/>
-                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <input id="newRoleMessage" type="text" class="form-control" style="width: 100%;" value="@newRoleMessage" @oninput="e => newRoleMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e, "newRoleMessage"))" />
                     </div>
                 </div>
             }
@@ -164,11 +164,12 @@ else
     private string currentClue = null;
     private int currentNumberOfWordsLinked = 1;
 
-    private Dictionary<string, string> globalChatMessages = new Dictionary<string, string>();
-    private Dictionary<string, string> roleChatMessages = new Dictionary<string, string>();
+    private List<ChatMessage> globalChatMessages = new List<ChatMessage>();
+    private List<ChatMessage> roleChatMessages = new List<ChatMessage>();
     private string newGlobalMessage;
     private bool showRoleChat => identifiedPlayer.IsSpymaster || !identifiedPlayer.IsSpymaster && game.Players.Any(p => p.Team == identifiedPlayer.Team && !p.IsSpymaster && p.Name != identifiedPlayer.Name);
     private string newRoleMessage;
+    private string roleChatId => identifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{identifiedPlayer.Team}Guesser";
 
 
     [Parameter]
@@ -188,6 +189,11 @@ else
             await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = identifiedPlayer }));
         }
 
+        await ConfigureHubAsync();
+    }
+
+    private async Task ConfigureHubAsync()
+    {
         _hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/GameHub")).WithAutomaticReconnect().Build();
         _hubConnection.On<string>("UpdateGame", updatedGame =>
         {
@@ -198,8 +204,22 @@ else
             }
             StateHasChanged();
         });
+        _hubConnection.On<ChatMessage>("NewGlobalMessage", async chatMessage =>
+        {
+            globalChatMessages.Add(chatMessage);
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "globalChat");
+        });
+        _hubConnection.On<ChatMessage>("NewRoleMessage", async chatMessage =>
+        {
+            roleChatMessages.Add(chatMessage);
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "roleChat");
+        });
+
         await _hubConnection.StartAsync();
-        await _hubConnection.InvokeAsync("AddToGameGroupAsync", GameId);
+        await _hubConnection.InvokeAsync("AddToGroupAsync", GameId);
+        await _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId);
     }
 
     private async Task HandleWordGuessedAsync(int wordIndex)
@@ -334,13 +354,14 @@ else
 
     private async Task SendChatMessageAsync(string id)
     {
-        Console.WriteLine(id);
         if (id == "newRoleMessage")
         {
             if (!string.IsNullOrWhiteSpace(newRoleMessage))
             {
-                await _hubConnection.InvokeAsync("SendMessageAsync", $"{GameId}-RoleName", identifiedPlayer.Name, newRoleMessage);
-                roleChatMessages.Add(identifiedPlayer.Name, newRoleMessage);
+                var chatMessage = new ChatMessage(identifiedPlayer.Name, newRoleMessage);
+                roleChatMessages.Add(chatMessage);
+                await _hubConnection.InvokeAsync("SendRoleMessageAsync", roleChatId, chatMessage);
+                await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "roleChat");
                 newRoleMessage = null;
             }
         }
@@ -348,8 +369,10 @@ else
         {
             if (!string.IsNullOrWhiteSpace(newGlobalMessage))
             {
-                await _hubConnection.InvokeAsync("SendMessageAsync", $"{GameId}-Global", identifiedPlayer.Name, newGlobalMessage);
-                globalChatMessages.Add(identifiedPlayer.Name, newGlobalMessage);
+                var chatMessage = new ChatMessage(identifiedPlayer.Name, newGlobalMessage);
+                globalChatMessages.Add(chatMessage);
+                await _hubConnection.InvokeAsync("SendGlobalMessageAsync", GameId, chatMessage);
+                await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "globalChat");
                 newGlobalMessage = null;
             }
         }

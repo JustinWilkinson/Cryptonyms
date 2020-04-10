@@ -175,3 +175,15 @@ app {
         margin: 1em;
     }
 }
+
+.chat-list {
+    display: flex;
+    flex-direction: column-reverse;
+    min-height:0;
+}
+
+.chat-list-parent {
+    /*display: flex;*/
+    /*flex-direction: column-reverse;*/
+    min-height: 0;
+}

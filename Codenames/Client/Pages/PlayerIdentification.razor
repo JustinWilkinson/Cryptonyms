@@ -87,7 +87,6 @@ else
         _hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/GameHub")).WithAutomaticReconnect().Build();
         _hubConnection.On("UpdatePlayerIdentification", async () =>
         {
-            Console.WriteLine("Updating Player Identification information");
             game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
             StateHasChanged();
         });

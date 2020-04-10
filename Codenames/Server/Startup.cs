@@ -31,6 +31,7 @@ namespace Codenames.Server
             services.AddSingleton<IGameRepository, GameRepository>();
             services.AddSingleton<IPlayerRepository, PlayerRepository>();
             services.AddSingleton<IWordRepository, WordRepository>();
+            services.AddSingleton<IChatRepository, ChatRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
