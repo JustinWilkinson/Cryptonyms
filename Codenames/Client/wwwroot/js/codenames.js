@@ -4,5 +4,9 @@
     },
     blurElement: function (id) {
         document.getElementById(id).blur();
+    },
+    scrollToBottomOfElement: function (id) {
+        let element = document.getElementById(id);
+        element.scrollTop = element.scrollHeight;
     }
 }

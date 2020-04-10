@@ -41,12 +41,11 @@
     private async Task HandleDrop()
     {
         dropClass = "";
-        var player = Container.Players.SingleOrDefault(x => x.Name == Container.Payload.Name);
-
-        if (player != null)
+        if (!(Container.Payload.Team == Team))
         {
-            player.Team = Team;
-            await Container.UpdatePlayerAsync(player);
+            Container.Payload.IsSpymaster = false;
+            Container.Payload.Team = Team;
+            await Container.UpdatePlayerAsync(Container.Payload);
         }
     }
 }

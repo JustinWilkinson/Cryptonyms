@@ -1,5 +1,5 @@
-﻿using Codenames.Shared;
-using Codenames.Server.Extensions;
+﻿using Codenames.Server.Extensions;
+using Codenames.Shared;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -53,7 +53,7 @@ namespace Codenames.Server.Repository
             {
                 if (reader.Read())
                 {
-                    var game = reader["GameJson"].ToString().Deserialize<Game>();
+                    var game = DeserializeColumn<Game>("GameJson")(reader);
                     game.Players.SingleOrDefault(p => p.Name == player.Name).Identified = true;
                     var updateCommand = new SQLiteCommand("UPDATE Games SET GameJson = @Json WHERE Id = @Id", connection);
                     updateCommand.AddParameter("@Id", game.GameId);
@@ -68,9 +68,9 @@ namespace Codenames.Server.Repository
         {
             var command = new SQLiteCommand("SELECT GameJson FROM Games WHERE Id = @Id");
             command.AddParameter("@Id", id);
-            return Execute(command, reader => reader["GameJson"].ToString().Deserialize<Game>()).SingleOrDefault();
+            return Execute(command, DeserializeColumn<Game>("GameJson")).SingleOrDefault();
         }
 
-        public IEnumerable<Game> ListGames() => Execute("SELECT * FROM Games", reader => reader["GameJson"].ToString().Deserialize<Game>());
+        public IEnumerable<Game> ListGames() => Execute("SELECT * FROM Games", DeserializeColumn<Game>("GameJson"));
     }
 }

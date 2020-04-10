@@ -1,5 +1,5 @@
-﻿using Codenames.Shared;
-using Codenames.Server.Extensions;
+﻿using Codenames.Server.Extensions;
+using Codenames.Shared;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
@@ -51,14 +51,14 @@ namespace Codenames.Server.Repository
             var command = new SQLiteCommand("SELECT PlayerJson FROM Players WHERE DeviceId = @DeviceId AND Name = @Name");
             command.AddParameter("@DeviceId", deviceId);
             command.AddParameter("@Name", name);
-            return Execute(command, reader => reader["PlayerJson"].ToString().Deserialize<Player>()).SingleOrDefault();
+            return Execute(command, DeserializeColumn<Player>("PlayerJson")).SingleOrDefault();
         }
 
         public IEnumerable<Player> GetPlayers(string deviceId)
         {
             var command = new SQLiteCommand("SELECT PlayerJson FROM Players WHERE DeviceId = @DeviceId");
             command.AddParameter("@DeviceId", deviceId);
-            return Execute(command, reader => reader["PlayerJson"].ToString().Deserialize<Player>());
+            return Execute(command, DeserializeColumn<Player>("PlayerJson"));
         }
 
         public void ReplacePlayers(string deviceId, IEnumerable<Player> players)

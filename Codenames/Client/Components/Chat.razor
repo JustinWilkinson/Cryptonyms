@@ -1,0 +1,95 @@
+﻿@using Codenames.Shared
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+@if (_chatMessages == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="border rounded p-1 card @AdditionalStyleClass" style="max-height: @MaxHeight;">
+        <div class="card-header">
+            <h5 class="card-title">@Title</h5>
+        </div>
+        <div id="@Id" class="card-body overflow-auto p-0">
+            <ul class="list-group">
+                @foreach (var chatMessage in _chatMessages.OrderBy(c => c.SentAt))
+                {
+                    <li class="list-group-item small" title="Sent at @chatMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
+                        <span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="card-footer">
+            <input id="newGlobalMessage" type="text" class="form-control" style="width: 100%;" value="@newMessage" @oninput="e => newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" />
+        </div>
+    </div>
+}
+
+@code {
+    private List<ChatMessage> _chatMessages;
+
+    [Parameter]
+    public string ChatId { get; set; }
+
+    [Parameter]
+    public HubConnection HubConnection { get; set; }
+
+    [Parameter]
+    public string PlayerName { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public string MaxHeight { get; set; }
+
+    [Parameter]
+    public string AdditionalStyleClass { get; set; }
+
+    private string newMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chatMessages = JsonConvert.DeserializeObject<List<ChatMessage>>(await Http.GetStringAsync($"api/Chat/GetMessagesForChat?chatId={ChatId}"));
+
+        HubConnection.On<ChatMessage>(Id, chatMessage =>
+        {
+            _chatMessages.Add(chatMessage);
+            StateHasChanged();
+        });
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            await JSRuntime.InvokeVoidAsync("codenames.blurElement", Id);
+        }
+        else if (e.Key == "Enter")
+        {
+            await SendChatMessageAsync();
+        }
+    }
+
+    private async Task SendChatMessageAsync()
+    {
+        var chatMessage = new ChatMessage(PlayerName, newMessage);
+        _chatMessages.Add(chatMessage);
+        await Task.WhenAll(Http.PutJsonAsync("api/Chat/AddMessage", new { ChatId = ChatId, ChatMessage = JsonConvert.SerializeObject(chatMessage) }), HubConnection.InvokeAsync("SendChatMessageAsync", ChatId, Id, chatMessage));
+        await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+        newMessage = null;
+    }
+}

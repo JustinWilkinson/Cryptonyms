@@ -20,9 +20,9 @@ namespace Codenames.Shared
 
         public string CompletedMessage { get; set; }
 
-        public DateTime StartedAt { get; set; }
+        public DateTime StartedAtUtc { get; set; }
 
-        public DateTime? CompletedAt { get; set; }
+        public DateTime? CompletedAtUtc { get; set; }
 
         public Team? WinnningTeam { get; set; }
 
@@ -39,7 +39,7 @@ namespace Codenames.Shared
             Game game = new Game
             {
                 GameId = Guid.NewGuid(),
-                StartedAt = DateTime.UtcNow,
+                StartedAtUtc = DateTime.UtcNow,
                 Words = new Dictionary<int, string>(),
                 RedWords = new List<int>(),
                 BlueWords = new List<int>(),

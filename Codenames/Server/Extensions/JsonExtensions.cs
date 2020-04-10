@@ -18,7 +18,7 @@ namespace Codenames.Server.Extensions
                 {
                     return JsonConvert.DeserializeObject<T>(property.GetString());
                 }
-                else 
+                else
                 {
                     propertyName = propertyName.Length > 1 ? $"{char.ToLowerInvariant(propertyName[0])}{propertyName.Substring(1)}" : propertyName.ToLowerInvariant();
                     return json.TryGetProperty(propertyName, out property) ? JsonConvert.DeserializeObject<T>(property.GetString()) : default;

@@ -1,6 +1,6 @@
-﻿using Codenames.Shared;
-using Codenames.Server.Extensions;
+﻿using Codenames.Server.Extensions;
 using Codenames.Server.Repository;
+using Codenames.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;

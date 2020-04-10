@@ -1,5 +1,6 @@
 ﻿@page "/PlayGame/{GameId}"
 
+@using Codenames.Client.Components
 @using Codenames.Shared
 @using Microsoft.AspNetCore.SignalR.Client
 
@@ -15,98 +16,108 @@ else
 {
     <div class="d-inline-block" style="width: 100%;">
         <div class="@(identifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") d-inline-block rounded float-left" style="padding: 0.25em;">
-            <h6 class="text-white mb-0">Hi @identifiedPlayer.Name, you are playing as @(identifiedPlayer.IsSpymaster ? "the Spymaster" : "a guesser") on the @identifiedPlayer.Team team.</h6>
+            <h6 class="text-white mb-0">Hi @identifiedPlayer.Name, you are playing as @(identifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @identifiedPlayer.Team team.</h6>
         </div>
         <div class="d-inline-block float-right" style="font-size: 0.8em;">
-            <p class="d-inline-block">Started game with @string.Join(", ", game.Players.Select(x => x.Name)) at @game.StartedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="d-inline-block">Started game with @string.Join(", ", game.Players.Select(x => x.Name)) at @game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
-    <div class="container">
-        @if (game.CompletedMessage != null && showCompletionMessage)
-        {
-            <div class="modal" tabindex="-1" style="display:block;" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Game Over!</h5>
-                            <button type="button" class="close" @onclick="ClosePopup"><span aria-hidden="true">X</span></button>
-                        </div>
-                        <div class="modal-body">
-                            <h6>@game.CompletedMessage</h6>
+    <div class="row">
+        <div class="col-sm-10 col-lg-10 pr-0">
+            @if (game.CompletedMessage != null && showCompletionMessage)
+            {
+                <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Game Over!</h5>
+                                <button type="button" class="close" @onclick="ClosePopup"><span aria-hidden="true">X</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6>@game.CompletedMessage</h6>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-        <div class="row">
-            <div class="col-sm-2 col-lg-2 card bg-primary padded-card">
-                <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@BlueWordsRemaining words left</div>
-            </div>
-            <div class="col-sm-1 col-lg-1 padded-card"></div>
-            <div class="col-sm-4 col-lg-4 padded-card border border-secondary rounded">
-                <div class="card-body text-center font-weight-bold" style="padding: 0;">
-                    @if (game.CurrentTurn.Clue != null)
-                    {
-                        <span>@game.CurrentTurn.Team.ToString() team's turn: @(game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{game.CurrentTurn.Clue} - {game.CurrentTurn.NumberOfGuesses - 1}")</span>
-                    }
-                    else
-                    {
-                        <span>@game.CurrentTurn.Team.ToString() team's turn</span>
-                    }
-                </div>
-            </div>
-            <div class="col-sm-1 col-lg-1 padded-card"></div>
-            <div class="col-sm-2 col-lg-2 card bg-danger padded-card">
-                <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@RedWordsRemaining words left</div>
-            </div>
-        </div>
-        @for (var i = 0; i < 5; i++)
-        {
+            }
             <div class="row">
-                @for (var j = 0; j < 5; j++)
-                {
-                    var wordIndex = 5 * i + j;
-                    if (game.GuessedWords.Contains(wordIndex))
+                <div class="col-sm-2 col-lg-2 card bg-primary padded-card">
+                    <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@BlueWordsRemaining words left</div>
+                </div>
+                <div class="col-sm-1 col-lg-1 padded-card"></div>
+                <div class="col-sm-4 col-lg-4 padded-card border border-secondary rounded">
+                    <div class="card-body text-center font-weight-bold" style="padding: 0;">
+                        @if (game.CurrentTurn.Clue != null)
+                        {
+                            <span>@game.CurrentTurn.Team.ToString() team's turn: @(game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{game.CurrentTurn.Clue} - {game.CurrentTurn.NumberOfGuesses - 1}")</span>
+                        }
+                        else
+                        {
+                            <span>@game.CurrentTurn.Team.ToString() team's turn</span>
+                        }
+                    </div>
+                </div>
+                <div class="col-sm-1 col-lg-1 padded-card"></div>
+                <div class="col-sm-2 col-lg-2 card bg-danger padded-card">
+                    <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@RedWordsRemaining words left</div>
+                </div>
+            </div>
+            @for (var i = 0; i < 5; i++)
+            {
+                <div class="row">
+                    @for (var j = 0; j < 5; j++)
                     {
-                        <div class="col-sm-2 col-lg-2 card @GetBackgroundColourClass(wordIndex) empty-padded-card"></div>
+                        var wordIndex = 5 * i + j;
+                        if (game.GuessedWords.Contains(wordIndex))
+                        {
+                            <div class="col-sm-2 col-lg-2 card @GetBackgroundColourClass(wordIndex) empty-padded-card"></div>
+                        }
+                        else
+                        {
+                            <div class="col-sm-2 col-lg-2 card padded-card @GetBackgroundColourClassForSpymaster(wordIndex)" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                                <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@game.Words[wordIndex]</div>
+                            </div>
+                        }
                     }
-                    else
-                    {
-                        <div class="col-sm-2 col-lg-2 card padded-card @GetBackgroundColourClassForSpymaster(wordIndex)" @onclick="e => HandleWordGuessedAsync(wordIndex)">
-                            <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@game.Words[wordIndex]</div>
+                </div>
+            }
+            @if (game.CurrentTurn.Clue == null && identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
+            {
+                <div class="row" style="padding: 1em;">
+                    <div class="form-inline">
+                        <div class="form-group" style="margin-right: 1em;">
+                            <label for="Clue" class="font-weight-bold" style="margin-right: 0.5em;">Clue:</label>
+                            <input id="Clue" type="text" @bind-value="currentClue" class="form-control" />
                         </div>
-                    }
-                }
-            </div>
-        }
-        @if (game.CurrentTurn.Clue == null && identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
-        {
-            <div class="row" style="padding: 1em;">
-                <div class="form-inline">
-                    <div class="form-group" style="margin-right: 1em;">
-                        <label for="Clue" class="font-weight-bold" style="margin-right: 0.5em;">Clue:</label>
-                        <input id="Clue" type="text" @bind-value="currentClue" class="form-control" />
+                        <div class="form-group" style="margin-right: 1em;">
+                            <label for="NumberOfGuesses" class="font-weight-bold" style="margin-right: 0.5em;">Number of words linked:</label>
+                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind-value="currentNumberOfWordsLinked" class="form-control" />
+                        </div>
+                        <button type="button" class="btn btn-primary" @onclick="GiveClueAsync">Give clue</button>
+                        @if (clueErrorMessage != null)
+                        {
+                            <label class="text-danger" style="margin-left: 0.5em;">@clueErrorMessage</label>
+                        }
                     </div>
-                    <div class="form-group" style="margin-right: 1em;">
-                        <label for="NumberOfGuesses" class="font-weight-bold" style="margin-right: 0.5em;">Number of words linked:</label>
-                        <input id="NumberOfGuesses" type="number" min="1" max="@WordsRemainingForCurrentTeam" @bind-value="currentNumberOfWordsLinked" class="form-control" />
+                </div>
+            }
+            else if (game.CurrentTurn.Clue != null && !identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
+            {
+                <div class="row" style="padding: 1em;">
+                    <div class="form-inline">
+                        <button class="btn btn-danger" @onclick="PassTurnAsync">Pass</button>
                     </div>
-                    <button type="button" class="btn btn-primary" @onclick="GiveClueAsync">Give clue</button>
-                    @if (clueErrorMessage != null)
-                    {
-                        <label class="text-danger" style="margin-left: 0.5em;">@clueErrorMessage</label>
-                    }
                 </div>
-            </div>
-        }
-        else if (game.CurrentTurn.Clue != null && !identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
-        {
-            <div class="row" style="padding: 1em;">
-                <div class="form-inline">
-                    <button class="btn btn-danger" @onclick="PassTurnAsync">Pass</button>
-                </div>
-            </div>
-        }
+            }
+        </div>
+        <div class="col-sm-2 col-lg-2 mt-3 pl-0">
+            <Chat Id="GlobalChat" Title="Global Chat" ChatId="@GameId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="@(showRoleChat ? "40vh" : "80vh")" />
+            @if (showRoleChat)
+            {
+                <Chat Id="RoleChat" Title="@(identifiedPlayer.IsSpymaster ? "Spymaster" : $"{identifiedPlayer.Team} Team Guessers")" 
+                      ChatId="@roleChatId" PlayerName="@identifiedPlayer.Name" HubConnection="_hubConnection" MaxHeight="40vh" AdditionalStyleClass="mt-2"/>
+            }
+        </div>
     </div>
 }
 
@@ -122,7 +133,11 @@ else
     private Player identifiedPlayer;
 
     private string currentClue = null;
-    private int currentNumberOfWordsLinked = 1;
+    private int currentNumberOfWordsLinked = 0;
+
+    private bool showRoleChat => identifiedPlayer.IsSpymaster || !identifiedPlayer.IsSpymaster && game.Players.Any(p => p.Team == identifiedPlayer.Team && !p.IsSpymaster && p.Name != identifiedPlayer.Name);
+    private string roleChatId => identifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{identifiedPlayer.Team}Guesser";
+
 
     [Parameter]
     public string GameId { get; set; }
@@ -141,6 +156,11 @@ else
             await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = identifiedPlayer }));
         }
 
+        await ConfigureHubAsync();
+    }
+
+    private async Task ConfigureHubAsync()
+    {
         _hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/GameHub")).WithAutomaticReconnect().Build();
         _hubConnection.On<string>("UpdateGame", updatedGame =>
         {
@@ -151,8 +171,9 @@ else
             }
             StateHasChanged();
         });
+
         await _hubConnection.StartAsync();
-        await _hubConnection.InvokeAsync("AddToGameGroupAsync", GameId);
+        await Task.WhenAll(_hubConnection.InvokeAsync("AddToGroupAsync", GameId), _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId));
     }
 
     private async Task HandleWordGuessedAsync(int wordIndex)
@@ -182,7 +203,7 @@ else
                 if (game.CompletedMessage != null)
                 {
                     showCompletionMessage = true;
-                    game.CompletedAt = DateTime.UtcNow;
+                    game.CompletedAtUtc = DateTime.UtcNow;
                 }
                 else
                 {
@@ -258,7 +279,9 @@ else
         else
         {
             game.CurrentTurn.Clue = currentClue;
+            currentClue = null;
             game.CurrentTurn.NumberOfGuesses = currentNumberOfWordsLinked + 1;
+            currentNumberOfWordsLinked = 0;
             clueErrorMessage = null;
             await UpdateGameAsync();
         }
@@ -267,7 +290,6 @@ else
     private async Task UpdateGameAsync()
     {
         var serializedGame = JsonConvert.SerializeObject(game);
-        await Http.PostJsonAsync("api/Game/Save", serializedGame);
-        await _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame);
+        await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame));
     }
 }

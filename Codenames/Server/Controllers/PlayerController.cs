@@ -1,6 +1,6 @@
-﻿using Codenames.Shared;
-using Codenames.Server.Extensions;
+﻿using Codenames.Server.Extensions;
 using Codenames.Server.Repository;
+using Codenames.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -42,7 +42,7 @@ namespace Codenames.Server.Controllers
         public string RandomiseTeams(string deviceId)
         {
             var currentPlayers = _playerRepository.GetPlayers(deviceId).ToList();
-            var minPlayersPerTeam = (int)Math.Round(currentPlayers.Count/2d);
+            var minPlayersPerTeam = (int)Math.Round(currentPlayers.Count / 2d);
             var random = new Random();
 
             var modifiedPlayers = new List<Player>();
