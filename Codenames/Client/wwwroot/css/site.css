@@ -96,13 +96,13 @@ app {
     color: red;
 }
 
-@media (max-width: 1079.98px) {
+@media (max-width: 1439.98px) {
     .main .top-row {
         display: none;
     }
 }
 
-@media (min-width: 1080px) {
+@media (min-width: 1440px) {
     app {
         flex-direction: row;
     }
@@ -131,6 +131,12 @@ app {
     .sidebar .collapse {
         /* Never collapse the sidebar for wide screens */
         display: block;
+    }
+}
+
+@media (min-width: 1490px){
+    .sidebar {
+        width: 250px;
     }
 }
 
