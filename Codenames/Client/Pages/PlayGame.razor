@@ -41,7 +41,7 @@ else
             }
             <div class="row">
                 <div class="col-sm-2 col-lg-2 card bg-primary padded-card">
-                    <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@BlueWordsRemaining words left</div>
+                    <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@BlueWordsRemaining @(BlueWordsRemaining == 1 ? "word" : "words") left</div>
                 </div>
                 <div class="col-sm-1 col-lg-1 padded-card"></div>
                 <div class="col-sm-4 col-lg-4 padded-card border border-secondary rounded">
@@ -58,7 +58,7 @@ else
                 </div>
                 <div class="col-sm-1 col-lg-1 padded-card"></div>
                 <div class="col-sm-2 col-lg-2 card bg-danger padded-card">
-                    <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@RedWordsRemaining words left</div>
+                    <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@RedWordsRemaining @(RedWordsRemaining == 1 ? "word" : "words") left</div>
                 </div>
             </div>
             @for (var i = 0; i < 5; i++)
@@ -100,7 +100,7 @@ else
                     </div>
                 </div>
             }
-            else if (game.CurrentTurn.Clue != null && !identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
+            else if (!game.CompletedAtUtc.HasValue && game.CurrentTurn.Clue != null && !identifiedPlayer.IsSpymaster && identifiedPlayer.Team == game.CurrentTurn.Team)
             {
                 <div class="row" style="padding: 1em;">
                     <div class="form-inline">
@@ -219,7 +219,7 @@ else
                 if (game.Assassin == wordIndex)
                 {
                     game.WinnningTeam = (Team)(1 - game.CurrentTurn.Team);
-                    game.CompletedMessage = $"{identifiedPlayer.Name} bumped into the assasin and was killed!";
+                    game.CompletedMessage = $"{identifiedPlayer.Name} bumped into the assassin and was killed!";
                 }
                 else if (game.BlueWords.All(bw => game.GuessedWords.Contains(bw)))
                 {
