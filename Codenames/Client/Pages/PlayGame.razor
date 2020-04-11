@@ -28,7 +28,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-10 col-lg-10 pr-0">
+        <div class="pl-2 pr-2" style="width: 80%;">
             @if (Game.CompletedMessage != null && showCompletionMessage)
             {
                 <div class="modal" tabindex="-1" style="display:block;" role="dialog">
@@ -46,11 +46,11 @@ else
                 </div>
             }
             <div class="row">
-                <div class="col-sm-2 col-lg-2 card bg-primary padded-card">
+                <div class="col-2 card bg-primary padded-card">
                     <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@BlueWordsRemaining @(BlueWordsRemaining == 1 ? "word" : "words") left</div>
                 </div>
-                <div class="col-sm-1 col-lg-1 padded-card"></div>
-                <div class="col-sm-4 col-lg-4 padded-card border border-secondary rounded">
+                <div class="col-1 padded-card"></div>
+                <div class="col-4 padded-card border border-secondary rounded">
                     <div class="card-body text-center font-weight-bold" style="padding: 0;">
                         @if (Game.CurrentTurn.Clue != null)
                         {
@@ -60,10 +60,16 @@ else
                         {
                             <span>@Game.CurrentTurn.Team.ToString() team's turn</span>
                         }
+                        @if (!Game.CompletedAtUtc.HasValue && Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
+                        {
+                            <div class="d-inline-block ml-2">
+                                <button class="btn btn-@(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary")"style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
+                            </div>
+                        }
                     </div>
                 </div>
-                <div class="col-sm-1 col-lg-1 padded-card"></div>
-                <div class="col-sm-2 col-lg-2 card bg-danger padded-card">
+                <div class="col-1 padded-card"></div>
+                <div class="col-2 card bg-danger padded-card">
                     <div class="card-body text-center font-weight-bold text-white" style="padding: 0;">@RedWordsRemaining @(RedWordsRemaining == 1 ? "word" : "words") left</div>
                 </div>
             </div>
@@ -75,11 +81,11 @@ else
                         var wordIndex = 5 * i + j;
                         if (Game.GuessedWords.Contains(wordIndex))
                         {
-                            <div class="col-sm-2 col-lg-2 card @GetBackgroundColourClass(wordIndex) empty-padded-card"></div>
+                            <div class="col-2 card @GetBackgroundColourClass(wordIndex) empty-padded-card"></div>
                         }
                         else
                         {
-                            <div class="col-sm-2 col-lg-2 card padded-card @GetBackgroundColourClassForSpymaster(wordIndex)" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col-2 card padded-card @GetBackgroundColourClassForSpymaster(wordIndex)" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
@@ -106,25 +112,17 @@ else
                     </div>
                 </div>
             }
-            else if (!Game.CompletedAtUtc.HasValue && Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
-            {
-                <div class="row" style="padding: 1em;">
-                    <div class="form-inline">
-                        <button class="btn btn-@(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary")" @onclick="PassTurnAsync">Pass</button>
-                    </div>
-                </div>
-            }
         </div>
-        <div class="col-sm-2 col-lg-2 mt-3 pl-0">
-            <div class="border rounded p-1 card" style="max-height: @(showRoleChat ? "26.6667vh" : "40vh");">
+        <div style="width: 20%">
+            <div class="border rounded card" style="height: @(showRoleChat ? "26.65vh" : "40vh");">
                 <div class="card-header">
-                    <h5 class="card-title">Game Log</h5>
+                    <h6 class="card-title mb-0">Game Log</h6>
                 </div>
                 <div id="GameLog" class="card-body overflow-auto p-0">
                     <ul class="list-group">
                         @foreach (var gameLogMessage in _gameLogMessages.OrderBy(c => c.SentAt))
                         {
-                            <li class="list-group-item small">
+                            <li class="list-group-item small pt-2 pb-2">
                                 <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm:ss"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
                             </li>
                         }
@@ -133,10 +131,10 @@ else
             </div>
             <CascadingValue Value="_hubConnection">
                 <CascadingValue Value="IdentifiedPlayer">
-                    <Chat Id="GlobalChat" Title="Global Chat" ChatId="@($"{GameId}-Global")" MaxHeight="@(showRoleChat ? "26.6667vh" : "40vh")" AdditionalStyleClass="@(showRoleChat ? "mt-2" : "mt-1")" OverrideHubGroup="@GameId"/>
+                    <Chat Id="GlobalChat" Title="Global Chat" ChatId="@($"{GameId}-Global")" Height="@(showRoleChat ? "26.65vh" : "40vh")" AdditionalStyleClass="@(showRoleChat ? "mt-2" : "mt-1")" OverrideHubGroup="@GameId"/>
                     @if (showRoleChat)
                     {
-                        <Chat Id="RoleChat" Title="@(IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat")" ChatId="@roleChatId" MaxHeight="26.6667vh" AdditionalStyleClass="@(showRoleChat ? "mt-2" : "mt-1")" />
+                        <Chat Id="RoleChat" Title="@(IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat")" ChatId="@roleChatId" Height="26.65vh" AdditionalStyleClass="@(showRoleChat ? "mt-2" : "mt-1")" />
                     }
                 </CascadingValue>
             </CascadingValue>
@@ -255,12 +253,12 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = "incorrectly. Blue team's turn started...";
+                        messageSuffix = "incorrectly. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = "incorrectly. Red team's turn started...";
+                        messageSuffix = "incorrectly. Red team's turn started.";
                     }
                     else
                     {
@@ -270,7 +268,7 @@ else
                         if (Game.CurrentTurn.NumberOfGuesses == 0)
                         {
                             Game.CurrentTurn = new Turn { Team = (Team)(1 - Game.CurrentTurn.Team) };
-                            messageSuffix += $". All guesses used up. {Game.CurrentTurn.Team} team's turn started...";
+                            messageSuffix += $". All guesses used up. {Game.CurrentTurn.Team} team's turn started.";
                         }
                     }
                 }
@@ -283,7 +281,7 @@ else
     private async Task PassTurnAsync()
     {
         Game.CurrentTurn = new Turn { Team = (Team)(1 - Game.CurrentTurn.Team) };
-        await UpdateGameAsync($"passed. {Game.CurrentTurn.Team} team's turn started...");
+        await UpdateGameAsync($"passed. {Game.CurrentTurn.Team} team's turn started.");
     }
 
     private string GetBackgroundColourClass(int wordIndex)
