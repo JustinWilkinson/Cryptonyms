@@ -3,31 +3,23 @@
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
-@if (_chatMessages == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="border rounded card @AdditionalStyleClass" style="height: @Height;">
-        <div class="card-header">
-            <h6 class="card-title mb-0">@Title</h6>
-        </div>
-        <div id="@Id" class="card-body overflow-auto p-0">
-            <ul class="list-group">
-                @foreach (var chatMessage in _chatMessages.OrderBy(c => c.SentAt))
-                {
-                    <li class="list-group-item small pt-2 pb-2" title="Sent at @chatMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
-                        <span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message
-                    </li>
-                }
-            </ul>
-        </div>
-        <div class="card-footer pt-2 pb-2">
-            <input id="@($"new{Id}")" type="text" class="form-control w-100" style="font-size: small;" value="@newMessage" @oninput="e => newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" />
-        </div>
+
+<div class="card border rounded">
+    <div id="@Id" class="overflow-auto p-0" style="height: 71vh;">
+        <ul class="list-group">
+            @foreach (var chatMessage in _chatMessages.OrderBy(c => c.SentAt))
+            {
+                <li class="list-group-item small pt-2 pb-2" title="Sent at @chatMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
+                    <span class="font-weight-bold">@chatMessage.PlayerName:</span> @chatMessage.Message
+                </li>
+            }
+        </ul>
     </div>
-}
+    <div class="card-footer pt-2 pb-2">
+        <input id="@($"new{Id}")" type="text" class="form-control w-100" style="font-size: small;" value="@newMessage" @oninput="e => newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" placeholder="Type a message..." />
+    </div>
+</div>
+
 
 @code {
     private List<GameMessage> _chatMessages;
@@ -50,18 +42,10 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    [Parameter]
-    public string Height { get; set; }
-
-    [Parameter]
-    public string AdditionalStyleClass { get; set; }
-
     private string newMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        _chatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={ChatId}"));
-
         HubConnection.On<GameMessage>(Id, chatMessage =>
         {
             _chatMessages.Add(chatMessage);
