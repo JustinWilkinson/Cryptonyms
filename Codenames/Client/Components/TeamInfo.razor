@@ -1,0 +1,21 @@
+﻿<div class="col card @(Team == Team.Red ? "bg-danger" : "bg-primary") padded-card p-1">
+    <div class="card-body text-white text-center p-0">
+        <div class="font-weight-bold">@WordsRemaining @(WordsRemaining == 1 ? "word" : "words") left</div>
+        <div class="small">Spymaster: @Players.Single(x => x.Team == Team && x.IsSpymaster).Name</div>
+        <div class="small">Guesser@(guesserNames.Count == 1 ? "" : "s"): @string.Join(", ", guesserNames)</div>
+    </div>
+</div>
+
+
+@code{
+    [Parameter]
+    public Team Team { get; set; }
+
+    [Parameter]
+    public int WordsRemaining { get; set; }
+
+    [CascadingParameter]
+    public IEnumerable<Player> Players { get; set; }
+
+    private List<string> guesserNames => Players.Where(x => x.Team == Team && !x.IsSpymaster).Select(x => x.Name).ToList();
+}
