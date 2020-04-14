@@ -32,9 +32,16 @@ else
                         <td>@(game.WinnningTeam.ToString() ?? "Undecided")</td>
                         <td>@game.CompletedMessage</td>
                         <td>
-                            <a href="PlayGame/@game.GameId">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Go to game
-                            </a>
+                            @if (!game.CompletedAtUtc.HasValue)
+                            {
+                                <a href="PlayGame/@game.GameId">
+                                    <span class="oi oi-list-rich" aria-hidden="true"></span> Go to game
+                                </a>
+                            }
+                            else
+                            {
+                                <span>Game Completed</span>
+                            }
                         </td>
                     </tr>
                 }

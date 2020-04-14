@@ -146,15 +146,39 @@ app {
     min-width: 100%,
 }
 
+
+/* Adjustments for various screen widths */
+@media (min-width: 320px) and (max-width: 480px) {
+    app {
+        display: none;
+    }
+
+    .screen-too-small {
+        display: block;
+    }
+}
+
+@media (min-width: 480px) {
+    .screen-too-small {
+        display: none;
+    }
+}
+
 @media(max-width: 1080px) {
     .padded-card {
         padding: 0.5em;
         margin: 0.25em;
+        font-size: small;
     }
 
     .empty-padded-card {
-        padding: 0.75em;
+        padding: 0.75em 0.5em;
         margin: 0.25em;
+        font-size: small;
+    }
+
+    .adjustable-font-size {
+        font-size: small;
     }
 }
 
@@ -162,11 +186,17 @@ app {
     .padded-card {
         padding: 1em;
         margin: 0.5em;
+        font-size: smaller;
     }
 
     .empty-padded-card {
-        padding: 1.5em;
+        padding: 2em 1em;
         margin: 0.5em;
+        font-size: smaller;
+    }
+
+    .adjustable-font-size {
+        font-size: smaller;
     }
 }
 
@@ -177,7 +207,7 @@ app {
     }
 
     .empty-padded-card {
-        padding: 3em;
+        padding: 3em 2em;
         margin: 1em;
     }
 }
