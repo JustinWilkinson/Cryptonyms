@@ -148,7 +148,7 @@ app {
 
 
 /* Adjustments for various screen widths */
-@media (min-width: 320px) and (max-width: 480px) {
+@media (max-width: 480px) {
     app {
         display: none;
     }
@@ -162,45 +162,57 @@ app {
     .screen-too-small {
         display: none;
     }
-}
 
-@media(max-width: 1080px) {
     .padded-card {
-        padding: 0.5em;
-        margin: 0.25em;
-        font-size: small;
+        padding: 2em;
+        margin: 1em;
     }
 
     .empty-padded-card {
-        padding: 0.75em 0.5em;
-        margin: 0.25em;
-        font-size: small;
+        padding: 3em 2em;
+        margin: 1em;
     }
 
     .adjustable-font-size {
-        font-size: small;
+        font-size: x-small;
+    }
+
+    .adjustable-font-size-small {
+        font-size: xx-small;
     }
 }
 
-@media(max-width: 1440px) {
+@media(min-width: 1080px) {
     .padded-card {
-        padding: 1em;
-        margin: 0.5em;
-        font-size: smaller;
+        padding: 2em;
+        margin: 1em;
     }
 
     .empty-padded-card {
-        padding: 2em 1em;
-        margin: 0.5em;
-        font-size: smaller;
+        padding: 3em 2em;
+        margin: 1em;
+    }
+    
+    .adjustable-font-size {
+        font-size: small;
     }
 
+    .adjustable-font-size-small {
+        font-size: x-small;
+    }
+}
+
+@media(min-width: 1440px) {
     .adjustable-font-size {
+        font-size: inherit;
+    }
+
+    .adjustable-font-size-small {
         font-size: smaller;
     }
 }
 
-@media(min-width: 1440.02px) {
+@media(min-width: 1490px) {
     .padded-card {
         padding: 2em;
         margin: 1em;

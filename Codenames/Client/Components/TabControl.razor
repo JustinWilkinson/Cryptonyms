@@ -1,0 +1,40 @@
+﻿@inject IJSRuntime JSRuntime
+
+<CascadingValue Value="this">
+    <div class="btn-group w-100 overflow-auto" role="group">
+        @foreach (TabPage tabPage in _pages)
+        {
+            <button id="@tabPage.ButtonId" type="button" class="btn @GetButtonClass(tabPage) adjustable-font-size-small" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
+        }
+    </div>
+    <div class="w-100">
+        @ChildContent
+    </div>
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public TabPage ActivePage { get; set; }
+
+    private List<TabPage> _pages = new List<TabPage>();
+
+    public void AddPage(TabPage tabPage)
+    {
+        _pages.Add(tabPage);
+        if (_pages.Count == 1)
+        {
+            ActivePage = tabPage;
+        }
+        StateHasChanged();
+    }
+
+    private string GetButtonClass(TabPage page) => page == ActivePage ? "btn-primary" : "btn-secondary";
+
+    private async Task ActivatePage(TabPage page)
+    {
+        ActivePage = page;
+        await JSRuntime.InvokeVoidAsync("codenames.replaceContent", ActivePage.ButtonId, @"\s\(\d\)", "");
+    }
+}

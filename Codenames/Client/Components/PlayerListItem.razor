@@ -1,7 +1,7 @@
 ﻿@inject LocalStorage Storage
 
 <li class="draggable list-group-item" draggable="true" @ondragstart="@(() => HandleDragStart(Player))">
-    <h3 class="float-left" style="margin-bottom: 0;">@Player.Name</h3>
+    <h3 class="float-left mb-0">@Player.Name</h3>
     <div class="float-right">
         @if (Storage.GetItem("playerName") == null && !Player.Identified)
         {
