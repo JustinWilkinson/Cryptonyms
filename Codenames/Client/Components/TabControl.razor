@@ -1,13 +1,15 @@
 ﻿@inject IJSRuntime JSRuntime
 
 <CascadingValue Value="this">
-    <div class="btn-group w-100" role="group">
+    <div class="btn-group w-100 overflow-auto" role="group">
         @foreach (TabPage tabPage in Pages)
         {
             <button type="button" class="btn @GetButtonClass(tabPage) adjustable-font-size-small" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
         }
     </div>
-    @ChildContent
+    <div class="w-100">
+        @ChildContent
+    </div>
 </CascadingValue>
 
 @code {

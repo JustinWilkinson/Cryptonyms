@@ -164,13 +164,13 @@ app {
     }
 
     .padded-card {
-        padding: 0.25em;
-        margin: 0.25em;
+        padding: 2em;
+        margin: 1em;
     }
 
     .empty-padded-card {
-        padding: 1.25em 0.25em;
-        margin: 0.25em;
+        padding: 3em 2em;
+        margin: 1em;
     }
 
     .adjustable-font-size {
@@ -184,13 +184,15 @@ app {
 
 @media(min-width: 1080px) {
     .padded-card {
-        padding: 0.5em;
+        padding: 2em;
+        margin: 1em;
     }
 
     .empty-padded-card {
-        padding: 1.5em 0.5em;
+        padding: 3em 2em;
+        margin: 1em;
     }
-
+    
     .adjustable-font-size {
         font-size: small;
     }
@@ -201,22 +203,12 @@ app {
 }
 
 @media(min-width: 1440px) {
-    .padded-card {
-        padding: 1em;
-        margin: 0.5em;
-    }
-
-    .empty-padded-card {
-        padding: 2em 1em;
-        margin: 0.5em;
-    }
-
     .adjustable-font-size {
-        font-size: smaller;
+        font-size: inherit;
     }
 
     .adjustable-font-size-small {
-        font-size: small;
+        font-size: smaller;
     }
 }
 
@@ -229,13 +221,5 @@ app {
     .empty-padded-card {
         padding: 3em 2em;
         margin: 1em;
-    }
-
-    .adjustable-font-size {
-        font-size: inherit;
-    }
-
-    .adjustable-font-size-small {
-        font-size: smaller;
     }
 }
