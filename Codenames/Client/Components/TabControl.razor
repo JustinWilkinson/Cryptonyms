@@ -2,9 +2,9 @@
 
 <CascadingValue Value="this">
     <div class="btn-group w-100 overflow-auto" role="group">
-        @foreach (TabPage tabPage in Pages)
+        @foreach (TabPage tabPage in _pages)
         {
-            <button type="button" class="btn @GetButtonClass(tabPage) adjustable-font-size-small" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
+            <button id="@tabPage.ButtonId" type="button" class="btn @GetButtonClass(tabPage) adjustable-font-size-small" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
         }
     </div>
     <div class="w-100">
@@ -18,12 +18,12 @@
 
     public TabPage ActivePage { get; set; }
 
-    List<TabPage> Pages = new List<TabPage>();
+    private List<TabPage> _pages = new List<TabPage>();
 
     public void AddPage(TabPage tabPage)
     {
-        Pages.Add(tabPage);
-        if (Pages.Count == 1)
+        _pages.Add(tabPage);
+        if (_pages.Count == 1)
         {
             ActivePage = tabPage;
         }
@@ -32,5 +32,9 @@
 
     private string GetButtonClass(TabPage page) => page == ActivePage ? "btn-primary" : "btn-secondary";
 
-    private void ActivatePage(TabPage page) => ActivePage = page;
+    private async Task ActivatePage(TabPage page)
+    {
+        ActivePage = page;
+        await JSRuntime.InvokeVoidAsync("codenames.replaceContent", ActivePage.ButtonId, @"\s\(\d\)", "");
+    }
 }

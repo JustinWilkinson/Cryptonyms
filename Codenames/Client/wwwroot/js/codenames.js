@@ -1,12 +1,33 @@
 ﻿window.codenames = {
     setFocus: function (id) {
-        document.getElementById(id).focus();
+        let element = document.getElementById(id);
+        if (element) {
+            element.focus();
+        }
     },
     blurElement: function (id) {
-        document.getElementById(id).blur();
+        let element = document.getElementById(id);
+        if (element) {
+            element.blur();
+        }
     },
     scrollToBottomOfElement: function (id) {
         let element = document.getElementById(id);
-        element.scrollTop = element.scrollHeight;
+        if (element) {
+            element.scrollTop = element.scrollHeight;
+        }
+    },
+    appendContent: function (id, content) {
+        let element = document.getElementById(id);
+        if (element) {
+            element.insertAdjacentHTML('beforeend', content);
+        }
+    },
+    replaceContent: function (id, regex, newContent) {
+        let element = document.getElementById(id);
+        console.log('replacing')
+        if (element) {            
+            element.innerText = element.innerText.replace(new RegExp(regex), newContent);
+        }
     }
 }
