@@ -25,7 +25,6 @@
     },
     replaceContent: function (id, regex, newContent) {
         let element = document.getElementById(id);
-        console.log('replacing')
         if (element) {            
             element.innerText = element.innerText.replace(new RegExp(regex), newContent);
         }
