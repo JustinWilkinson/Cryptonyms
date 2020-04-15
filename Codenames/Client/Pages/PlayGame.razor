@@ -48,7 +48,7 @@ else
             <div class="row adjustable-font-size">
                 <CascadingValue Value="Game.Players">
                     <TeamInfo Team="Team.Blue" WordsRemaining="BlueWordsRemaining" />
-                    <div class="col card border border-secondary rounded padded-card p-1">
+                    <div class="col card border border-secondary rounded padded-card adjustable-font-size p-1">
                         <div class="card-body text-center font-weight-bold">
                             @if (Game.CurrentTurn.Clue != null)
                             {
@@ -77,11 +77,11 @@ else
                         var wordIndex = 5 * i + j;
                         if (Game.GuessedWords.Contains(wordIndex))
                         {
-                            <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card"></div>
+                            <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card adjustable-font-size"></div>
                         }
                         else
                         {
-                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex)" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
@@ -97,13 +97,13 @@ else
                             <input id="Clue" type="text" @bind="currentClue" class="form-control adjustable-font-size" />
                         </div>
                         <div class="form-group mr-3">
-                            <label for="NumberOfGuesses" class="font-weight-bold" style="margin-right: 0.5em;">Number of words linked:</label>
+                            <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
                             <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind="currentNumberOfWordsLinked" @oninput="e => currentNumberOfWordsLinked = Convert.ToInt32(e.Value)" class="form-control adjustable-font-size" />
                         </div>
                         <button type="button" class="btn btn-primary adjustable-font-size" @onclick="GiveClueAsync">Give clue</button>
                         @if (clueErrorMessage != null)
                         {
-                            <label class="text-danger" style="margin-left: 0.5em;">@clueErrorMessage</label>
+                            <label class="text-danger ml-2">@clueErrorMessage</label>
                         }
                     </div>
                 </div>

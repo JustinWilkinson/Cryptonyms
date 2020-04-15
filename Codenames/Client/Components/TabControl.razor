@@ -1,8 +1,10 @@
-﻿<CascadingValue Value="this">
+﻿@inject IJSRuntime JSRuntime
+
+<CascadingValue Value="this">
     <div class="btn-group w-100" role="group">
         @foreach (TabPage tabPage in Pages)
         {
-            <button type="button" class="btn @GetButtonClass(tabPage)" style="font-size: small;" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
+            <button type="button" class="btn @GetButtonClass(tabPage) adjustable-font-size-small" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
         }
     </div>
     @ChildContent

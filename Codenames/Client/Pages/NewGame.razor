@@ -68,14 +68,14 @@ else
         </div>
         <div class="row" style="height: 75vh;">
             <TeamContainer Players="players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@deviceId">
-                <div class="col-sm-6 col-lg-6 border" style="padding: 1em; height: calc(94% + 1em);">
+                <div class="col-sm-6 col-lg-6 border p-3" style="height: calc(94% + 1em);">
                     <PlayerList Team="null" />
                 </div>
                 <div class="col-sm-6 col-lg-6">
-                    <div class="bg-primary overflow-auto" style="height: 47%; padding: 1em; margin-bottom: 1em;">
+                    <div class="bg-primary overflow-auto p-3 mb-3" style="height: 47%;">
                         <PlayerList Team="Team.Blue" />
                     </div>
-                    <div class="bg-danger overflow-auto" style="height: 47%; padding: 1em;">
+                    <div class="bg-danger overflow-auto p-3" style="height: 47%;">
                         <PlayerList Team="Team.Red" />
                     </div>
                 </div>
