@@ -70,12 +70,15 @@ else
 
     private async Task SendChatMessageAsync()
     {
-        var chatMessage = new GameMessage(Player.Name, newMessage);
-        ChatMessages.Add(chatMessage);
-        await Task.WhenAll(
-            Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
-            HubConnection.InvokeAsync("SendGameMessageAsync", OverrideHubGroup ?? ChatId, Id, chatMessage));
-        await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
-        newMessage = null;
+        if (!string.IsNullOrWhiteSpace(newMessage))
+        {
+            var chatMessage = new GameMessage(Player.Name, newMessage);
+            ChatMessages.Add(chatMessage);
+            await Task.WhenAll(
+                Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
+                HubConnection.InvokeAsync("SendGameMessageAsync", OverrideHubGroup ?? ChatId, Id, chatMessage));
+            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+            newMessage = null;
+        }
     }
 }

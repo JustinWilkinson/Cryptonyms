@@ -16,6 +16,9 @@
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
+    [Parameter]
+    public EventCallback<TabPage> OnTabSelected { get; set; }
+
     public TabPage ActivePage { get; set; }
 
     private List<TabPage> _pages = new List<TabPage>();
@@ -35,6 +38,7 @@
     private async Task ActivatePage(TabPage page)
     {
         ActivePage = page;
-        await JSRuntime.InvokeVoidAsync("codenames.replaceContent", ActivePage.ButtonId, @"\s\(\d\)", "");
+        await OnTabSelected.InvokeAsync(ActivePage);
+        ActivePage.OnTabSelected.Invoke();
     }
 }
