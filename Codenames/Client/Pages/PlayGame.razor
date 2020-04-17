@@ -212,7 +212,7 @@ else
                 await JSRuntime.InvokeVoidAsync("codenames.appendContent", "GlobalChatTab", $" ({_unreadGlobalMessageCount})");
             }
 
-            if (_unreadGameLogMessageCount > 0)
+            if (_unreadRoleMessageCount > 0)
             {
                 await JSRuntime.InvokeVoidAsync("codenames.appendContent", "RoleChatTab", $" ({_unreadRoleMessageCount})");
             }
