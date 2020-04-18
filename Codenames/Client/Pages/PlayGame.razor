@@ -52,13 +52,13 @@ else
                         <div class="card-body text-center font-weight-bold">
                             @if (Game.CurrentTurn.Clue != null)
                             {
-                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}")</span>
+                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
                             }
                             else
                             {
                                 <span>@Game.CurrentTurn.Team.ToString() team's turn</span>
                             }
-                            @if (!Game.CompletedAtUtc.HasValue && Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
+                            @if (!Game.CompletedAtUtc.HasValue && identifiedAsCurrentTeamGuesserWithClue)
                             {
                                 <div class="d-inline-block ml-2">
                                     <button class="btn btn-@(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary") adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
@@ -81,7 +81,7 @@ else
                         }
                         else
                         {
-                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size" style="cursor: @(identifiedAsCurrentTeamGuesser ? "pointer" :"");" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size" style="cursor: @(identifiedAsCurrentTeamGuesserWithClue ? "pointer" :"");" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
@@ -169,7 +169,7 @@ else
     private bool showRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
     private string roleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
     private string roleChatName => IdentifiedPlayer.IsSpymaster? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
-    private bool identifiedAsCurrentTeamGuesser => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
+    private bool identifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
 
     [Parameter]
     public string GameId { get; set; }
@@ -263,7 +263,7 @@ else
 
     private async Task HandleWordGuessedAsync(int wordIndex)
     {
-        if (identifiedAsCurrentTeamGuesser)
+        if (identifiedAsCurrentTeamGuesserWithClue)
         {
             Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses - 1;
 
@@ -299,12 +299,12 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = "incorrectly. Blue team's turn started.";
+                        messageSuffix = $"incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(red)")}. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = "incorrectly. Red team's turn started.";
+                        messageSuffix = $"incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(blue)")}. Blue team's turn started.";
                     }
                     else
                     {
@@ -374,7 +374,8 @@ else
         else
         {
             Game.CurrentTurn.Clue = currentClue;
-            Game.CurrentTurn.NumberOfGuesses = currentNumberOfWordsLinked + 1;
+            Game.CurrentTurn.InitialNumberOfGuesses = currentNumberOfWordsLinked + 1;
+            Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.InitialNumberOfGuesses;
             await UpdateGameAsync($"gave clue: {currentClue} for {currentNumberOfWordsLinked}.");
             currentClue = null;
             currentNumberOfWordsLinked = 0;
