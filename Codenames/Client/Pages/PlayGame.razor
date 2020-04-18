@@ -52,7 +52,7 @@ else
                         <div class="card-body text-center font-weight-bold">
                             @if (Game.CurrentTurn.Clue != null)
                             {
-                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
+                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
                             }
                             else
                             {
