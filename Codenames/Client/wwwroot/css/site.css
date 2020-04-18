@@ -182,17 +182,7 @@ app {
     }
 }
 
-@media(min-width: 1080px) {
-    .padded-card {
-        padding: 2em;
-        margin: 1em;
-    }
-
-    .empty-padded-card {
-        padding: 3em 2em;
-        margin: 1em;
-    }
-    
+@media(min-width: 1080px) {    
     .adjustable-font-size {
         font-size: small;
     }
@@ -209,17 +199,5 @@ app {
 
     .adjustable-font-size-small {
         font-size: smaller;
-    }
-}
-
-@media(min-width: 1490px) {
-    .padded-card {
-        padding: 2em;
-        margin: 1em;
-    }
-
-    .empty-padded-card {
-        padding: 3em 2em;
-        margin: 1em;
     }
 }
