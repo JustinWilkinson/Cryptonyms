@@ -28,5 +28,11 @@
         if (element) {            
             element.innerText = element.innerText.replace(new RegExp(regex), newContent);
         }
+    },
+    replaceAllContent: function (id, newContent) {
+        let element = document.getElementById(id);
+        if (element) {
+            element.innerText = newContent;
+        }
     }
 }

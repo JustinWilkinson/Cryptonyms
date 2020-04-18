@@ -132,7 +132,7 @@ else
                         </TabPage>
                         @if (showRoleChat)
                         {
-                            <TabPage ButtonId="RoleChatTab" Title="@(IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat")" OnTabSelected="() => _unreadRoleMessageCount = 0">
+                            <TabPage ButtonId="RoleChatTab" Title="@roleChatName" OnTabSelected="() => _unreadRoleMessageCount = 0">
                                 <Chat Id="RoleChat" ChatId="@roleChatId" ChatMessages="_roleChatMessages" />
                             </TabPage>
                         }
@@ -168,6 +168,7 @@ else
 
     private bool showRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
     private string roleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
+    private string roleChatName => IdentifiedPlayer.IsSpymaster? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
 
     [Parameter]
     public string GameId { get; set; }
@@ -198,24 +199,9 @@ else
         if (!firstRender && IdentifiedPlayer != null)
         {
             await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "GameLog");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceContent", "GameLogTab", @"\s\(\d+\)", "");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceContent", "GlobalChatTab", @"\s\(\d+\)", "");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceContent", "RoleChatTab", @"\s\(\d+\)", "");
-
-            if (_unreadGameLogMessageCount > 0)
-            {
-                await JSRuntime.InvokeVoidAsync("codenames.appendContent", "GameLogTab", $" ({_unreadGameLogMessageCount})");
-            }
-
-            if (_unreadGlobalMessageCount > 0)
-            {
-                await JSRuntime.InvokeVoidAsync("codenames.appendContent", "GlobalChatTab", $" ({_unreadGlobalMessageCount})");
-            }
-
-            if (_unreadRoleMessageCount > 0)
-            {
-                await JSRuntime.InvokeVoidAsync("codenames.appendContent", "RoleChatTab", $" ({_unreadRoleMessageCount})");
-            }
+            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GameLogTab", $"Game Log{(_unreadGameLogMessageCount > 0 ? $" ({_unreadGameLogMessageCount})" : "")}");
+            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GlobalChatTab", $"Global Chat{(_unreadGlobalMessageCount > 0 ? $" ({_unreadGlobalMessageCount})" : "")}");
+            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "RoleChatTab", $"{roleChatName}{(_unreadRoleMessageCount > 0 ? $" ({_unreadRoleMessageCount})" : "")}");
         }
     }
 
