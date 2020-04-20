@@ -19,17 +19,22 @@ else if (IdentifiedPlayer == null)
 }
 else
 {
-    <div class="row pl-2">
-        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded text-center p-1">
+    <div class="row justify-content-center">
+        <span class="btn btn-outline-secondary game-info-toggler" @onclick="ToggleTopRow">
+            <span class="oi @(_collapseTopRow ? "oi-chevron-bottom" : "oi-chevron-top")"></span>
+        </span>
+    </div>
+    <div class="row pl-2 @(_collapseTopRow ? "collapse" : null)">
+        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded text-center p-1 adjustable-font-size">
             <p class="text-white mb-0">Hi @IdentifiedPlayer.Name, you are playing as @(IdentifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @IdentifiedPlayer.Team team.</p>
         </div>
-        <div class="col-sm-auto col-lg-auto small text-right">
-            <p>Started game with @string.Join(", ", Game.Players.Select(x => x.Name)) at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+        <div class="col-sm-auto col-lg-auto adjustable-font-size-small text-right p-1">
+            <p class="mb-0">Started game with @string.Join(", ", Game.Players.Select(x => x.Name)) at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
     <div class="row">
         <div class="w-75 pl-2 pr-2 mr-auto">
-            @if (Game.CompletedMessage != null && showCompletionMessage)
+            @if (Game.CompletedMessage != null && _showCompletionMessage)
             {
                 <div class="modal d-block" tabindex="-1" role="dialog">
                     <div class="modal-dialog">
@@ -52,13 +57,13 @@ else
                         <div class="card-body text-center font-weight-bold">
                             @if (Game.CurrentTurn.Clue != null)
                             {
-                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}")</span>
+                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
                             }
                             else
                             {
                                 <span>@Game.CurrentTurn.Team.ToString() team's turn</span>
                             }
-                            @if (!Game.CompletedAtUtc.HasValue && Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
+                            @if (!Game.CompletedAtUtc.HasValue && IdentifiedAsCurrentTeamGuesserWithClue)
                             {
                                 <div class="d-inline-block ml-2">
                                     <button class="btn btn-@(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary") adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
@@ -75,13 +80,13 @@ else
                     @for (var j = 0; j < 5; j++)
                     {
                         var wordIndex = 5 * i + j;
-                        if (Game.GuessedWords.Contains(wordIndex))
+                        if (!Game.WinnningTeam.HasValue && Game.GuessedWords.Contains(wordIndex))
                         {
                             <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card adjustable-font-size"></div>
                         }
                         else
                         {
-                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col card padded-card @GetBackgroundColourClassForVisibleWord(wordIndex) adjustable-font-size @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" : "")" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
@@ -94,16 +99,16 @@ else
                     <div class="form-inline">
                         <div class="form-group mr-2">
                             <label for="Clue" class="font-weight-bold mr-2">Clue:</label>
-                            <input id="Clue" type="text" @bind="currentClue" class="form-control adjustable-font-size" autocomplete="off"/>
+                            <input id="Clue" type="text" @bind="_currentClue" class="form-control adjustable-font-size" autocomplete="off" />
                         </div>
                         <div class="form-group mr-3">
                             <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
-                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind="currentNumberOfWordsLinked" @oninput="e => currentNumberOfWordsLinked = Convert.ToInt32(e.Value)" class="form-control adjustable-font-size" />
+                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind="_currentNumberOfWordsLinked" @oninput="e => _currentNumberOfWordsLinked = Convert.ToInt32(e.Value)" class="form-control adjustable-font-size" />
                         </div>
                         <button type="button" class="btn btn-primary adjustable-font-size" @onclick="GiveClueAsync">Give clue</button>
-                        @if (clueErrorMessage != null)
+                        @if (_clueErrorMessage != null)
                         {
-                            <label class="text-danger ml-2">@clueErrorMessage</label>
+                            <label class="text-danger ml-2">@_clueErrorMessage</label>
                         }
                     </div>
                 </div>
@@ -118,7 +123,7 @@ else
                                 @foreach (var gameLogMessage in _gameLogMessages.OrderBy(c => c.SentAt))
                                 {
                                     <li class="list-group-item adjustable-font-size-small pt-2 pb-2">
-                                        <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm:ss"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
+                                        <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
                                     </li>
                                 }
                             </ul>
@@ -130,10 +135,10 @@ else
                         <TabPage ButtonId="GlobalChatTab" Title="Global Chat" OnTabSelected="() => _unreadGlobalMessageCount = 0">
                             <Chat Id="GlobalChat" ChatId="@($"{GameId}-Global")" OverrideHubGroup="@GameId" ChatMessages="_globalChatMessages" />
                         </TabPage>
-                        @if (showRoleChat)
+                        @if (ShowRoleChat)
                         {
-                            <TabPage ButtonId="RoleChatTab" Title="@roleChatName" OnTabSelected="() => _unreadRoleMessageCount = 0">
-                                <Chat Id="RoleChat" ChatId="@roleChatId" ChatMessages="_roleChatMessages" />
+                            <TabPage ButtonId="RoleChatTab" Title="@RoleChatName" OnTabSelected="() => _unreadRoleMessageCount = 0">
+                                <Chat Id="RoleChat" ChatId="@RoleChatId" ChatMessages="_roleChatMessages" />
                             </TabPage>
                         }
                     </CascadingValue>
@@ -145,6 +150,9 @@ else
 }
 
 @code {
+    public Player IdentifiedPlayer { get; set; }
+    public Game Game { get; private set; }
+
     private HubConnection _hubConnection;
     private List<GameMessage> _gameLogMessages;
     private List<GameMessage> _globalChatMessages;
@@ -154,21 +162,19 @@ else
     private int _unreadRoleMessageCount = 0;
     private string _selectedTab = "GameLogTab";
 
+    private bool _showCompletionMessage;
+    private string _currentClue = null;
+    private int _currentNumberOfWordsLinked = 0;
+    private string _clueErrorMessage;
+    private bool _collapseTopRow = true;
 
-    public Player IdentifiedPlayer;
-    public Game Game;
-    private bool showCompletionMessage;
-    private string clueErrorMessage;
     private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
     private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
     private int WordsRemainingForCurrentTeam => Game.CurrentTurn.Team == Team.Red ? RedWordsRemaining : BlueWordsRemaining;
-
-    private string currentClue = null;
-    private int currentNumberOfWordsLinked = 0;
-
-    private bool showRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
-    private string roleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
-    private string roleChatName => IdentifiedPlayer.IsSpymaster? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
+    private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
+    private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
+    private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
+    private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
 
     [Parameter]
     public string GameId { get; set; }
@@ -181,17 +187,21 @@ else
 
         await ConfigureHubAsync();
         IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
-        if (IdentifiedPlayer != null)
+        if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
         {
-            if (!IdentifiedPlayer.Identified)
-            {
-                await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = IdentifiedPlayer }));
-                await _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId);
-            }
-
-            await _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId);
-            _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={roleChatId}"));
+            await IdentifyPlayerInGameAsync();
         }
+    }
+
+    public async Task IdentifyPlayerInGameAsync()
+    {
+        await Task.WhenAll(
+            Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = IdentifiedPlayer })),
+            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId),
+            _hubConnection.InvokeAsync("AddToGroupAsync", RoleChatId)
+        );
+        _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}"));
+        await UpdateGameLogAsync("has joined the game.");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -201,7 +211,7 @@ else
             await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "GameLog");
             await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GameLogTab", $"Game Log{(_unreadGameLogMessageCount > 0 ? $" ({_unreadGameLogMessageCount})" : "")}");
             await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GlobalChatTab", $"Global Chat{(_unreadGlobalMessageCount > 0 ? $" ({_unreadGlobalMessageCount})" : "")}");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "RoleChatTab", $"{roleChatName}{(_unreadRoleMessageCount > 0 ? $" ({_unreadRoleMessageCount})" : "")}");
+            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "RoleChatTab", $"{RoleChatName}{(_unreadRoleMessageCount > 0 ? $" ({_unreadRoleMessageCount})" : "")}");
         }
     }
 
@@ -219,7 +229,7 @@ else
             Game = JsonConvert.DeserializeObject<Game>(updatedGame);
             if (Game.WinnningTeam.HasValue)
             {
-                showCompletionMessage = true;
+                _showCompletionMessage = true;
             }
             StateHasChanged();
         });
@@ -262,8 +272,10 @@ else
 
     private async Task HandleWordGuessedAsync(int wordIndex)
     {
-        if (Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
+        if (IdentifiedAsCurrentTeamGuesserWithClue)
         {
+            Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses - 1;
+
             string messageSuffix;
             if (Game.CompletedMessage == null)
             {
@@ -287,7 +299,7 @@ else
 
                 if (Game.CompletedMessage != null)
                 {
-                    showCompletionMessage = true;
+                    _showCompletionMessage = true;
                     Game.CompletedAtUtc = DateTime.UtcNow;
                     messageSuffix = $". {Game.CompletedMessage}";
                 }
@@ -296,18 +308,17 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = "incorrectly. Blue team's turn started.";
+                        messageSuffix = $"incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(red)")}. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = "incorrectly. Red team's turn started.";
+                        messageSuffix = $"incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(blue)")}. Blue team's turn started.";
                     }
                     else
                     {
                         messageSuffix = "correctly";
 
-                        Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses - 1;
                         if (Game.CurrentTurn.NumberOfGuesses == 0)
                         {
                             Game.CurrentTurn = new Turn { Team = (Team)(1 - Game.CurrentTurn.Team) };
@@ -347,36 +358,37 @@ else
         }
     }
 
-    private string GetBackgroundColourClassForSpymaster(int wordIndex) => IdentifiedPlayer.IsSpymaster ? GetBackgroundColourClass(wordIndex) : "bg-warning";
+    private string GetBackgroundColourClassForVisibleWord(int wordIndex) => (IdentifiedPlayer.IsSpymaster || Game.WinnningTeam.HasValue) ? GetBackgroundColourClass(wordIndex) : "bg-warning";
 
-    private void ClosePopup() => showCompletionMessage = false;
+    private void ClosePopup() => _showCompletionMessage = false;
 
     private async Task GiveClueAsync()
     {
-        if (string.IsNullOrWhiteSpace(currentClue))
+        if (string.IsNullOrWhiteSpace(_currentClue))
         {
-            clueErrorMessage = "Clue cannot be blank!";
+            _clueErrorMessage = "Clue cannot be blank!";
         }
-        else if (Game.Words.Any(x => x.Value.ToLower() == currentClue.ToLower() && !Game.GuessedWords.Contains(x.Key)))
+        else if (Game.Words.Any(x => x.Value.ToLower() == _currentClue.ToLower() && !Game.GuessedWords.Contains(x.Key)))
         {
-            clueErrorMessage = "Clue cannot be an uncovered word!";
+            _clueErrorMessage = "Clue cannot be an uncovered word!";
         }
-        else if (currentClue.Contains(' '))
+        else if (_currentClue.Contains(' '))
         {
-            clueErrorMessage = "Clue must be a single word!";
+            _clueErrorMessage = "Clue must be a single word!";
         }
-        else if (currentNumberOfWordsLinked < 1 || currentNumberOfWordsLinked > WordsRemainingForCurrentTeam)
+        else if (_currentNumberOfWordsLinked < 1 || _currentNumberOfWordsLinked > WordsRemainingForCurrentTeam)
         {
-            clueErrorMessage = $"Number of words linked must be between 1 and {WordsRemainingForCurrentTeam}!";
+            _clueErrorMessage = $"Number of words linked must be between 1 and {WordsRemainingForCurrentTeam}!";
         }
         else
         {
-            Game.CurrentTurn.Clue = currentClue;
-            Game.CurrentTurn.NumberOfGuesses = currentNumberOfWordsLinked + 1;
-            await UpdateGameAsync($"gave clue: {currentClue} for {currentNumberOfWordsLinked}.");
-            currentClue = null;
-            currentNumberOfWordsLinked = 0;
-            clueErrorMessage = null;
+            Game.CurrentTurn.Clue = _currentClue;
+            Game.CurrentTurn.InitialNumberOfGuesses = _currentNumberOfWordsLinked + 1;
+            Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.InitialNumberOfGuesses;
+            await UpdateGameAsync($"gave clue: {_currentClue} for {_currentNumberOfWordsLinked}.");
+            _currentClue = null;
+            _currentNumberOfWordsLinked = 0;
+            _clueErrorMessage = null;
         }
     }
 
@@ -396,4 +408,6 @@ else
         var serializedGame = JsonConvert.SerializeObject(Game);
         await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame), UpdateGameLogAsync(logMessage));
     }
+
+    void ToggleTopRow() => _collapseTopRow = !_collapseTopRow;
 }

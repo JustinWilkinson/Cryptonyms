@@ -2,7 +2,7 @@
     <div class="card-body text-white text-center p-0">
         <div class="font-weight-bold">@WordsRemaining @(WordsRemaining == 1 ? "word" : "words") left</div>
         <div class="small">Spymaster: @Players.Single(x => x.Team == Team && x.IsSpymaster).Name</div>
-        <div class="small">Guesser@(guesserNames.Count == 1 ? "" : "s"): @string.Join(", ", guesserNames)</div>
+        <div class="small">Guesser@(_guesserNames.Count == 1 ? "" : "s"): @string.Join(", ", _guesserNames)</div>
     </div>
 </div>
 
@@ -17,5 +17,5 @@
     [CascadingParameter]
     public IEnumerable<Player> Players { get; set; }
 
-    private List<string> guesserNames => Players.Where(x => x.Team == Team && !x.IsSpymaster).Select(x => x.Name).ToList();
+    private List<string> _guesserNames => Players.Where(x => x.Team == Team && !x.IsSpymaster).Select(x => x.Name).ToList();
 }

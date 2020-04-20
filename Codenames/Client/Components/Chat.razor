@@ -21,7 +21,7 @@ else
             </ul>
         </div>
         <div class="card-footer pt-2 pb-2">
-            <input id="@($"new{Id}")" type="text" class="form-control w-100" style="font-size: small;" value="@newMessage" @oninput="e => newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" placeholder="Type a message..." autocomplete="off"/>
+            <input id="@($"new{Id}")" type="text" class="form-control w-100" style="font-size: small;" value="@_newMessage" @oninput="e => _newMessage = e.Value.ToString()" @onkeydown="@(e => HandleKeyDown(e))" placeholder="Type a message..." autocomplete="off"/>
         </div>
     </div>
 }
@@ -46,7 +46,7 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private string newMessage;
+    private string _newMessage;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -70,15 +70,15 @@ else
 
     private async Task SendChatMessageAsync()
     {
-        if (!string.IsNullOrWhiteSpace(newMessage))
+        if (!string.IsNullOrWhiteSpace(_newMessage))
         {
-            var chatMessage = new GameMessage(Player.Name, newMessage);
+            var chatMessage = new GameMessage(Player.Name, _newMessage);
             ChatMessages.Add(chatMessage);
             await Task.WhenAll(
                 Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
                 HubConnection.InvokeAsync("SendGameMessageAsync", OverrideHubGroup ?? ChatId, Id, chatMessage));
             await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
-            newMessage = null;
+            _newMessage = null;
         }
     }
 }

@@ -7,14 +7,14 @@
 
 <h2 class="mb-0">New Game</h2>
 
-@if (players == null)
+@if (_players == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
     <div class="content">
-        @if (showCreateNewPlayer)
+        @if (_showCreateNewPlayer)
         {
             <div class="modal d-block" tabindex="-1" role="dialog">
                 <div class="modal-dialog">
@@ -26,9 +26,9 @@ else
                         <div class="modal-body">
                             <div class="form-group">
                                 <input id="newPlayerName" type="text" class="form-control" @bind="NewPlayerName" />
-                                @if (createNewPlayerErrorMessage != null)
+                                @if (_createNewPlayerErrorMessage != null)
                                 {
-                                    <label class="text-danger">@createNewPlayerErrorMessage</label>
+                                    <label class="text-danger">@_createNewPlayerErrorMessage</label>
                                 }
                             </div>
                             <button id="saveNewPlayer" type="button" class="btn btn-primary" @onclick="AddNewPlayerAsync">Save</button>
@@ -37,7 +37,7 @@ else
                 </div>
             </div>
         }
-        else if (validationErrors.Count > 0)
+        else if (_validationErrors.Count > 0)
         {
             <div class="modal" tabindex="-1" style="display:block;" role="dialog">
                 <div class="modal-dialog">
@@ -49,7 +49,7 @@ else
                         <div class="modal-body">
                             <div class="form-group">
                                 <ul>
-                                    @foreach (var error in validationErrors)
+                                    @foreach (var error in _validationErrors)
                                     {
                                         <li class="text-danger">@error</li>
                                     }
@@ -67,7 +67,7 @@ else
             </p>
         </div>
         <div class="row" style="height: 75vh;">
-            <TeamContainer Players="players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@deviceId">
+            <TeamContainer Players="_players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@_deviceId">
                 <div class="col-sm-6 col-lg-6 border p-3" style="height: calc(94% + 1em);">
                     <PlayerList Team="null" />
                 </div>
@@ -83,7 +83,7 @@ else
         </div>
         <div class="row">
             <div class="form-inline">
-                <button type="button" class="btn btn-primary mr-2" @onclick="() => { showCreateNewPlayer = true; }">Add New Player</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { _showCreateNewPlayer = true; }">Add New Player</button>
                 <button type="button" class="btn btn-primary mr-2" @onclick="RandomiseTeamsAsync">Random Teams</button>
                 <button type="button" class="btn btn-primary mr-2" @onclick="StartGameAsync">Start game</button>
             </div>
@@ -92,27 +92,27 @@ else
 }
 
 @code {
-    private List<Player> players;
+    private List<Player> _players;
     private string NewPlayerName { get; set; }
 
-    private bool showCreateNewPlayer;
-    private string createNewPlayerErrorMessage;
+    private bool _showCreateNewPlayer;
+    private string _createNewPlayerErrorMessage;
 
-    private List<string> validationErrors = new List<string>();
-    private string deviceId;
+    private List<string> _validationErrors = new List<string>();
+    private string _deviceId;
 
     protected override async Task OnInitializedAsync()
     {
-        deviceId = Storage.GetItem("deviceId");
-        if (deviceId == null)
+        _deviceId = Storage.GetItem("deviceId");
+        if (_deviceId == null)
         {
-            deviceId = Guid.NewGuid().ToString();
-            Storage.SetItem("deviceId", deviceId);
-            players = new List<Player>();
+            _deviceId = Guid.NewGuid().ToString();
+            Storage.SetItem("deviceId", _deviceId);
+            _players = new List<Player>();
         }
         else
         {
-            players = JsonConvert.DeserializeObject<IEnumerable<Player>>(await Http.GetStringAsync($"api/Player/List?deviceId={deviceId}")).ToList();
+            _players = JsonConvert.DeserializeObject<IEnumerable<Player>>(await Http.GetStringAsync($"api/Player/List?deviceId={_deviceId}")).ToList();
         }
         RemoveIdentificationIfNotFound();
     }
@@ -120,7 +120,7 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        if (showCreateNewPlayer)
+        if (_showCreateNewPlayer)
         {
             await JSRuntime.InvokeVoidAsync("codenames.setFocus", "newPlayerName");
         }
@@ -130,7 +130,7 @@ else
     {
         if (TeamsValid())
         {
-            var gameId = await Http.PutJsonAsync<Guid>("api/Game/New", JsonConvert.SerializeObject(players.Where(x => x.Team != null)));
+            var gameId = await Http.PutJsonAsync<Guid>("api/Game/New", JsonConvert.SerializeObject(_players.Where(x => x.Team != null)));
             NavigationManager.NavigateTo($"PlayGame/{gameId}");
         }
     }
@@ -139,68 +139,68 @@ else
     {
         if (!string.IsNullOrWhiteSpace(NewPlayerName))
         {
-            if (!players.Any(p => p.Name == NewPlayerName))
+            if (!_players.Any(p => p.Name == NewPlayerName))
             {
                 var player = new Player { Name = NewPlayerName };
-                players.Add(player);
-                await Http.PutJsonAsync("api/Player/New", new { DeviceId = deviceId, Player = JsonConvert.SerializeObject(player) });
+                _players.Add(player);
+                await Http.PutJsonAsync("api/Player/New", new { DeviceId = _deviceId, Player = JsonConvert.SerializeObject(player) });
                 CloseNewPlayerPopup();
             }
             else
             {
-                createNewPlayerErrorMessage = $"Player named '{NewPlayerName}' already exists!";
+                _createNewPlayerErrorMessage = $"Player named '{NewPlayerName}' already exists!";
             }
         }
         else
         {
-            createNewPlayerErrorMessage = "Please enter a non-empty player name!";
+            _createNewPlayerErrorMessage = "Please enter a non-empty player name!";
         }
     }
 
     private async Task RandomiseTeamsAsync()
     {
-        players = await Http.PostJsonAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={deviceId}", null);
+        _players = await Http.PostJsonAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={_deviceId}", null);
     }
 
     private bool TeamsValid()
     {
-        validationErrors.Clear();
+        _validationErrors.Clear();
 
-        if (!players.Any(p => p.Team == Team.Red && p.IsSpymaster))
+        if (!_players.Any(p => p.Team == Team.Red && p.IsSpymaster))
         {
-            validationErrors.Add("The Red Team must have a Spymaster!");
+            _validationErrors.Add("The Red Team must have a Spymaster!");
         }
 
-        if (!players.Any(p => p.Team == Team.Red && !p.IsSpymaster))
+        if (!_players.Any(p => p.Team == Team.Red && !p.IsSpymaster))
         {
-            validationErrors.Add("The Red Team must have at least one guesser!");
+            _validationErrors.Add("The Red Team must have at least one guesser!");
         }
 
-        if (!players.Any(p => p.Team == Team.Blue && p.IsSpymaster))
+        if (!_players.Any(p => p.Team == Team.Blue && p.IsSpymaster))
         {
-            validationErrors.Add("The Blue Team must have a Spymaster!");
+            _validationErrors.Add("The Blue Team must have a Spymaster!");
         }
 
-        if (!players.Any(p => p.Team == Team.Blue && !p.IsSpymaster))
+        if (!_players.Any(p => p.Team == Team.Blue && !p.IsSpymaster))
         {
-            validationErrors.Add("The Blue Team must have at least one guesser!");
+            _validationErrors.Add("The Blue Team must have at least one guesser!");
         }
 
-        return validationErrors.Count == 0;
+        return _validationErrors.Count == 0;
     }
 
-    private void CloseValidationPopup() => validationErrors.Clear();
+    private void CloseValidationPopup() => _validationErrors.Clear();
 
     private void CloseNewPlayerPopup()
     {
-        showCreateNewPlayer = false;
+        _showCreateNewPlayer = false;
         NewPlayerName = null;
-        createNewPlayerErrorMessage = null;
+        _createNewPlayerErrorMessage = null;
     }
 
     private void RemoveIdentificationIfNotFound()
     {
-        if (!players.Any(x => x.Name == Storage.GetItem("playerName")))
+        if (!_players.Any(x => x.Name == Storage.GetItem("playerName")))
         {
             Storage.RemoveItem("playerName");
         }
@@ -208,7 +208,7 @@ else
 
     private void HandleDeletedPlayer(Player player)
     {
-        players = players.Where(p => p.Name != player.Name).ToList();
+        _players = _players.Where(p => p.Name != player.Name).ToList();
         StateHasChanged();
     }
 }

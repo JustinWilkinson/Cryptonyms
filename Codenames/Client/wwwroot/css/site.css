@@ -76,6 +76,25 @@ app {
             color: white;
         }
 
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
 .content {
     padding-top: 1.1rem;
 }
@@ -96,15 +115,30 @@ app {
     color: red;
 }
 
+.game-info-toggler {
+    line-height: 0.8;
+    font-size: 0.5em;
+}
+
 @media (max-width: 1439.98px) {
     .main .top-row {
         display: none;
+    }
+
+    .game-info-toggler {
+        margin-top: -2.2em;
     }
 }
 
 @media (min-width: 1440px) {
     app {
         flex-direction: row;
+    }
+
+    .game-info-toggler {
+        position: absolute;
+        top: 0;
+        left: 50%;
     }
 
     .sidebar {
@@ -134,7 +168,7 @@ app {
     }
 }
 
-@media (min-width: 1490px){
+@media (min-width: 1540px){
     .sidebar {
         width: 250px;
     }
@@ -146,6 +180,9 @@ app {
     min-width: 100%,
 }
 
+.pointer {
+    cursor: pointer;
+}
 
 /* Adjustments for various screen widths */
 @media (max-width: 480px) {
@@ -182,17 +219,7 @@ app {
     }
 }
 
-@media(min-width: 1080px) {
-    .padded-card {
-        padding: 2em;
-        margin: 1em;
-    }
-
-    .empty-padded-card {
-        padding: 3em 2em;
-        margin: 1em;
-    }
-    
+@media(min-width: 1140px) {    
     .adjustable-font-size {
         font-size: small;
     }
@@ -202,24 +229,12 @@ app {
     }
 }
 
-@media(min-width: 1440px) {
+@media(min-width: 1540px) {
     .adjustable-font-size {
         font-size: inherit;
     }
 
     .adjustable-font-size-small {
         font-size: smaller;
-    }
-}
-
-@media(min-width: 1490px) {
-    .padded-card {
-        padding: 2em;
-        margin: 1em;
-    }
-
-    .empty-padded-card {
-        padding: 3em 2em;
-        margin: 1em;
     }
 }

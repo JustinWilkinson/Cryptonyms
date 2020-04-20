@@ -94,8 +94,7 @@
     {
         if (Parent.IdentifiedPlayer != null)
         {
-            await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = Parent.Game.GameId, Player = Parent.IdentifiedPlayer }));
-            await HubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Parent.Game.GameId);
+            await Parent.IdentifyPlayerInGameAsync();
             OnPlayerIdentified.Invoke();
         }
         else
