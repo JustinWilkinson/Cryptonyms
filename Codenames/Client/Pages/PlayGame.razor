@@ -75,13 +75,13 @@ else
                     @for (var j = 0; j < 5; j++)
                     {
                         var wordIndex = 5 * i + j;
-                        if (Game.GuessedWords.Contains(wordIndex))
+                        if (!Game.WinnningTeam.HasValue && Game.GuessedWords.Contains(wordIndex))
                         {
                             <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card adjustable-font-size"></div>
                         }
                         else
                         {
-                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" : "")" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col card padded-card @GetBackgroundColourClassForVisibleWord(wordIndex) adjustable-font-size @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" : "")" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
@@ -358,7 +358,7 @@ else
         }
     }
 
-    private string GetBackgroundColourClassForSpymaster(int wordIndex) => IdentifiedPlayer.IsSpymaster ? GetBackgroundColourClass(wordIndex) : "bg-warning";
+    private string GetBackgroundColourClassForVisibleWord(int wordIndex) => (IdentifiedPlayer.IsSpymaster || Game.WinnningTeam.HasValue) ? GetBackgroundColourClass(wordIndex) : "bg-warning";
 
     private void ClosePopup() => _showCompletionMessage = false;
 
