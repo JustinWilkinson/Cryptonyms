@@ -19,12 +19,17 @@ else if (IdentifiedPlayer == null)
 }
 else
 {
-    <div class="row pl-2">
-        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded text-center p-1">
+    <div class="row justify-content-center">
+        <span class="btn btn-outline-secondary game-info-toggler" @onclick="ToggleTopRow">
+            <span class="oi @(_collapseTopRow ? "oi-chevron-bottom" : "oi-chevron-top")"></span>
+        </span>
+    </div>
+    <div class="row pl-2 @(_collapseTopRow ? "collapse" : null)">
+        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded text-center p-1 adjustable-font-size">
             <p class="text-white mb-0">Hi @IdentifiedPlayer.Name, you are playing as @(IdentifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @IdentifiedPlayer.Team team.</p>
         </div>
-        <div class="col-sm-auto col-lg-auto small text-right">
-            <p>Started game with @string.Join(", ", Game.Players.Select(x => x.Name)) at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+        <div class="col-sm-auto col-lg-auto adjustable-font-size-small text-right p-1">
+            <p class="mb-0">Started game with @string.Join(", ", Game.Players.Select(x => x.Name)) at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
     <div class="row">
@@ -94,7 +99,7 @@ else
                     <div class="form-inline">
                         <div class="form-group mr-2">
                             <label for="Clue" class="font-weight-bold mr-2">Clue:</label>
-                            <input id="Clue" type="text" @bind="_currentClue" class="form-control adjustable-font-size" autocomplete="off"/>
+                            <input id="Clue" type="text" @bind="_currentClue" class="form-control adjustable-font-size" autocomplete="off" />
                         </div>
                         <div class="form-group mr-3">
                             <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
@@ -118,7 +123,7 @@ else
                                 @foreach (var gameLogMessage in _gameLogMessages.OrderBy(c => c.SentAt))
                                 {
                                     <li class="list-group-item adjustable-font-size-small pt-2 pb-2">
-                                        <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm:ss"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
+                                        <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
                                     </li>
                                 }
                             </ul>
@@ -161,13 +166,14 @@ else
     private string _currentClue = null;
     private int _currentNumberOfWordsLinked = 0;
     private string _clueErrorMessage;
+    private bool _collapseTopRow = true;
 
     private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
     private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
     private int WordsRemainingForCurrentTeam => Game.CurrentTurn.Team == Team.Red ? RedWordsRemaining : BlueWordsRemaining;
     private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
     private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
-    private string RoleChatName => IdentifiedPlayer.IsSpymaster? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
+    private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
     private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
 
     [Parameter]
@@ -402,4 +408,6 @@ else
         var serializedGame = JsonConvert.SerializeObject(Game);
         await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame), UpdateGameLogAsync(logMessage));
     }
+
+    void ToggleTopRow() => _collapseTopRow = !_collapseTopRow;
 }
