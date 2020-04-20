@@ -184,15 +184,25 @@ else
         IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
         if (IdentifiedPlayer != null)
         {
-            if (!IdentifiedPlayer.Identified)
+            if (IdentifiedPlayer.Identified)
             {
-                await Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = IdentifiedPlayer }));
-                await _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId);
+                Storage.RemoveItem("playerName");
             }
-
-            await _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId);
-            _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={roleChatId}"));
+            else
+            {
+                await IdentifyPlayerInGameAsync();
+            }
         }
+    }
+
+    public async Task IdentifyPlayerInGameAsync()
+    {
+        await Task.WhenAll(
+            Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = IdentifiedPlayer })),
+            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId),
+            _hubConnection.InvokeAsync("AddToGroupAsync", roleChatId)
+        );
+        _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={roleChatId}"));
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
