@@ -146,6 +146,9 @@ app {
     min-width: 100%,
 }
 
+.pointer {
+    cursor: pointer;
+}
 
 /* Adjustments for various screen widths */
 @media (max-width: 480px) {

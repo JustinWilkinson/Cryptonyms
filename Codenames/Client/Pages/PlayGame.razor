@@ -81,7 +81,7 @@ else
                         }
                         else
                         {
-                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size" style="cursor: @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" :"");" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col card padded-card @GetBackgroundColourClassForSpymaster(wordIndex) adjustable-font-size @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" : "")" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
