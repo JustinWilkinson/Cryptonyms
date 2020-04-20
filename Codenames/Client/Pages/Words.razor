@@ -14,26 +14,16 @@ else
     <div class="content">
         @if (_showCreateNewWord)
         {
-            <div class="modal d-block" tabindex="-1" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Create New Word</h5>
-                            <button type="button" class="close" @onclick="CloseNewWordPopup"><span aria-hidden="true">X</span></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <input id="newWord" type="text" class="form-control" @bind="NewWord" />
-                                @if (_createNewWordErrorMessage != null)
-                                {
-                                    <label class="text-danger m-2">@_createNewWordErrorMessage</label>
-                                }
-                            </div>
-                            <button id="saveNewWord" type="button" class="btn btn-primary" @onclick="AddNewWordAsync">Save</button>
-                        </div>
-                    </div>
+            <Modal Show="_showCreateNewWord" Header="Create New Word" OnPopupClosed="OnNewWordPopupClosed">
+                <div class="form-group">
+                    <input id="newWord" type="text" class="form-control" @bind="NewWord" />
+                    @if (_createNewWordErrorMessage != null)
+                    {
+                        <label class="text-danger m-2">@_createNewWordErrorMessage</label>
+                    }
                 </div>
-            </div>
+                <button id="saveNewWord" type="button" class="btn btn-primary" @onclick="AddNewWordAsync">Save</button>
+            </Modal>
         }
         <div class="form-row">
             <label class="m-2">Search:</label>
@@ -108,7 +98,7 @@ else
         }
     }
 
-    private void CloseNewWordPopup()
+    private void OnNewWordPopupClosed()
     {
         _showCreateNewWord = false;
         NewWord = null;
@@ -124,7 +114,7 @@ else
             _allWords.Add(NewWord);
             _loweredWords.Add(NewWord.ToLowerInvariant());
             await Http.PutJsonAsync("api/Word/New", NewWord);
-            CloseNewWordPopup();
+            OnNewWordPopupClosed();
         }
         else
         {

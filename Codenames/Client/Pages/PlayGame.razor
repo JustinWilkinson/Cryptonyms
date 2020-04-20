@@ -34,21 +34,11 @@ else
     </div>
     <div class="row">
         <div class="w-75 pl-2 pr-2 mr-auto">
-            @if (Game.CompletedMessage != null && _showCompletionMessage)
+            @if (Game.CompletedMessage != null)
             {
-                <div class="modal d-block" tabindex="-1" role="dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Game Over!</h5>
-                                <button type="button" class="close" @onclick="ClosePopup"><span aria-hidden="true">X</span></button>
-                            </div>
-                            <div class="modal-body">
-                                <h6>@Game.CompletedMessage</h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <Modal Header="Game Over!" Show="_showCompletionMessage">
+                    <h6>@Game.CompletedMessage</h6>
+                </Modal>
             }
             <div class="row adjustable-font-size">
                 <CascadingValue Value="Game.Players">

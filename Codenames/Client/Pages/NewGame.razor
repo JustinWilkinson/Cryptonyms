@@ -14,55 +14,29 @@
 else
 {
     <div class="content">
-        @if (_showCreateNewPlayer)
-        {
-            <div class="modal d-block" tabindex="-1" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Create New Player</h5>
-                            <button type="button" class="close" @onclick="CloseNewPlayerPopup"><span aria-hidden="true">X</span></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <input id="newPlayerName" type="text" class="form-control" @bind="NewPlayerName" />
-                                @if (_createNewPlayerErrorMessage != null)
-                                {
-                                    <label class="text-danger">@_createNewPlayerErrorMessage</label>
-                                }
-                            </div>
-                            <button id="saveNewPlayer" type="button" class="btn btn-primary" @onclick="AddNewPlayerAsync">Save</button>
-                        </div>
-                    </div>
-                </div>
+        <Modal Show="_showCreateNewPlayer" Header="Create New Player" OnPopupClosed="OnNewPlayerPopupClosed">
+            <div class="form-group">
+                <input id="newPlayerName" type="text" class="form-control" @bind="NewPlayerName" />
+                @if (_createNewPlayerErrorMessage != null)
+                {
+                    <label class="text-danger">@_createNewPlayerErrorMessage</label>
+                }
             </div>
-        }
-        else if (_validationErrors.Count > 0)
-        {
-            <div class="modal" tabindex="-1" style="display:block;" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Could not start game!</h5>
-                            <button type="button" class="close" @onclick="CloseValidationPopup"><span aria-hidden="true">X</span></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <ul>
-                                    @foreach (var error in _validationErrors)
-                                    {
-                                        <li class="text-danger">@error</li>
-                                    }
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <button id="saveNewPlayer" type="button" class="btn btn-primary" @onclick="AddNewPlayerAsync">Save</button>
+        </Modal>
+        <Modal Show="_validationErrors.Count > 0" Header="Could not start game!" OnPopupClosed="() => _validationErrors.Clear()">
+            <div class="form-group">
+                <ul>
+                    @foreach (var error in _validationErrors)
+                    {
+                        <li class="text-danger">@error</li>
+                    }
+                </ul>
             </div>
-        }
+        </Modal>
         <div class="row">
             <p class="pl-2">
-                Create players for your game, and assign them to teams here by dragging and dropping them in the relevant area.<br> 
+                Create players for your game, and assign them to teams here by dragging and dropping them in the relevant area.<br>
                 Alternatively, use the random teams button to assign players for you!
             </p>
         </div>
@@ -144,7 +118,7 @@ else
                 var player = new Player { Name = NewPlayerName };
                 _players.Add(player);
                 await Http.PutJsonAsync("api/Player/New", new { DeviceId = _deviceId, Player = JsonConvert.SerializeObject(player) });
-                CloseNewPlayerPopup();
+                OnNewPlayerPopupClosed();
             }
             else
             {
@@ -189,9 +163,7 @@ else
         return _validationErrors.Count == 0;
     }
 
-    private void CloseValidationPopup() => _validationErrors.Clear();
-
-    private void CloseNewPlayerPopup()
+    private void OnNewPlayerPopupClosed()
     {
         _showCreateNewPlayer = false;
         NewPlayerName = null;
