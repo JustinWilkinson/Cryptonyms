@@ -42,11 +42,11 @@ namespace Codenames.Server.Controllers
         [HttpPost("Save")]
         public void Save(JsonElement gameJson) => _gameRepository.SaveGame(gameJson.Deserialize<Game>());
 
-        [HttpPost("SaveIdentifiedPlayer")]
-        public void SaveIdentifiedPlayer(JsonElement gameJson)
+        [HttpPost("UpdatePlayerInGame")]
+        public void UpdatePlayerInGame(JsonElement gameJson)
         {
             var playerInGame = gameJson.Deserialize<PlayerInGame>();
-            _gameRepository.IdentifyPlayerInGame(playerInGame.GameId, playerInGame.Player);
+            _gameRepository.UpdatePlayerInGame(playerInGame.GameId, playerInGame.Player);
         }
     }
 }

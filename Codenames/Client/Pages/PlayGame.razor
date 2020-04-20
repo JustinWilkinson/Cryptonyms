@@ -25,11 +25,12 @@ else
         </span>
     </div>
     <div class="row pl-2 @(_collapseTopRow ? "collapse" : null)">
-        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded text-center p-1 adjustable-font-size">
-            <p class="text-white mb-0">Hi @IdentifiedPlayer.Name, you are playing as @(IdentifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @IdentifiedPlayer.Team team.</p>
+        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded p-1 adjustable-font-size">
+            <p class="text-white mb-0 d-inline-block">Hi @IdentifiedPlayer.Name, you are playing as @(IdentifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @IdentifiedPlayer.Team team.</p>
+            <button class="@TeamButtonClass d-inline-block adjustable-font-size" style="line-height: 1em;" @onclick="UnidentifyPlayerInGameAsync">Click here to re-identify</button>
         </div>
-        <div class="col-sm-auto col-lg-auto adjustable-font-size-small text-right p-1">
-            <p class="mb-0">Started game with @string.Join(", ", Game.Players.Select(x => x.Name)) at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+        <div class="col-sm-auto col-lg-auto p-1 adjustable-font-size align-text-top">
+            <p class="mb-0">Game started at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
     <div class="row">
@@ -56,7 +57,7 @@ else
                             @if (!Game.CompletedAtUtc.HasValue && IdentifiedAsCurrentTeamGuesserWithClue)
                             {
                                 <div class="d-inline-block ml-2">
-                                    <button class="btn btn-@(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary") adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
+                                    <button class="@TeamButtonClass adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
                                 </div>
                             }
                         </div>
@@ -95,7 +96,7 @@ else
                             <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
                             <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind="_currentNumberOfWordsLinked" @oninput="e => _currentNumberOfWordsLinked = Convert.ToInt32(e.Value)" class="form-control adjustable-font-size" />
                         </div>
-                        <button type="button" class="btn btn-primary adjustable-font-size" @onclick="GiveClueAsync">Give clue</button>
+                        <button type="button" class="@TeamButtonClass adjustable-font-size" @onclick="GiveClueAsync">Give clue</button>
                         @if (_clueErrorMessage != null)
                         {
                             <label class="text-danger ml-2">@_clueErrorMessage</label>
@@ -165,6 +166,7 @@ else
     private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
     private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
     private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
+    private string TeamButtonClass => $"btn btn-{(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary")}";
 
     [Parameter]
     public string GameId { get; set; }
@@ -185,13 +187,27 @@ else
 
     public async Task IdentifyPlayerInGameAsync()
     {
+        IdentifiedPlayer.Identified = true;
         await Task.WhenAll(
-            Http.PostJsonAsync("api/Game/SaveIdentifiedPlayer", JsonConvert.SerializeObject(new { GameId = GameId, Player = IdentifiedPlayer })),
-            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId),
+            Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId, IdentifiedPlayer.Name, true),
             _hubConnection.InvokeAsync("AddToGroupAsync", RoleChatId)
         );
         _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}"));
         await UpdateGameLogAsync("has joined the game.");
+    }
+
+    public async Task UnidentifyPlayerInGameAsync()
+    {
+        IdentifiedPlayer.Identified = false;
+        await Task.WhenAll(
+            Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId, IdentifiedPlayer.Name, false),
+            _hubConnection.InvokeAsync("RemoveFromGroupAsync", RoleChatId)
+        );
+        await UpdateGameLogAsync("has left the game.");
+        Storage.RemoveItem("playerName");
+        IdentifiedPlayer = null;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -250,10 +266,13 @@ else
             }
             StateHasChanged();
         });
-        _hubConnection.On("UpdatePlayerIdentification", async () =>
+        _hubConnection.On<string, bool>("UpdatePlayerIdentification", (playerName, identified) =>
         {
-            Game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
-            StateHasChanged();
+            var updatedPlayer = Game.Players.SingleOrDefault(p => p.Name == playerName);
+            if (updatedPlayer != null)
+            {
+                updatedPlayer.Identified = true;
+            }
         });
 
         await _hubConnection.StartAsync();
