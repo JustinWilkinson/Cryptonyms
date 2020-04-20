@@ -181,16 +181,9 @@ else
 
         await ConfigureHubAsync();
         IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
-        if (IdentifiedPlayer != null)
+        if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
         {
-            if (IdentifiedPlayer.Identified)
-            {
-                Storage.RemoveItem("playerName");
-            }
-            else
-            {
-                await IdentifyPlayerInGameAsync();
-            }
+            await IdentifyPlayerInGameAsync();
         }
     }
 
@@ -202,6 +195,7 @@ else
             _hubConnection.InvokeAsync("AddToGroupAsync", RoleChatId)
         );
         _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}"));
+        await UpdateGameLogAsync("has joined the game.");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
