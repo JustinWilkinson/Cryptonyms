@@ -4,7 +4,7 @@
 
 <h1>Games</h1>
 
-@if (games == null)
+@if (_games == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -23,7 +23,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var game in games.OrderByDescending(g => g.StartedAtUtc))
+                @foreach (var game in _games.OrderByDescending(g => g.StartedAtUtc))
                 {
                     <tr>
                         <td>@game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
@@ -51,10 +51,10 @@ else
 }
 
 @code {
-    private IEnumerable<Game> games;
+    private IEnumerable<Game> _games;
 
     protected override async Task OnInitializedAsync()
     {
-        games = JsonConvert.DeserializeObject<IEnumerable<Game>>(await Http.GetStringAsync("api/Game/List"));
+        _games = JsonConvert.DeserializeObject<IEnumerable<Game>>(await Http.GetStringAsync("api/Game/List"));
     }
 }

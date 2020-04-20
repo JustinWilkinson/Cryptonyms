@@ -1,6 +1,6 @@
 ﻿<h4 class="@(Team == null ? "" : "text-white")">@(Team == null ? "All Players" : $"{Team} Team")</h4>
-<ul class="dropzone @dropClass list-group" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="HandleDrop" @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave">
-    @foreach (var player in players)
+<ul class="dropzone @_dropClass list-group" ondragover="event.preventDefault();" ondragstart="event.dataTransfer.setData('', event.target.id);" @ondrop="HandleDrop" @ondragenter="HandleDragEnter" @ondragleave="HandleDragLeave">
+    @foreach (var player in _players)
     {
         <PlayerListItem Player="player"/>
     }
@@ -13,13 +13,13 @@
     [Parameter]
     public Team? Team { get; set; }
 
-    private List<Player> players = new List<Player>();
-    private string dropClass = "";
+    private List<Player> _players = new List<Player>();
+    private string _dropClass = "";
 
     protected override void OnParametersSet()
     {
-        players.Clear();
-        players.AddRange(Container.Players.Where(x => x.Team == Team));
+        _players.Clear();
+        _players.AddRange(Container.Players.Where(x => x.Team == Team));
     }
 
     private void HandleDragEnter()
@@ -30,15 +30,15 @@
         }
         else
         {
-            dropClass = "can-drop";
+            _dropClass = "can-drop";
         }
     }
 
-    private void HandleDragLeave() => dropClass = "";
+    private void HandleDragLeave() => _dropClass = "";
 
     private async Task HandleDrop()
     {
-        dropClass = "";
+        _dropClass = "";
         if (!(Container.Payload.Team == Team))
         {
             Container.Payload.IsSpymaster = false;
