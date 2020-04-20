@@ -1,6 +1,8 @@
 ﻿using Codenames.Server.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.IO;
 
@@ -8,6 +10,8 @@ namespace Codenames.Server.Repository
 {
     public abstract class Repository
     {
+        private readonly ILogger<Repository> _logger;
+
         public const string Database = "Codenames.sqlite";
         public const string ConnectionString = "DataSource=Codenames.sqlite";
 
@@ -65,9 +69,22 @@ namespace Codenames.Server.Repository
             }
         }
 
-        public Func<SQLiteDataReader, T> DeserializeColumn<T>(string columnName)
+        protected void ExecuteInTransaction(Action<SQLiteConnection> action)
         {
-            return reader => reader[columnName].ToString().Deserialize<T>();
+            using var connection = GetOpenConnection();
+            var transaction = connection.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                action(connection);
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
+
+        public Func<SQLiteDataReader, T> DeserializeColumn<T>(string columnName) => reader => reader[columnName].ToString().Deserialize<T>();
     }
 }
