@@ -27,7 +27,7 @@ namespace Codenames.Server.Repository
     {
         private readonly ILogger<PlayerRepository> _logger;
 
-        public PlayerRepository(ILogger<PlayerRepository> logger) : base("CREATE TABLE IF NOT EXISTS Players (DeviceId text PRIMARY KEY, Name text, PlayerJson text)")
+        public PlayerRepository(ILogger<PlayerRepository> logger) : base("CREATE TABLE IF NOT EXISTS Players (DeviceId text, Name text, PlayerJson text)")
         {
             _logger = logger;
         }
