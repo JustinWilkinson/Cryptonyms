@@ -1,5 +1,4 @@
 ﻿@using Codenames.Client.Pages;
-@using Microsoft.AspNetCore.SignalR.Client
 
 @inject HttpClient Http
 @inject LocalStorage Storage
@@ -64,9 +63,6 @@
 @code {
     [CascadingParameter]
     public PlayGame Parent { get; set; }
-
-    [Parameter]
-    public HubConnection HubConnection { get; set; }
 
     [Parameter]
     public Action OnPlayerIdentified { get; set; }

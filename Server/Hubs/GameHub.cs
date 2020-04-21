@@ -4,19 +4,6 @@ using System.Threading.Tasks;
 
 namespace Codenames.Server.Hubs
 {
-    public interface IGameHub
-    {
-        Task AddToGroupAsync(string chatId);
-
-        Task RemoveFromGroupAsync(string chatId);
-
-        Task UpdateGameAsync(string gameId, string updatedGame);
-
-        Task UpdatePlayerIdentificationAsync(string gameId, string playerName, bool identified);
-
-        Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage);
-    }
-
     public class GameHub : Hub, IGameHub
     {
         public async Task AddToGroupAsync(string chatId) => await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
