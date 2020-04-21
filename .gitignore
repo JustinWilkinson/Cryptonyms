@@ -1,6 +1,9 @@
 # Ignore SQLite Database
 *.sqlite
 
+# Ignore client side libraries
+Client/wwwroot/lib
+
 # User-specific files
 *.rsuser
 *.suo

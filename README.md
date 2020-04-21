@@ -9,3 +9,6 @@ The server project with API Controllers to serve client requests, and a SignalR 
 
 ## Codenames.Shared
 A project containing abstractions shared between the client and the server.
+
+## Codenames.Test
+An NUnit Test project containing tests for the solution.
