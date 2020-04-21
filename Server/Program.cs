@@ -1,19 +1,24 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Codenames.Server.Jobs;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Web;
 using System;
+using System.Threading.Tasks;
 
 namespace Codenames.Server
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var logger = NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
             try
             {
+                var jobScheduler = await JobScheduler.GetSchedulerAsync();
+                await jobScheduler.ScheduleDailyJobAsync<CleanUpJob>("CleanUp", "DailyCleanUpTrigger");
+
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)

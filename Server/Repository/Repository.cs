@@ -10,8 +10,6 @@ namespace Codenames.Server.Repository
 {
     public abstract class Repository
     {
-        private readonly ILogger<Repository> _logger;
-
         public const string Database = "Codenames.sqlite";
         public const string ConnectionString = "DataSource=Codenames.sqlite";
 
