@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
+﻿using System;
 using System.Timers;
 
 namespace Codenames.Client.Services
@@ -23,10 +21,5 @@ namespace Codenames.Client.Services
             OnElapsed?.Invoke();
             _timer.Dispose();
         }
-    }
-
-    public static class BlazorTimerExtensions
-    {
-        public static void AddBlazorTimer(this IServiceCollection services) => services.AddTransient<BlazorTimer>();
     }
 }

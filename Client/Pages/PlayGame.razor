@@ -1,12 +1,11 @@
 ﻿@page "/PlayGame/{GameId}"
 
-@using Microsoft.AspNetCore.SignalR.Client
-
 @inject HttpClient Http
 @inject LocalStorage Storage
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject BlazorTimer Timer
+@inject GameHubCommunicator GameHub
 
 @if (Game == null)
 {
@@ -15,7 +14,7 @@
 else if (IdentifiedPlayer == null)
 {
     <CascadingValue Value="this">
-        <PlayerIdentification HubConnection="_hubConnection" OnPlayerIdentified="StateHasChanged" />
+        <PlayerIdentification OnPlayerIdentified="StateHasChanged" />
     </CascadingValue>
 }
 else
@@ -122,7 +121,7 @@ else
                         </div>
                     </div>
                 </TabPage>
-                <CascadingValue Value="_hubConnection">
+                <CascadingValue Value="GameHub">
                     <CascadingValue Value="IdentifiedPlayer">
                         <TabPage ButtonId="GlobalChatTab" Title="Global Chat" OnTabSelected="() => _unreadGlobalMessageCount = 0">
                             <Chat Id="GlobalChat" ChatId="@($"{GameId}-Global")" OverrideHubGroup="@GameId" ChatMessages="_globalChatMessages" />
@@ -145,7 +144,6 @@ else
     public Player IdentifiedPlayer { get; set; }
     public Game Game { get; private set; }
 
-    private HubConnection _hubConnection;
     private List<GameMessage> _gameLogMessages;
     private List<GameMessage> _globalChatMessages;
     private List<GameMessage> _roleChatMessages;
@@ -191,8 +189,8 @@ else
         IdentifiedPlayer.Identified = true;
         await Task.WhenAll(
             Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
-            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId, IdentifiedPlayer.Name, true),
-            _hubConnection.InvokeAsync("AddToGroupAsync", RoleChatId)
+            GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
+            GameHub.AddToGroupAsync(RoleChatId)
         );
         _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}"));
         await UpdateGameLogAsync("has joined the game.");
@@ -204,8 +202,8 @@ else
         IdentifiedPlayer.Identified = false;
         await Task.WhenAll(
             Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
-            _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", Game.GameId, IdentifiedPlayer.Name, false),
-            _hubConnection.InvokeAsync("RemoveFromGroupAsync", RoleChatId)
+            GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, false),
+            GameHub.RemoveFromGroupAsync(RoleChatId)
         );
         await UpdateGameLogAsync("has left the game.");
         Storage.RemoveItem("playerName");
@@ -231,8 +229,7 @@ else
 
     private async Task ConfigureHubAsync()
     {
-        _hubConnection = new HubConnectionBuilder().WithUrl(NavigationManager.ToAbsoluteUri("/GameHub")).WithAutomaticReconnect().Build();
-        _hubConnection.On<string>("UpdateGame", updatedGame =>
+        GameHub.RegisterHandler<string>("UpdateGame", updatedGame =>
         {
             Game = JsonConvert.DeserializeObject<Game>(updatedGame);
             if (Game.WinnningTeam.HasValue)
@@ -241,7 +238,7 @@ else
             }
             StateHasChanged();
         });
-        _hubConnection.On<GameMessage>("NewGameLogMessage", gameLogMessage =>
+        GameHub.RegisterHandler<GameMessage>("NewGameLogMessage", gameLogMessage =>
         {
             _gameLogMessages.Add(gameLogMessage);
             if (_selectedTab != "GameLogTab")
@@ -250,7 +247,7 @@ else
             }
             StateHasChanged();
         });
-        _hubConnection.On<GameMessage>("GlobalChat", globalChatMessage =>
+        GameHub.RegisterHandler<GameMessage>("GlobalChat", globalChatMessage =>
         {
             _globalChatMessages.Add(globalChatMessage);
             if (_selectedTab != "GlobalChatTab")
@@ -259,7 +256,7 @@ else
             }
             StateHasChanged();
         });
-        _hubConnection.On<GameMessage>("RoleChat", roleChatMessage =>
+        GameHub.RegisterHandler<GameMessage>("RoleChat", roleChatMessage =>
         {
             _roleChatMessages.Add(roleChatMessage);
             if (_selectedTab != "RoleChatTab")
@@ -268,7 +265,7 @@ else
             }
             StateHasChanged();
         });
-        _hubConnection.On<string, bool>("UpdatePlayerIdentification", (playerName, identified) =>
+        GameHub.RegisterHandler<string, bool>("UpdatePlayerIdentification", (playerName, identified) =>
         {
             var updatedPlayer = Game.Players.SingleOrDefault(p => p.Name == playerName);
             if (updatedPlayer != null)
@@ -277,8 +274,8 @@ else
             }
         });
 
-        await _hubConnection.StartAsync();
-        await _hubConnection.InvokeAsync("AddToGroupAsync", GameId);
+        await GameHub.StartAsync();
+        await GameHub.AddToGroupAsync(GameId);
     }
 
     private async Task HandleWordGuessedAsync(int wordIndex)
@@ -410,14 +407,14 @@ else
         _gameLogMessages.Add(gameLogMessage);
         await Task.WhenAll(
             Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = JsonConvert.SerializeObject(gameLogMessage) }),
-            _hubConnection.InvokeAsync("SendGameMessageAsync", GameId, "NewGameLogMessage", gameLogMessage));
+            GameHub.SendGameMessageAsync(GameId, "NewGameLogMessage", gameLogMessage));
         await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "GameLog");
     }
 
     private async Task UpdateGameAsync(string logMessage)
     {
         var serializedGame = JsonConvert.SerializeObject(Game);
-        await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame), UpdateGameLogAsync(logMessage));
+        await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), GameHub.UpdateGameAsync(GameId, serializedGame), UpdateGameLogAsync(logMessage));
     }
 
     private async Task ToggleTopRowAsync()

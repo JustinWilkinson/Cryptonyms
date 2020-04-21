@@ -32,7 +32,7 @@ else
     public List<GameMessage> ChatMessages { get; set; }
 
     [CascadingParameter]
-    public HubConnection HubConnection { get; set; }
+    public GameHubCommunicator HubCommunicator { get; set; }
 
     [CascadingParameter]
     public Player Player { get; set; }
@@ -76,7 +76,7 @@ else
             ChatMessages.Add(chatMessage);
             await Task.WhenAll(
                 Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
-                HubConnection.InvokeAsync("SendGameMessageAsync", OverrideHubGroup ?? ChatId, Id, chatMessage));
+                HubCommunicator.SendGameMessageAsync(OverrideHubGroup ?? ChatId, Id, chatMessage));
             await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
             _newMessage = null;
         }
