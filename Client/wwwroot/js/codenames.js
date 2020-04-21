@@ -38,7 +38,7 @@
     slideToggle: function (id) {
         $(`#${id}`).slideToggle('slow');
     },
-    runAfterTimeout(functionToRun, param, timeout) {
+    runAfterTimeout: function(functionToRun, param, timeout) {
         setTimeout(() => this[functionToRun](param), timeout);
     }
 }
