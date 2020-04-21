@@ -28,7 +28,5 @@ namespace Codenames.Server.Hubs
         public async Task UpdatePlayerIdentificationAsync(string gameId, string playerName, bool identified) => await Clients.OthersInGroup(gameId).SendAsync("UpdatePlayerIdentification", playerName, identified);
 
         public async Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage) => await Clients.OthersInGroup(chatId).SendAsync(eventName, chatMessage);
-
-
     }
 }
