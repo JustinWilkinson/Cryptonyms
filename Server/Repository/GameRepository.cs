@@ -19,6 +19,8 @@ namespace Codenames.Server.Repository
         Game GetGame(string id);
 
         IEnumerable<Game> ListGames();
+
+        void DeleteGames(IEnumerable<Guid> gameIds);
     }
 
     public class GameRepository : Repository, IGameRepository
@@ -113,6 +115,27 @@ namespace Codenames.Server.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred listing games.");
+                throw;
+            }
+        }
+
+        public void DeleteGames(IEnumerable<Guid> gameIds)
+        {
+            try
+            {
+                ExecuteInTransaction((connection) =>
+                {
+                    foreach (var gameId in gameIds)
+                    {
+                        var command = new SQLiteCommand("DELETE FROM Games WHERE Id = @Id", connection);
+                        command.AddParameter("@Id", gameId);
+                        command.ExecuteNonQuery();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred clearing old games.");
                 throw;
             }
         }
