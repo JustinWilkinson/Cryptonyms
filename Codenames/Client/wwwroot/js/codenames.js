@@ -34,5 +34,11 @@
         if (element) {
             element.innerText = newContent;
         }
+    },
+    slideToggle: function (id) {
+        $(`#${id}`).slideToggle('slow');
+    },
+    runAfterTimeout(functionToRun, param, timeout) {
+        setTimeout(() => this[functionToRun](param), timeout);
     }
 }

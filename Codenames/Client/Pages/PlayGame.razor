@@ -6,6 +6,7 @@
 @inject LocalStorage Storage
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject BlazorTimer Timer
 
 @if (Game == null)
 {
@@ -20,11 +21,11 @@ else if (IdentifiedPlayer == null)
 else
 {
     <div class="row justify-content-center">
-        <span class="btn btn-outline-secondary game-info-toggler" @onclick="ToggleTopRow">
-            <span class="oi @(_collapseTopRow ? "oi-chevron-bottom" : "oi-chevron-top")"></span>
+        <span class="btn btn-outline-secondary game-info-toggler" @onclick="ToggleTopRowAsync">
+            <span class="oi @(_topRowCollapsed ? "oi-chevron-bottom" : "oi-chevron-top")"></span>
         </span>
     </div>
-    <div class="row pl-2 @(_collapseTopRow ? "collapse" : null)">
+    <div id="topRow" class="row pl-2">
         <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded p-1 adjustable-font-size">
             <p class="text-white mb-0 d-inline-block">Hi @IdentifiedPlayer.Name, you are playing as @(IdentifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @IdentifiedPlayer.Team team.</p>
             <button class="@TeamButtonClass d-inline-block adjustable-font-size" style="line-height: 1em;" @onclick="UnidentifyPlayerInGameAsync">Click here to re-identify</button>
@@ -105,7 +106,7 @@ else
                 </div>
             }
         </div>
-        <div class="mt-3" style="width: 20%;">
+        <div class="mt-3" style="width: 22%;">
             <TabControl OnTabSelected="HandleTabSelectedAsync">
                 <TabPage ButtonId="GameLogTab" Title="Game Log" OnTabSelected="() => _unreadGameLogMessageCount = 0">
                     <div class="card border rounded">
@@ -157,7 +158,7 @@ else
     private string _currentClue = null;
     private int _currentNumberOfWordsLinked = 0;
     private string _clueErrorMessage;
-    private bool _collapseTopRow = true;
+    private bool _topRowCollapsed = false;
 
     private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
     private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
@@ -195,6 +196,7 @@ else
         );
         _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}"));
         await UpdateGameLogAsync("has joined the game.");
+        StartTopRowToggleTimer();
     }
 
     public async Task UnidentifyPlayerInGameAsync()
@@ -418,5 +420,22 @@ else
         await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), _hubConnection.InvokeAsync("UpdateGameAsync", GameId, serializedGame), UpdateGameLogAsync(logMessage));
     }
 
-    void ToggleTopRow() => _collapseTopRow = !_collapseTopRow;
+    private async Task ToggleTopRowAsync()
+    {
+        _topRowCollapsed = !_topRowCollapsed;
+        await JSRuntime.InvokeVoidAsync("codenames.slideToggle", "topRow");
+        StateHasChanged();
+    }
+
+    private void StartTopRowToggleTimer()
+    {
+        Timer.SetTimer(5000);
+        Timer.OnElapsed += async () =>
+        {
+            if (!_topRowCollapsed)
+            {
+                await ToggleTopRowAsync();
+            }
+        };
+    }
 }
