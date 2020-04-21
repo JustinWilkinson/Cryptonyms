@@ -238,3 +238,24 @@ app {
         font-size: smaller;
     }
 }
+
+.party-popper-container {
+    z-index: -1;
+}
+
+.balloon {
+    position: absolute;
+    width: 40px;
+    height: 80px;
+    background-size: cover;
+    left: calc(50% - 20px);
+    bottom: 0;
+}
+
+.balloon-blue {
+    background-image: url('/images/blue-balloon.png');
+}
+
+.balloon-red {
+    background-image: url('/images/red-balloon.png');
+}

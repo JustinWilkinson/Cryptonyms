@@ -7,6 +7,6 @@ namespace Codenames.Client.Services
     {
         public static void AddBlazorTimer(this IServiceCollection services) => services.AddTransient<BlazorTimer>();
 
-        public static void AddHubCommunicator<T>(this IServiceCollection services) where T : HubCommunicator => services.AddScoped<T>();
+        public static void AddHubCommunicator<T>(this IServiceCollection services) where T : HubCommunicator => services.AddTransient<T>();
     }
 }

@@ -40,5 +40,25 @@
     },
     runAfterTimeout: function(functionToRun, param, timeout) {
         setTimeout(() => this[functionToRun](param), timeout);
+    },
+    gameCompletedAnimation: function (winningTeam) {
+        let masterTimeline = gsap.timeline({
+            paused: true,
+            onComplete: () => $('.party-popper-container').html('')
+        });
+
+        $('.party-popper-container').append(new Array(400).join(`<span class="balloon balloon-${winningTeam}"></span>`));
+        let random = (min, max) => min + (Math.random() * (max - min));
+        let parentHeight = $('.party-popper-container').parent().height();
+        let parentWidth = $('.party-popper-container').parent().width();
+        let animationTimeline = gsap.timeline();
+        $('.balloon').each(function (i, balloon) {
+            var tl = gsap.timeline()
+                .to(balloon, random(0.7, 2), { x: random(-parentWidth/2, parentWidth/2), y: random(-parentHeight / 1.5, -parentHeight * 2), rotation: random(-360, 360), ease: "power3.easeOut" }, random(0, 1))
+            animationTimeline.add(tl, 0);
+        });
+
+        masterTimeline.add(animationTimeline);
+        masterTimeline.play(0);
     }
 }

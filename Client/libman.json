@@ -5,6 +5,10 @@
     {
       "library": "jquery@3.5.0",
       "destination": "wwwroot/lib/jquery/"
+    },
+    {
+      "library": "gsap@3.2.6",
+      "destination": "wwwroot/lib/gsap/"
     }
   ]
 }
