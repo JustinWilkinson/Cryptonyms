@@ -46,19 +46,26 @@ else
                     <TeamInfo Team="Team.Blue" WordsRemaining="BlueWordsRemaining" />
                     <div class="col card border border-secondary rounded padded-card adjustable-font-size p-1">
                         <div class="card-body text-center font-weight-bold">
-                            @if (Game.CurrentTurn.Clue != null)
+                            @if (!Game.CompletedAtUtc.HasValue)
                             {
-                                <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
+                                if (Game.CurrentTurn.Clue != null)
+                                {
+                                    <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
+                                }
+                                else
+                                {
+                                    <span>@Game.CurrentTurn.Team.ToString() team's turn</span>
+                                }
+                                if (IdentifiedAsCurrentTeamGuesserWithClue)
+                                {
+                                    <div class="d-inline-block ml-2">
+                                        <button class="@TeamButtonClass adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
+                                    </div>
+                                }
                             }
                             else
                             {
-                                <span>@Game.CurrentTurn.Team.ToString() team's turn</span>
-                            }
-                            @if (!Game.CompletedAtUtc.HasValue && IdentifiedAsCurrentTeamGuesserWithClue)
-                            {
-                                <div class="d-inline-block ml-2">
-                                    <button class="@TeamButtonClass adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
-                                </div>
+                                <span>Game has ended</span>
                             }
                         </div>
                     </div>
@@ -135,7 +142,6 @@ else
                     </CascadingValue>
                 </CascadingValue>
             </TabControl>
-
         </div>
     </div>
 }
@@ -157,6 +163,7 @@ else
     private int _currentNumberOfWordsLinked = 0;
     private string _clueErrorMessage;
     private bool _topRowCollapsed = false;
+    private bool _endGameAnimationRun = false;
 
     private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
     private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
@@ -199,6 +206,7 @@ else
 
     public async Task UnidentifyPlayerInGameAsync()
     {
+        Timer.StopTimer();
         IdentifiedPlayer.Identified = false;
         await Task.WhenAll(
             Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
@@ -218,6 +226,12 @@ else
             await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GameLogTab", $"Game Log{(_unreadGameLogMessageCount > 0 ? $" ({_unreadGameLogMessageCount})" : "")}");
             await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GlobalChatTab", $"Global Chat{(_unreadGlobalMessageCount > 0 ? $" ({_unreadGlobalMessageCount})" : "")}");
             await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "RoleChatTab", $"{RoleChatName}{(_unreadRoleMessageCount > 0 ? $" ({_unreadRoleMessageCount})" : "")}");
+
+            if (_showCompletionMessage && !_endGameAnimationRun)
+            {
+                _endGameAnimationRun = true;
+                await JSRuntime.InvokeVoidAsync("codenames.gameCompletedAnimation", Game.WinnningTeam.Value.ToString().ToLower(), Game.GuessedWords.Contains(Game.Assassin));
+            }
         }
     }
 
@@ -280,7 +294,7 @@ else
 
     private async Task HandleWordGuessedAsync(int wordIndex)
     {
-        if (IdentifiedAsCurrentTeamGuesserWithClue)
+        if (IdentifiedAsCurrentTeamGuesserWithClue && !Game.CompletedAtUtc.HasValue)
         {
             Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses - 1;
 
@@ -292,7 +306,7 @@ else
                 if (Game.Assassin == wordIndex)
                 {
                     Game.WinnningTeam = (Team)(1 - Game.CurrentTurn.Team);
-                    Game.CompletedMessage = $"{IdentifiedPlayer.Name} bumped into the assassin and was killed!";
+                    Game.CompletedMessage = $"{IdentifiedPlayer.Name} bumped into the assassin and was killed. Team {Game.WinnningTeam.ToString().ToLower()} wins!";
                 }
                 else if (Game.BlueWords.All(bw => Game.GuessedWords.Contains(bw)))
                 {
@@ -316,16 +330,16 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = $"incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(red)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(red)")}. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = $"incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(blue)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(blue)")}. Blue team's turn started.";
                     }
                     else
                     {
-                        messageSuffix = "correctly";
+                        messageSuffix = " correctly";
 
                         if (Game.CurrentTurn.NumberOfGuesses == 0)
                         {
@@ -335,7 +349,7 @@ else
                     }
                 }
 
-                await UpdateGameAsync($"guessed {Game.Words[wordIndex]} {messageSuffix}");
+                await UpdateGameAsync($"guessed {Game.Words[wordIndex]}{messageSuffix}");
             }
         }
     }

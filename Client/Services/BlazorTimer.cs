@@ -16,6 +16,8 @@ namespace Codenames.Client.Services
             _timer.Enabled = true;
         }
 
+        public void StopTimer() => _timer?.Stop();
+
         private void NotifyTimerElapsed(object source, ElapsedEventArgs e)
         {
             OnElapsed?.Invoke();
