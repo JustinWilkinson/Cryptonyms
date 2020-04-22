@@ -144,7 +144,6 @@ else
             </TabControl>
         </div>
     </div>
-    <div class="party-popper-container"></div>
 }
 
 @code {
@@ -231,7 +230,7 @@ else
             if (_showCompletionMessage && !_endGameAnimationRun)
             {
                 _endGameAnimationRun = true;
-                await JSRuntime.InvokeVoidAsync("codenames.gameCompletedAnimation", Game.WinnningTeam.Value.ToString().ToLower());
+                await JSRuntime.InvokeVoidAsync("codenames.gameCompletedAnimation", Game.WinnningTeam.Value.ToString().ToLower(), Game.GuessedWords.Contains(Game.Assassin));
             }
         }
     }

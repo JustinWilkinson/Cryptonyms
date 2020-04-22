@@ -239,8 +239,9 @@ app {
     }
 }
 
-.party-popper-container {
-    z-index: -1;
+.animation-container {
+    min-height: 90vh;
+    width: 100%;
 }
 
 .balloon {
@@ -248,7 +249,7 @@ app {
     width: 40px;
     height: 80px;
     background-size: cover;
-    left: calc(50% - 20px);
+    left: calc(50vw - 20px);
     bottom: 0;
 }
 
@@ -258,4 +259,23 @@ app {
 
 .balloon-red {
     background-image: url('/images/red-balloon.png');
+}
+
+.img-endgame {
+    position: absolute;
+    top: calc(50vh - 20vh);
+    opacity: 0;
+}
+
+.img-spy {
+    left: calc(30vw - 10vh);
+}
+
+.img-assassin {
+    left: calc(70vw - 10vh);
+}
+
+.img-bullet {
+    left: 68vw;
+    top: calc(50vh - 16vh);
 }
