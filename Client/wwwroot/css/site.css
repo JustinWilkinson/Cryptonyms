@@ -246,7 +246,7 @@ app {
 
 .balloon {
     position: absolute;
-    width: 40px;
+    width: 45px;
     height: 80px;
     background-size: cover;
     left: calc(50vw - 20px);
