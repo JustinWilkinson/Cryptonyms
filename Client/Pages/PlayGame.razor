@@ -218,6 +218,15 @@ else
         IdentifiedPlayer = null;
     }
 
+    public async Task AddPlayerToGameAsync()
+    {
+        await Task.WhenAll(
+            Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            GameHub.AddNewPlayerToGameAsync(GameId, IdentifiedPlayer)
+        );
+        StateHasChanged();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender && IdentifiedPlayer != null)
@@ -286,6 +295,11 @@ else
             {
                 updatedPlayer.Identified = true;
             }
+        });
+        GameHub.RegisterHandler<Player>("AddNewPlayerToGame", (player) =>
+        {
+            Game.Players.Add(player);
+            StateHasChanged();
         });
 
         await GameHub.StartAsync();

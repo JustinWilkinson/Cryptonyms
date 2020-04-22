@@ -46,7 +46,7 @@ namespace Codenames.Server.Controllers
         public void UpdatePlayerInGame(JsonElement gameJson)
         {
             var playerInGame = gameJson.Deserialize<PlayerInGame>();
-            _gameRepository.UpdatePlayerInGame(playerInGame.GameId, playerInGame.Player);
+            _gameRepository.AddOrUpdatePlayerInGame(playerInGame.GameId, playerInGame.Player);
         }
     }
 }

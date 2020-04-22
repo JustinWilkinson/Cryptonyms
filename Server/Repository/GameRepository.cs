@@ -14,7 +14,7 @@ namespace Codenames.Server.Repository
 
         void SaveGame(Game game);
 
-        void UpdatePlayerInGame(string gameId, Player player);
+        void AddOrUpdatePlayerInGame(string gameId, Player player);
 
         Game GetGame(string id);
 
@@ -64,11 +64,11 @@ namespace Codenames.Server.Repository
             }
         }
 
-        public void UpdatePlayerInGame(string gameId, Player player)
+        public void AddOrUpdatePlayerInGame(string gameId, Player player)
         {
             try
             {
-                ExecuteInTransaction((connection) => 
+                ExecuteInTransaction((connection) =>
                 {
                     var selectCommand = new SQLiteCommand("SELECT GameJson FROM Games WHERE Id = @Id;", connection);
                     selectCommand.AddParameter("@Id", gameId);
@@ -76,7 +76,15 @@ namespace Codenames.Server.Repository
                     if (reader.Read())
                     {
                         var game = DeserializeColumn<Game>("GameJson")(reader);
-                        game.Players.SingleOrDefault(p => p.Name == player.Name).Identified = player.Identified;
+                        var existingPlayer = game.Players.SingleOrDefault(p => p.Name == player.Name);
+                        if (existingPlayer != null)
+                        {
+                            existingPlayer.Identified = player.Identified;
+                        }
+                        else
+                        {
+                            game.Players.Add(player);
+                        }
                         var updateCommand = new SQLiteCommand("UPDATE Games SET GameJson = @Json WHERE Id = @Id", connection);
                         updateCommand.AddParameter("@Id", game.GameId);
                         updateCommand.AddParameter("@Json", game.Serialize());
