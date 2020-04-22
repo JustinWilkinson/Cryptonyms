@@ -1,10 +1,8 @@
 ﻿@using Codenames.Client.Pages;
 
-@inject HttpClient Http
 @inject LocalStorage Storage
 
 <h1>Identify Yourself</h1>
-
 
 @if (Parent.Game.Players.Any(x => !x.Identified))
 {

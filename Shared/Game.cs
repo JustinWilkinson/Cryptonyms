@@ -10,6 +10,8 @@ namespace Codenames.Shared
 
         public Guid GameId { get; set; }
 
+        public string Name { get; set; }
+
         public Dictionary<int, string> Words { get; set; }
 
         public int Assassin { get; set; }
@@ -32,13 +34,14 @@ namespace Codenames.Shared
 
         public List<int> GuessedWords { get; set; }
 
-        public static Game NewGame(IEnumerable<string> knownWords)
+        public static Game NewGame(string name, IEnumerable<string> knownWords)
         {
             var knownWordsArray = knownWords.ToArray();
             var allPossibilities = Enumerable.Range(0, knownWordsArray.Length - 1).ToList();
             Game game = new Game
             {
                 GameId = Guid.NewGuid(),
+                Name = name ?? "Unnamed Game",
                 StartedAtUtc = DateTime.UtcNow,
                 Words = new Dictionary<int, string>(),
                 RedWords = new List<int>(),

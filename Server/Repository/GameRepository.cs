@@ -10,7 +10,7 @@ namespace Codenames.Server.Repository
 {
     public interface IGameRepository
     {
-        void CreateGame(Game game);
+        void CreateGame(Game game, bool privateGame);
 
         void SaveGame(Game game);
 
@@ -18,7 +18,7 @@ namespace Codenames.Server.Repository
 
         Game GetGame(string id);
 
-        IEnumerable<Game> ListGames();
+        IEnumerable<Game> ListGames(bool includePrivate = false);
 
         void DeleteGames(IEnumerable<Guid> gameIds);
     }
@@ -27,18 +27,19 @@ namespace Codenames.Server.Repository
     {
         private readonly ILogger<GameRepository> _logger;
 
-        public GameRepository(ILogger<GameRepository> logger) : base("CREATE TABLE IF NOT EXISTS Games (Id text PRIMARY KEY, GameJson text NOT NULL)")
+        public GameRepository(ILogger<GameRepository> logger) : base("CREATE TABLE IF NOT EXISTS Games (Id text PRIMARY KEY, GameJson text NOT NULL, Private integer NOT NULL CHECK (Private IN (0,1)))")
         {
             _logger = logger;
         }
 
-        public void CreateGame(Game game)
+        public void CreateGame(Game game, bool privateGame)
         {
             try
             {
-                var command = new SQLiteCommand("INSERT INTO Games (Id, GameJson) VALUES(@Id, @Json)");
+                var command = new SQLiteCommand("INSERT INTO Games (Id, GameJson, Private) VALUES(@Id, @Json, @Private)");
                 command.AddParameter("@Id", game.GameId);
                 command.AddParameter("@Json", game.Serialize());
+                command.AddParameter("@Private", privateGame ? 1 : 0);
                 Execute(command);
             }
             catch (Exception ex)
@@ -114,11 +115,11 @@ namespace Codenames.Server.Repository
             }
         }
 
-        public IEnumerable<Game> ListGames()
+        public IEnumerable<Game> ListGames(bool includePrivate = false)
         {
             try
             {
-                return Execute("SELECT * FROM Games", DeserializeColumn<Game>("GameJson"));
+                return Execute($"SELECT * FROM Games{(includePrivate ? "" : " WHERE Private = 0")}", DeserializeColumn<Game>("GameJson"));
             }
             catch (Exception ex)
             {

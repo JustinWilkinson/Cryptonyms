@@ -28,6 +28,7 @@ namespace Codenames.Server
             });
             services.AddSignalR();
 
+            services.AddSingleton<IGameCountRepository, GameCountRepository>();
             services.AddSingleton<IGameRepository, GameRepository>();
             services.AddSingleton<IPlayerRepository, PlayerRepository>();
             services.AddSingleton<IWordRepository, WordRepository>();
