@@ -83,6 +83,8 @@ namespace Codenames.Server.Repository
             }
         }
 
-        public Func<SQLiteDataReader, T> DeserializeColumn<T>(string columnName) => reader => reader[columnName].ToString().Deserialize<T>();
+        public Func<SQLiteDataReader, T> DeserializeColumn<T>(string columnName) => GetColumnValue(columnName, c => c.ToString().Deserialize<T>());
+
+        public Func<SQLiteDataReader, T> GetColumnValue<T>(string columnName, Func<object, T> converter) => reader => converter(reader[columnName]);
     }
 }

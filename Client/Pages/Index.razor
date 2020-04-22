@@ -1,14 +1,24 @@
 ﻿@page "/"
 
-@inject NavigationManager NavigationManager
+@inject HttpClient Http
 
 <h1>Welcome to Codenames Online</h1>
 
-<div>
-    <NavLink class="nav-link" href="NewGame" Match="NavLinkMatch.All">
-        <span class="oi oi-list-rich" aria-hidden="true"></span> Click here to start a new game...
-    </NavLink>
+<div class="container-fluid">
+    <div class="row">
+        <p>An online game inspired by the popular <a href="https://czechgames.com/en/codenames/" target="_blank">Codenames boardgame</a>. @(_gameCountString ?? "Fetching statistics...")</p><br />
+    </div>
+    <div class="row">
+        <img src="/images/silhouettes.png" class="w-50 h-50"/>
+    </div>
 </div>
-<div>
-    <img src="/images/SilhouetteAgents.png" />
-</div>
+
+@code {
+    private string _gameCountString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var gameCount = await Http.GetJsonAsync<int>("api/Game/Count");
+        _gameCountString = $"We have currently hosted {gameCount.ToString("N0")} game{(gameCount == 1 ? "" : "s")}!";
+    }
+}

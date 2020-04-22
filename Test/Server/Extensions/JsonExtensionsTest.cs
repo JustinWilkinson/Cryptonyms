@@ -9,7 +9,7 @@ namespace Codenames.Test.Server.Extensions
     public class JsonExtensionsTest
     {
 
-        private static readonly TestSerializerClass _testObject = new TestSerializerClass { IntValue = 1, StringValue = "Value", camelCaseStringValue = "value" };
+        private static readonly TestSerializerClass _testObject = new TestSerializerClass { IntValue = 1, StringValue = "Value", BooleanValue = true, camelCaseStringValue = "value", camelCaseBooleanValue = false };
         private static readonly JsonElement _objectJsonElement = JsonDocument.Parse(JsonSerializer.Serialize(_testObject)).RootElement;
 
         private static readonly TestSerializerClass _complexTestObject = new TestSerializerClass { IntValue = 1, StringValue = JsonConvert.SerializeObject(_testObject), camelCaseStringValue = JsonConvert.SerializeObject(_testObject) };
@@ -26,6 +26,19 @@ namespace Codenames.Test.Server.Extensions
         {
             Assert.AreEqual("value", _objectJsonElement.GetStringProperty("camelCaseStringValue"));
             Assert.AreEqual("value", _objectJsonElement.GetStringProperty("CamelCaseStringValue"));
+        }
+
+        [Test]
+        public void GetBooleanProperty_ValidJsonElementObjectPascalCase_ExtractsBooleanPropertySuccessfully()
+        {
+            Assert.AreEqual(true, _objectJsonElement.GetBooleanProperty("BooleanValue"));
+        }
+
+        [Test]
+        public void GetBooleanProperty_ValidJsonElementObjectCamelCase_ExtractsBooleanPropertySuccessfully()
+        {
+            Assert.AreEqual(false, _objectJsonElement.GetBooleanProperty("camelCaseBooleanValue"));
+            Assert.AreEqual(false, _objectJsonElement.GetBooleanProperty("CamelCaseBooleanValue"));
         }
 
         [Test]
@@ -72,6 +85,10 @@ namespace Codenames.Test.Server.Extensions
             public int IntValue { get; set; }
 
             public string StringValue { get; set; }
+
+            public bool BooleanValue { get; set; }
+
+            public bool camelCaseBooleanValue { get; set; }
 
             public string camelCaseStringValue { get; set; }
 

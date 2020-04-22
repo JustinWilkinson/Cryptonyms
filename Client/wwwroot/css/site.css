@@ -217,6 +217,22 @@ app {
     .adjustable-font-size-small {
         font-size: xx-small;
     }
+
+    h1 {
+        font-size: 1.6em;
+    }
+
+    h2 {
+        font-size: 1.4em;
+    }
+
+    h3 {
+        font-size: 1.2em;
+    }
+
+    h4 {
+        font-size: 1em;
+    }
 }
 
 @media(min-width: 1140px) {    
@@ -226,6 +242,22 @@ app {
 
     .adjustable-font-size-small {
         font-size: x-small;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    h2 {
+        font-size: 1.6em;
+    }
+
+    h3 {
+        font-size: 1.4em;
+    }
+
+    h4 {
+        font-size: 1.2em;
     }
 }
 
@@ -237,6 +269,22 @@ app {
     .adjustable-font-size-small {
         font-size: smaller;
     }
+
+    h1 {
+        font-size: 2.5em;
+    }
+
+    h2 {
+        font-size: 2em;
+    }
+
+    h3 {
+        font-size: 1.75em;
+    }
+
+    h4 {
+        font-size: 1.5em;
+    }
 }
 
 .animation-container {
@@ -246,7 +294,7 @@ app {
 
 .balloon {
     position: absolute;
-    width: 40px;
+    width: 45px;
     height: 80px;
     background-size: cover;
     left: calc(50vw - 20px);

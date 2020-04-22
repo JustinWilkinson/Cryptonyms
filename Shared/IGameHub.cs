@@ -13,5 +13,7 @@ namespace Codenames.Shared
         Task UpdatePlayerIdentificationAsync(string gameId, string playerName, bool identified);
 
         Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage);
+
+        Task AddNewPlayerToGameAsync(string gameId, Player player);
     }
 }

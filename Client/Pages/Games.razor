@@ -2,7 +2,22 @@
 
 @inject HttpClient Http
 
-<h1>Games</h1>
+<div class="row">
+    <div class="col-11">
+        <h1>Games</h1>
+        <div class="row pl-3">
+            <NavLink class="nav-link pl-0" href="NewGame" Match="NavLinkMatch.All">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Click here to start a new game...
+            </NavLink>
+        </div>
+        <div class="row pl-3">
+            <p><strong>Note: </strong>Completed games are cleared daily at 00:00 (UTC). Games in progress will also be cleared if they are older than 5 days.</p>
+        </div>
+    </div>
+    <div class="col-1">
+        <img style="height: 14vh; width: 8vh;" src="/images/silhouette-agents.png" />
+    </div>
+</div>
 
 @if (_games == null)
 {
@@ -10,43 +25,50 @@
 }
 else
 {
-    <div class="content">
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th>Started</th>
-                    <th>Completed</th>
-                    <th>Number of Players</th>
-                    <th>Winning Team</th>
-                    <th>Final Message</th>
-                    <th>Link</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var game in _games.OrderByDescending(g => g.StartedAtUtc))
-                {
+    <div class="container-fluid">
+        <div class="row">
+            <h3>Public Games</h3>
+        </div>
+        <div class="row">
+            <table class="table table-striped table-bordered">
+                <thead>
                     <tr>
-                        <td>@game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
-                        <td>@(game.CompletedAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "In Progress")</td>
-                        <td>@(game.Players?.Count ?? 0)</td>
-                        <td>@(game.WinnningTeam.ToString() ?? "Undecided")</td>
-                        <td>@game.CompletedMessage</td>
-                        <td>
-                            @if (!game.CompletedAtUtc.HasValue)
-                            {
-                                <a href="PlayGame/@game.GameId">
-                                    <span class="oi oi-list-rich" aria-hidden="true"></span> Go to game
-                                </a>
-                            }
-                            else
-                            {
-                                <span>Game Completed</span>
-                            }
-                        </td>
+                        <th>Name</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                        <th>Number of Players</th>
+                        <th>Winning Team</th>
+                        <th>Final Message</th>
+                        <th>Link</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var game in _games.OrderByDescending(g => g.StartedAtUtc))
+                    {
+                        <tr>
+                            <td>@game.Name</td>
+                            <td>@game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            <td>@(game.CompletedAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") ?? "In Progress")</td>
+                            <td>@(game.Players?.Count ?? 0)</td>
+                            <td>@(game.WinnningTeam.ToString() ?? "Undecided")</td>
+                            <td>@game.CompletedMessage</td>
+                            <td>
+                                @if (!game.CompletedAtUtc.HasValue)
+                                {
+                                    <a href="PlayGame/@game.GameId">
+                                        <span class="oi oi-list-rich" aria-hidden="true"></span> Go to game
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>Game Completed</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 }
 

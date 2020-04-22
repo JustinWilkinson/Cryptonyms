@@ -21,5 +21,7 @@ namespace Codenames.Client.Services.SignalR
         public async Task UpdateGameAsync(string gameId, string updatedGame) => await _hubConnection.InvokeAsync("UpdateGameAsync", gameId, updatedGame);
 
         public async Task UpdatePlayerIdentificationAsync(string gameId, string playerName, bool identified) => await _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", gameId, playerName, identified);
+
+        public async Task AddNewPlayerToGameAsync(string gameId, Player player) => await _hubConnection.InvokeAsync("AddNewPlayerToGameAsync", gameId, player);
     }
 }

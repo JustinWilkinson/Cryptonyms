@@ -1,13 +1,12 @@
 ﻿@using Codenames.Client.Pages;
 
-@inject HttpClient Http
 @inject LocalStorage Storage
 
 <h1>Identify Yourself</h1>
 
-<div class="col-sm-9 col-lg-9 pl-0">
-    @if (Parent.Game.Players.Any(x => !x.Identified))
-    {
+@if (Parent.Game.Players.Any(x => !x.Identified))
+{
+    <div class="col pl-0">
         <p>Hi, you'll need to identify yourself as a player in order to join the game.</p>
         <table class="table table-striped table-bordered overflow-auto mb-3">
             <thead>
@@ -52,12 +51,29 @@
             </tbody>
         </table>
         <button class="btn btn-primary" @onclick="ConfirmAsync" disabled="@(Parent.IdentifiedPlayer == null)">Confirm</button>
-    }
-    else
-    {
-        <div>Sorry, but all the players in this game have been identified. Please <NavLink href="NewGame" Match="NavLinkMatch.All">click here</NavLink> to create a new game.</div>
-    }
-</div>
+    </div>
+}
+else
+{
+    <div>
+        <p>All the players in this game have been identified. Please <NavLink href="NewGame" Match="NavLinkMatch.All">click here</NavLink> to create a new game.</p>
+        <p>Alternatively, you can create a new player and join the game using the form below.</p>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="form-inline">
+                <label class="d-inline-block mr-2" for="newPlayerName">Name:</label>
+                <input id="newPlayerName" type="text" class="form-control mr-2" @bind="NewPlayerName" placeholder="Enter your name here..." autocomplete="off"/>
+                @if (_createNewPlayerErrorMessage != null)
+                {
+                    <label class="text-danger">@_createNewPlayerErrorMessage</label>
+                }
+                <button id="saveNewPlayer" type="button" class="btn btn-primary" @onclick="AddNewPlayerAsync">Save</button>
+            </div>
+        </div>
+    </div>
+}
+
 
 
 @code {
@@ -66,6 +82,11 @@
 
     [Parameter]
     public Action OnPlayerIdentified { get; set; }
+
+    private string NewPlayerName { get; set; }
+    private string _createNewPlayerErrorMessage;
+
+    private List<string> _validationErrors = new List<string>();
 
     protected override void OnInitialized()
     {
@@ -96,6 +117,33 @@
         else
         {
             Storage.RemoveItem("playerName");
+        }
+    }
+
+    private async Task AddNewPlayerAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(NewPlayerName))
+        {
+            if (!Parent.Game.Players.Any(p => p.Name == NewPlayerName))
+            {
+                var random = new Random();
+                var team = Parent.Game.Players.GroupBy(x => x.Team).OrderBy(g => g.Count()).ThenBy(x => random.Next()).First().Key;
+
+                Parent.IdentifiedPlayer = new Player { Name = NewPlayerName, Identified = true, Team = team };
+                Storage.SetItem("playerName", Parent.IdentifiedPlayer.Name);
+                Parent.Game.Players.Add(Parent.IdentifiedPlayer);
+
+                await Parent.AddPlayerToGameAsync();
+                await Parent.IdentifyPlayerInGameAsync();
+            }
+            else
+            {
+                _createNewPlayerErrorMessage = $"Player named '{NewPlayerName}' already exists!";
+            }
+        }
+        else
+        {
+            _createNewPlayerErrorMessage = "Please enter a non-empty player name!";
         }
     }
 }
