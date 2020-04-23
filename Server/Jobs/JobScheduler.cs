@@ -29,6 +29,7 @@ namespace Cryptonyms.Server.Jobs
             var job = JobBuilder.Create<CleanUpJob>().WithIdentity(jobName).Build();
             var trigger = TriggerBuilder.Create().WithIdentity(triggerName).ForJob(jobName).WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(timeHours, timeMinutes)).Build();
             await _scheduler.ScheduleJob(job, trigger);
+            await _scheduler.TriggerJob(job.Key);
         }
     }
 }
