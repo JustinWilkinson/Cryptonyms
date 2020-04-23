@@ -1,10 +1,10 @@
 ﻿@inject IJSRuntime JSRuntime
 
 <CascadingValue Value="this">
-    <div class="btn-group w-100 overflow-auto" role="group">
+    <div class="btn-group overflow-auto @AdditionalButtonGroupClasses" role="group">
         @foreach (TabPage tabPage in _pages)
         {
-            <button id="@tabPage.ButtonId" type="button" class="btn @GetButtonClass(tabPage) adjustable-font-size-small" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
+            <button id="@tabPage.ButtonId" type="button" class="btn @GetButtonClass(tabPage) @AdditionalButtonClasses" @onclick=@(() => ActivatePage(tabPage))>@tabPage.Title</button>
         }
     </div>
     <div class="w-100">
@@ -15,6 +15,12 @@
 @code {
     [Parameter]
     public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string AdditionalButtonGroupClasses { get; set; }
+
+    [Parameter]
+    public string AdditionalButtonClasses { get; set; }
 
     [Parameter]
     public EventCallback<TabPage> OnTabSelected { get; set; }
@@ -39,6 +45,6 @@
     {
         ActivePage = page;
         await OnTabSelected.InvokeAsync(ActivePage);
-        ActivePage.OnTabSelected.Invoke();
+        ActivePage.OnTabSelected?.Invoke();
     }
 }

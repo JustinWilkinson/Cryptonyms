@@ -50,7 +50,7 @@ else
                             {
                                 if (Game.CurrentTurn.Clue != null)
                                 {
-                                    <span>@Game.CurrentTurn.Team.ToString() team's turn: @(Game.CurrentTurn.NumberOfGuesses == 1 ? "Bonus Guess" : $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}{(Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses ? "" : " left")}")</span>
+                                    <span>@Game.CurrentTurn.Team.ToString() team's turn: @GetCurrentClueInfo()</span>
                                 }
                                 else
                                 {
@@ -101,7 +101,7 @@ else
                         </div>
                         <div class="form-group mr-3">
                             <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
-                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" @bind="_currentNumberOfWordsLinked" @oninput="e => _currentNumberOfWordsLinked = Convert.ToInt32(e.Value)" class="form-control adjustable-font-size" />
+                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" value="0" @oninput="e => HandleNumberOfGuessesInput(e.Value.ToString())" class="form-control adjustable-font-size" />
                         </div>
                         <button type="button" class="@TeamButtonClass adjustable-font-size" @onclick="GiveClueAsync">Give clue</button>
                         @if (_clueErrorMessage != null)
@@ -113,7 +113,7 @@ else
             }
         </div>
         <div class="mt-3" style="width: 22%;">
-            <TabControl OnTabSelected="HandleTabSelectedAsync">
+            <TabControl AdditionalButtonGroupClasses="w-100" AdditionalButtonClasses="adjustable-font-size-small" OnTabSelected="HandleTabSelectedAsync">
                 <TabPage ButtonId="GameLogTab" Title="Game Log" OnTabSelected="() => _unreadGameLogMessageCount = 0">
                     <div class="card border rounded">
                         <div id="GameLog" class="card-body overflow-auto p-0" style="height: 75vh;">
@@ -344,12 +344,12 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(red)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(red)" : "(neutral)")}. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(neutral)" : "(blue)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Blue team's turn started.";
                     }
                     else
                     {
@@ -397,6 +397,24 @@ else
     private string GetBackgroundColourClassForVisibleWord(int wordIndex) => (IdentifiedPlayer.IsSpymaster || Game.WinnningTeam.HasValue) ? GetBackgroundColourClass(wordIndex) : "bg-warning";
 
     private void ClosePopup() => _showCompletionMessage = false;
+
+    private void HandleNumberOfGuessesInput(string input) => _currentNumberOfWordsLinked = !string.IsNullOrEmpty(input) ? Convert.ToInt32(input) : 0;
+
+    private string GetCurrentClueInfo()
+    {
+        if (Game.CurrentTurn.NumberOfGuesses == 1)
+        {
+            return "Bonus Guess";
+        }
+        else if (Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses)
+        {
+            return $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}";
+        }
+        else
+        {
+            return $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}/{Game.CurrentTurn.InitialNumberOfGuesses - 1}";
+        }
+    }
 
     private async Task GiveClueAsync()
     {
