@@ -1,4 +1,4 @@
-﻿using Codenames.Server.Jobs;
+﻿using Cryptonyms.Server.Jobs;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,7 +7,7 @@ using NLog.Web;
 using System;
 using System.Threading.Tasks;
 
-namespace Codenames.Server
+namespace Cryptonyms.Server
 {
     public class Program
     {

@@ -1,12 +1,12 @@
-using Codenames.Server.Hubs;
-using Codenames.Server.Repository;
+using Cryptonyms.Server.Hubs;
+using Cryptonyms.Server.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Codenames.Server
+namespace Cryptonyms.Server
 {
     public class Startup
     {

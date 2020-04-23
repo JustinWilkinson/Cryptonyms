@@ -1,9 +1,9 @@
-﻿using Codenames.Shared;
+﻿using Cryptonyms.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Threading.Tasks;
 
-namespace Codenames.Client.Services.SignalR
+namespace Cryptonyms.Client.Services.SignalR
 {
     public class GameHubCommunicator : HubCommunicator, IGameHub
     {

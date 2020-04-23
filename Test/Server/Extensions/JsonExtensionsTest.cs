@@ -1,10 +1,10 @@
-using Codenames.Server.Extensions;
+using Cryptonyms.Server.Extensions;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using System.Text.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
-namespace Codenames.Test.Server.Extensions
+namespace Cryptonyms.Test.Server.Extensions
 {
     public class JsonExtensionsTest
     {

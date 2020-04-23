@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Threading.Tasks;
 
-namespace Codenames.Client.Services.SignalR
+namespace Cryptonyms.Client.Services.SignalR
 {
     public interface IHubCommunicator
     {

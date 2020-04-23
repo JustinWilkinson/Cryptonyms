@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Codenames.Shared
+namespace Cryptonyms.Shared
 {
     public class Game
     {

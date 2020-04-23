@@ -1,8 +1,8 @@
-﻿using Codenames.Shared;
+﻿using Cryptonyms.Shared;
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
-namespace Codenames.Server.Hubs
+namespace Cryptonyms.Server.Hubs
 {
     public class GameHub : Hub, IGameHub
     {

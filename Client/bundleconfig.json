@@ -6,9 +6,9 @@
     ]
   },
   {
-    "outputFileName": "wwwroot/js/codenames.min.js",
+    "outputFileName": "wwwroot/js/Cryptonyms.min.js",
     "inputFiles": [
-      "wwwroot/js/codenames.js"
+      "wwwroot/js/Cryptonyms.js"
     ]
   }
 ]

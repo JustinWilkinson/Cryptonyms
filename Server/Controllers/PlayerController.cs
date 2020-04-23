@@ -1,6 +1,6 @@
-﻿using Codenames.Server.Extensions;
-using Codenames.Server.Repository;
-using Codenames.Shared;
+﻿using Cryptonyms.Server.Extensions;
+using Cryptonyms.Server.Repository;
+using Cryptonyms.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-namespace Codenames.Server.Controllers
+namespace Cryptonyms.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

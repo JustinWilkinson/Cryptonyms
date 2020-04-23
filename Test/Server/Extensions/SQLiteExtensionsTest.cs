@@ -1,9 +1,9 @@
-﻿using Codenames.Server.Extensions;
+﻿using Cryptonyms.Server.Extensions;
 using NUnit.Framework;
 using System.Data;
 using System.Data.SQLite;
 
-namespace Codenames.Test.Server.Extensions
+namespace Cryptonyms.Test.Server.Extensions
 {
     public class SQLiteExtensionsTest
     {

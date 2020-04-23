@@ -21,7 +21,7 @@
     <PackageReference Include="Toolbelt.Blazor.TimeZoneKit" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Codenames.Shared.csproj" />
+    <ProjectReference Include="..\Shared\Cryptonyms.Shared.csproj" />
   </ItemGroup>
 
 </Project>

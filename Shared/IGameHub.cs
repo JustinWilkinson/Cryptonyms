@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Codenames.Shared
+namespace Cryptonyms.Shared
 {
     public interface IGameHub
     {

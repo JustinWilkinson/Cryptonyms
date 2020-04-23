@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Codenames.Server", "Server\Codenames.Server.csproj", "{045C3423-F946-4174-912E-5BBEE1208C0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptonyms.Server", "Server\Cryptonyms.Server.csproj", "{045C3423-F946-4174-912E-5BBEE1208C0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Codenames.Client", "Client\Codenames.Client.csproj", "{A3C0D393-CC27-47BE-9FC4-F8AEBFFE1B19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptonyms.Client", "Client\Cryptonyms.Client.csproj", "{A3C0D393-CC27-47BE-9FC4-F8AEBFFE1B19}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Codenames.Shared", "Shared\Codenames.Shared.csproj", "{0AF06D6E-C733-408C-A77B-230072C6F45F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptonyms.Shared", "Shared\Cryptonyms.Shared.csproj", "{0AF06D6E-C733-408C-A77B-230072C6F45F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codenames.Test", "Test\Codenames.Test.csproj", "{3735FCC0-6B31-48EC-9D3C-5D28D1EB8495}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptonyms.Test", "Test\Cryptonyms.Test.csproj", "{3735FCC0-6B31-48EC-9D3C-5D28D1EB8495}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,7 +1,7 @@
-﻿using Codenames.Client.Services.SignalR;
+﻿using Cryptonyms.Client.Services.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Codenames.Client.Services
+namespace Cryptonyms.Client.Services
 {
     public static class ServiceCollectionExtensions
     {

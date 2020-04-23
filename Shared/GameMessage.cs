@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Codenames.Shared
+namespace Cryptonyms.Shared
 {
     public class GameMessage
     {

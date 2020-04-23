@@ -1,12 +1,12 @@
-﻿using Codenames.Server.Extensions;
-using Codenames.Shared;
+﻿using Cryptonyms.Server.Extensions;
+using Cryptonyms.Shared;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
 
-namespace Codenames.Server.Repository
+namespace Cryptonyms.Server.Repository
 {
     public interface IPlayerRepository
     {
