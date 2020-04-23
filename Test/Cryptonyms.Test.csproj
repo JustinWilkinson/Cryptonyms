@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Server\Codenames.Server.csproj" />
-    <ProjectReference Include="..\Shared\Codenames.Shared.csproj" />
+    <ProjectReference Include="..\Server\Cryptonyms.Server.csproj" />
+    <ProjectReference Include="..\Shared\Cryptonyms.Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -231,15 +231,15 @@ else
     {
         if (!firstRender && IdentifiedPlayer != null)
         {
-            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "GameLog");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GameLogTab", $"Game Log{(_unreadGameLogMessageCount > 0 ? $" ({_unreadGameLogMessageCount})" : "")}");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "GlobalChatTab", $"Global Chat{(_unreadGlobalMessageCount > 0 ? $" ({_unreadGlobalMessageCount})" : "")}");
-            await JSRuntime.InvokeVoidAsync("codenames.replaceAllContent", "RoleChatTab", $"{RoleChatName}{(_unreadRoleMessageCount > 0 ? $" ({_unreadRoleMessageCount})" : "")}");
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.scrollToBottomOfElement", "GameLog");
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.replaceAllContent", "GameLogTab", $"Game Log{(_unreadGameLogMessageCount > 0 ? $" ({_unreadGameLogMessageCount})" : "")}");
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.replaceAllContent", "GlobalChatTab", $"Global Chat{(_unreadGlobalMessageCount > 0 ? $" ({_unreadGlobalMessageCount})" : "")}");
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.replaceAllContent", "RoleChatTab", $"{RoleChatName}{(_unreadRoleMessageCount > 0 ? $" ({_unreadRoleMessageCount})" : "")}");
 
             if (_showCompletionMessage && !_endGameAnimationRun)
             {
                 _endGameAnimationRun = true;
-                await JSRuntime.InvokeVoidAsync("codenames.gameCompletedAnimation", Game.WinnningTeam.Value.ToString().ToLower(), Game.GuessedWords.Contains(Game.Assassin));
+                await JSRuntime.InvokeVoidAsync("Cryptonyms.gameCompletedAnimation", Game.WinnningTeam.Value.ToString().ToLower(), Game.GuessedWords.Contains(Game.Assassin));
             }
         }
     }
@@ -247,7 +247,7 @@ else
     private async Task HandleTabSelectedAsync(TabPage page)
     {
         _selectedTab = page.ButtonId;
-        await JSRuntime.InvokeVoidAsync("codenames.replaceContent", page.ButtonId, @"\s\(\d+\)", "");
+        await JSRuntime.InvokeVoidAsync("Cryptonyms.replaceContent", page.ButtonId, @"\s\(\d+\)", "");
     }
 
     private async Task ConfigureHubAsync()
@@ -436,7 +436,7 @@ else
         await Task.WhenAll(
             Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = JsonConvert.SerializeObject(gameLogMessage) }),
             GameHub.SendGameMessageAsync(GameId, "NewGameLogMessage", gameLogMessage));
-        await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", "GameLog");
+        await JSRuntime.InvokeVoidAsync("Cryptonyms.scrollToBottomOfElement", "GameLog");
     }
 
     private async Task UpdateGameAsync(string logMessage)
@@ -448,7 +448,7 @@ else
     private async Task ToggleTopRowAsync()
     {
         _topRowCollapsed = !_topRowCollapsed;
-        await JSRuntime.InvokeVoidAsync("codenames.slideToggle", "topRow");
+        await JSRuntime.InvokeVoidAsync("Cryptonyms.slideToggle", "topRow");
         StateHasChanged();
     }
 

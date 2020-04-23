@@ -52,7 +52,7 @@ else
     {
         if (!firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.scrollToBottomOfElement", Id);
         }
     }
 
@@ -60,7 +60,7 @@ else
     {
         if (e.Key == "Escape")
         {
-            await JSRuntime.InvokeVoidAsync("codenames.blurElement", Id);
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.blurElement", Id);
         }
         else if (e.Key == "Enter")
         {
@@ -77,7 +77,7 @@ else
             await Task.WhenAll(
                 Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
                 HubCommunicator.SendGameMessageAsync(OverrideHubGroup ?? ChatId, Id, chatMessage));
-            await JSRuntime.InvokeVoidAsync("codenames.scrollToBottomOfElement", Id);
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.scrollToBottomOfElement", Id);
             _newMessage = null;
         }
     }

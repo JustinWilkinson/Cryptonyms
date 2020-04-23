@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
 
-namespace Codenames.Server.Extensions
+namespace Cryptonyms.Server.Extensions
 {
     public static class JsonExtensions
     {

@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Client\Codenames.Client.csproj" />
-    <ProjectReference Include="..\Shared\Codenames.Shared.csproj" />
+    <ProjectReference Include="..\Client\Cryptonyms.Client.csproj" />
+    <ProjectReference Include="..\Shared\Cryptonyms.Shared.csproj" />
   </ItemGroup>
 
 

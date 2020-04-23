@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Codenames.Server.Repository
+namespace Cryptonyms.Server.Repository
 {
     public interface IGameCountRepository
     {

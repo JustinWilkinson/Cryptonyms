@@ -1,4 +1,4 @@
-﻿window.codenames = {
+﻿window.Cryptonyms = {
     setFocus: function (id) {
         let element = document.getElementById(id);
         if (element) {

@@ -73,7 +73,7 @@ else
         await base.OnAfterRenderAsync(firstRender);
         if (_showCreateNewWord)
         {
-            await JSRuntime.InvokeVoidAsync("codenames.setFocus", "newWord");
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.setFocus", "newWord");
         }
     }
 
@@ -81,7 +81,7 @@ else
     {
         if (e.Key == "Enter" || e.Key == "Escape")
         {
-            await JSRuntime.InvokeVoidAsync("codenames.blurElement", "searchTerm");
+            await JSRuntime.InvokeVoidAsync("Cryptonyms.blurElement", "searchTerm");
         }
     }
 

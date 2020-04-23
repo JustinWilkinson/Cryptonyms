@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Data.SQLite;
 
-namespace Codenames.Server.Extensions
+namespace Cryptonyms.Server.Extensions
 {
     public static class SQLiteExtensions
     {

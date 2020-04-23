@@ -1,12 +1,12 @@
 using Cloudcrate.AspNetCore.Blazor.Browser.Storage;
-using Codenames.Client.Services;
-using Codenames.Client.Services.SignalR;
+using Cryptonyms.Client.Services;
+using Cryptonyms.Client.Services.SignalR;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 
-namespace Codenames.Client
+namespace Cryptonyms.Client
 {
     public class Program
     {

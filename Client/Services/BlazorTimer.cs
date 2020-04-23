@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Timers;
 
-namespace Codenames.Client.Services
+namespace Cryptonyms.Client.Services
 {
     public class BlazorTimer
     {

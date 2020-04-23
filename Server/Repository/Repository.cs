@@ -1,4 +1,4 @@
-﻿using Codenames.Server.Extensions;
+﻿using Cryptonyms.Server.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -6,12 +6,12 @@ using System.Data;
 using System.Data.SQLite;
 using System.IO;
 
-namespace Codenames.Server.Repository
+namespace Cryptonyms.Server.Repository
 {
     public abstract class Repository
     {
-        public const string Database = "Codenames.sqlite";
-        public const string ConnectionString = "DataSource=Codenames.sqlite";
+        public const string Database = "Cryptonyms.sqlite";
+        public const string ConnectionString = "DataSource=Cryptonyms.sqlite";
 
         static Repository()
         {
