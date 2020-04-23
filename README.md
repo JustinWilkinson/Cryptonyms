@@ -1,5 +1,5 @@
 # Cryptonyms
-An unofficial online game inspired by the poupular [Codenames board game](https://czechgames.com/en/codenames/) implemented using Blazor WebAssembly.
+An unofficial online game inspired by the popular [Codenames board game](https://czechgames.com/en/codenames/) implemented using Blazor WebAssembly.
 
 ## Cryptonyms.Client
 The client-side Blazor WebAssembly application, which communicates with the server over HTTP and SignalR.
