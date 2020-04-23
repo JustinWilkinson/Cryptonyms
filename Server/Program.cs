@@ -6,6 +6,7 @@ using NLog;
 using NLog.Web;
 using System;
 using System.Threading.Tasks;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Cryptonyms.Server
 {
@@ -40,7 +41,7 @@ namespace Cryptonyms.Server
                 }).ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
-                    logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                    logging.SetMinimumLevel(LogLevel.Trace);
                 })
                 .UseNLog();
     }

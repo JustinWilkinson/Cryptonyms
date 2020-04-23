@@ -180,6 +180,6 @@
     protected override async Task OnInitializedAsync()
     {
         var gameCount = await Http.GetJsonAsync<int>("api/Game/Count");
-        _gameCountString = $"{gameCount.ToString("N0")} game{(gameCount == 1 ? "" : "s")}";
+        _gameCountString = $"{gameCount.ToString("N0")} game{(gameCount == 1 ? "" : "s")}, with {(await Http.GetJsonAsync<int>("api/Word/Count")).ToString("N0")} different words";
     }
 }

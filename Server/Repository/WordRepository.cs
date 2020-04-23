@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Linq;
 
 namespace Cryptonyms.Server.Repository
 {
@@ -14,6 +15,8 @@ namespace Cryptonyms.Server.Repository
         void EditWord(string originalWord, string updatedWord);
 
         IEnumerable<string> ListWords();
+
+        int GetCount();
 
         void DeleteWord(string word);
     }
@@ -75,6 +78,19 @@ namespace Cryptonyms.Server.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred modifying word '{originalWord}' to '{updatedWord}'.");
+                throw;
+            }
+        }
+
+        public int GetCount()
+        {
+            try
+            {
+                return Execute("SELECT COUNT(*) AS Count FROM Words", reader => Convert.ToInt32(reader["Count"])).Single();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred retrieving a count of all words.");
                 throw;
             }
         }

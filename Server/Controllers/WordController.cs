@@ -23,6 +23,9 @@ namespace Cryptonyms.Server.Controllers
         [HttpPut("New")]
         public void New(JsonElement word) => _wordRepository.CreateWord(word.GetString());
 
+        [HttpGet("Count")]
+        public int Count() => _wordRepository.GetCount();
+
         [HttpGet("List")]
         public IEnumerable<string> List() => _wordRepository.ListWords();
 
