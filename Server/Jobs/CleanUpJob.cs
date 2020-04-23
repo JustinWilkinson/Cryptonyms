@@ -12,7 +12,10 @@ namespace Cryptonyms.Server.Jobs
         public Task Execute(IJobExecutionContext context)
         {
             var gameRepository = new GameRepository(new LoggerFactory().CreateLogger<GameRepository>());
-            gameRepository.DeleteGames(gameRepository.ListGames(true).Where(x => x.CompletedAtUtc.HasValue || x.StartedAtUtc < DateTime.UtcNow.AddDays(-5)).Select(x => x.GameId));
+            var messageRepository = new MessageRepository(new LoggerFactory().CreateLogger<MessageRepository>());
+            var gameIdsToDelete = gameRepository.ListGames(true).Where(x => x.CompletedAtUtc.HasValue || x.StartedAtUtc < DateTime.UtcNow.AddDays(-5)).Select(x => x.GameId);
+            gameRepository.DeleteGames(gameIdsToDelete);
+            messageRepository.DeleteMessagesForGames(gameIdsToDelete);
             return Task.CompletedTask;
         }
     }

@@ -24,6 +24,6 @@ namespace Cryptonyms.Server.Controllers
         public void AddMessage(JsonElement json) => _chatRepository.AddMessage(json.GetStringProperty("MessageBoardId"), json.DeserializeStringProperty<GameMessage>("GameMessage"));
 
         [HttpGet("GetGameMessagesForGroup")]
-        public string Get(string MessageBoardId) => _chatRepository.GetGameMessagesForGroup(MessageBoardId).Serialize();
+        public string Get(string messageBoardId) => _chatRepository.GetGameMessagesForGroup(messageBoardId).Serialize();
     }
 }
