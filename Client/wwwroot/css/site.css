@@ -327,3 +327,8 @@ app {
     left: 68vw;
     top: calc(50vh - 16vh);
 }
+
+.img-about {
+    object-fit: cover;
+    height: 100%;
+}
