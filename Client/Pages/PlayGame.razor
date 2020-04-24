@@ -9,7 +9,14 @@
 
 @if (Game == null)
 {
-    <p><em>Loading...</em></p>
+    @if (_urlWrong)
+    {
+        <p>Sorry, it doesn't look like this is a valid game - please make sure your URL is correct and retry.</p>
+    }
+    else
+    {
+        <p><em>Loading...</em></p>
+    }
 }
 else if (IdentifiedPlayer == null)
 {
@@ -164,6 +171,7 @@ else
     private string _clueErrorMessage;
     private bool _topRowCollapsed = false;
     private bool _endGameAnimationRun = false;
+    private bool _urlWrong = false;
 
     private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
     private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
@@ -180,14 +188,22 @@ else
     protected override async Task OnInitializedAsync()
     {
         Game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
-        _gameLogMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-GameLog"));
-        _globalChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global"));
 
-        await ConfigureHubAsync();
-        IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
-        if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
+        if (Game == null)
         {
-            await IdentifyPlayerInGameAsync();
+            _urlWrong = true;
+        }
+        else
+        {
+            _gameLogMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-GameLog"));
+            _globalChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global"));
+
+            await ConfigureHubAsync();
+            IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
+            if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
+            {
+                await IdentifyPlayerInGameAsync();
+            }
         }
     }
 
@@ -344,12 +360,12 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(red)" : "(neutral)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.BlueWords.Contains(wordIndex) ? "(red)" : "(neutral)")}. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = $" incorrectly {(Game.BlueWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Red team's turn started.";
                     }
                     else
                     {
