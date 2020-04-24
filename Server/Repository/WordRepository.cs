@@ -1,6 +1,9 @@
-﻿using Cryptonyms.Server.Extensions;
+﻿using Cryptonyms.Server.Configuration;
+using Cryptonyms.Server.Extensions;
+using Cryptonyms.Server.Services;
 using Cryptonyms.Shared;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -12,9 +15,7 @@ namespace Cryptonyms.Server.Repository
     {
         void CreateWord(string word);
 
-        void EditWord(string originalWord, string updatedWord);
-
-        IEnumerable<string> ListWords();
+        IEnumerable<EditableWord> ListWords();
 
         int GetCount();
 
@@ -25,7 +26,7 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<WordRepository> _logger;
 
-        public WordRepository(ILogger<WordRepository> logger) : base("CREATE TABLE IF NOT EXISTS Words (Word text PRIMARY KEY)")
+        public WordRepository(ILogger<WordRepository> logger, IFileReader fileReader, IOptions<ApplicationOptions> options) : base("CREATE TABLE IF NOT EXISTS Words (Word text PRIMARY KEY, IsSeed integer NOT NULL CHECK (IsSeed IN (0,1)))")
         {
             _logger = logger;
 
@@ -33,11 +34,11 @@ namespace Cryptonyms.Server.Repository
             {
                 if (ExecuteScalar("SELECT COUNT(*) AS WordCount FROM Words", Convert.ToInt32) == 0)
                 {
-                    ExecuteInTransaction((connection) => 
+                    ExecuteInTransaction((connection) =>
                     {
-                        foreach (var word in Data.SeedWords)
+                        foreach (var word in fileReader.ReadFileLines(options.Value.SeedWordsPath))
                         {
-                            var command = new SQLiteCommand("INSERT INTO Words (Word) VALUES(@Word)", connection);
+                            var command = new SQLiteCommand("INSERT INTO Words (Word, IsSeed) VALUES(@Word, 1)", connection);
                             command.AddParameter("@Word", word);
                             command.ExecuteNonQuery();
                         }
@@ -55,29 +56,13 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                var command = new SQLiteCommand("INSERT INTO Words (Word) VALUES(@Word)");
+                var command = new SQLiteCommand("INSERT INTO Words (Word, IsSeed) VALUES(@Word, 0)");
                 command.AddParameter("@Word", word);
                 Execute(command);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred creating new word '{word}'.");
-                throw;
-            }
-        }
-
-        public void EditWord(string originalWord, string updatedWord)
-        {
-            try
-            {
-                var command = new SQLiteCommand("UPDATE Words SET Word = @UpdateWord WHERE Word = @OriginalWord");
-                command.AddParameter("@OriginalWord", originalWord);
-                command.AddParameter("@UpdateWord", updatedWord);
-                Execute(command);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"An error occurred modifying word '{originalWord}' to '{updatedWord}'.");
                 throw;
             }
         }
@@ -95,11 +80,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public IEnumerable<string> ListWords()
+        public IEnumerable<EditableWord> ListWords()
         {
             try
             {
-                return Execute("SELECT * FROM Words", reader => reader["Word"].ToString());
+                return Execute("SELECT * FROM Words", reader => new EditableWord { Text = reader["Word"].ToString(), Editable = Convert.ToInt32(reader["IsSeed"]) == 0 });
             }
             catch (Exception ex)
             {
@@ -112,7 +97,7 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                var command = new SQLiteCommand("DELETE FROM Words WHERE Word = @Word");
+                var command = new SQLiteCommand("DELETE FROM Words WHERE Word = @Word AND IsSeed = 0;");
                 command.AddParameter("@Word", word);
                 Execute(command);
             }

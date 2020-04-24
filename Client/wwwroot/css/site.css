@@ -332,3 +332,9 @@ app {
     object-fit: cover;
     height: 100%;
 }
+
+
+/* Add Datatables Wrapper width */
+.dataTables_wrapper {
+    width: 100%;
+}

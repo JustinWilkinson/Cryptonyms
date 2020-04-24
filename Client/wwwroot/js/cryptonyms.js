@@ -25,7 +25,7 @@
     },
     replaceContent: function (id, regex, newContent) {
         let element = document.getElementById(id);
-        if (element) {            
+        if (element) {
             element.innerText = element.innerText.replace(new RegExp(regex), newContent);
         }
     },
@@ -38,8 +38,82 @@
     slideToggle: function (id) {
         $(`#${id}`).slideToggle('slow');
     },
-    runAfterTimeout: function(functionToRun, param, timeout) {
+    runAfterTimeout: function (functionToRun, param, timeout) {
         setTimeout(() => this[functionToRun](param), timeout);
+    },
+    initialiseGamesDataTable: function () {
+        $('#GamesTable').DataTable({
+            retrieve: true,
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            ordering: false,
+            columnDefs: [
+                {
+                    targets: 0,
+                    searchable: true
+                },
+                {
+                    targets: '_all',
+                    searchable: false
+                }
+            ],
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ games."
+            }
+        });
+    },
+    initialiseWordsDataTable: function () {
+        $('#WordsTable').DataTable({
+            ajax: {
+                url: 'api/Word/List',
+                dataSrc: function (res) {
+                    return res;
+                }
+            },
+            columns: [
+                {
+                    data: 'Text',
+                    className: 'align-middle'
+                },
+                {
+                    data: 'Editable',
+                    render: function (data, index, row) {
+                        if (data) {
+                            return `<button class="btn btn-danger adjustable-font-size-small" onclick="cryptonyms.removeWord('${row.Text}');">Remove</button>`;
+                        } else {
+                            return 'This word cannot be removed';
+                        }
+                    },
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            retrieve: true,
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            ordering: true,
+            order: [0, 'asc'],
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ words."
+            }
+        });
+    },
+    validateNewWord: function (newWord) {
+        return $('#WordsTable').DataTable().data().filter(w => w.Text === newWord).any();
+    },
+    removeWord: function (word) {
+        $.ajax({
+            url: `/api/Word/Delete?word=${word}`,
+            type: 'DELETE',
+            success: function () {
+                $('#WordsTable').DataTable().ajax.reload();
+            }
+        });
+    },
+    reloadDataTable: function (dataTableId) {
+        $(`#${dataTableId}`).DataTable().ajax.reload();
     },
     gameCompletedAnimation: function (winningTeam, showAssassin) {
         $('.content').hide();

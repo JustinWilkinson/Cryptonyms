@@ -101,7 +101,7 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                ExecuteInTransaction((connection) => 
+                ExecuteInTransaction((connection) =>
                 {
                     var deleteCommand = new SQLiteCommand("DELETE FROM Players WHERE DeviceId = @DeviceId", connection);
                     deleteCommand.AddParameter("@DeviceId", deviceId);

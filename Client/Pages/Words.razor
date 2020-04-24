@@ -1,77 +1,71 @@
 ﻿@page "/Words"
 
+@using System.Text.RegularExpressions;
+
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
 <h1>Words</h1>
 
-@if (_allWords == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="content">
-        @if (_showCreateNewWord)
-        {
-            <Modal Show="_showCreateNewWord" Header="Create New Word" OnPopupClosed="OnNewWordPopupClosed">
-                <div class="form-group">
-                    <input id="newWord" type="text" class="form-control" @bind="NewWord" />
-                    @if (_createNewWordErrorMessage != null)
-                    {
-                        <label class="text-danger m-2">@_createNewWordErrorMessage</label>
-                    }
-                </div>
-                <button id="saveNewWord" type="button" class="btn btn-primary" @onclick="AddNewWordAsync">Save</button>
-            </Modal>
-        }
-        <div class="form-row">
-            <label class="m-2">Search:</label>
-            <input id="searchTerm" type="text" class="form-control col-sm-3 col-lg-3" value="@_searchTerm" @oninput="e => SearchWords(e.Value.ToString())" @onkeydown="e => BlurSearchFieldIfEnterOrEscapeAsync(e)" />
-            <label class="m-2">Found @_searchedWords.Count known words.</label>
-            <button type="button" class="btn btn-primary mb-2" @onclick="() => { _showCreateNewWord = true; }">Add New Word</button>
+<div class="content">
+    <div class="row pl-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="adjustable-font-size">
+                    <li>Cryptonyms comes with 1000 built in words, you can view all the words in its dictionary below.</li>
+                    <li>Each game uses 25 of these words selected at random.</li>
+                    <li>If the original words aren't enough for you, you can add/remove your own words here!</li>
+                </ul>
+                <p class="adjustable-font-size mb-0"><strong>P.S.</strong> please be sensible with any words you add - keep it clean, keep it brief.</p>
+            </div>
         </div>
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th>Word</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var word in _searchedWords.OrderBy(w => w, StringComparer.OrdinalIgnoreCase))
-                {
-                    <CascadingValue Value="this">
-                        <WordRow Word="@word" />
-                    </CascadingValue>
-                }
-            </tbody>
-        </table>
-
     </div>
-}
+    @if (_showCreateNewWord)
+    {
+        <Modal Show="_showCreateNewWord" Header="Create New Word" OnPopupClosed="OnNewWordPopupClosed">
+            <div class="form-group">
+                <input id="newWord" type="text" class="form-control" @bind="NewWord" />
+                @if (_createNewWordErrorMessage != null)
+                {
+                    <label class="text-danger m-2">@_createNewWordErrorMessage</label>
+                }
+            </div>
+            <button id="saveNewWord" type="button" class="btn btn-primary" @onclick="AddNewWordAsync">Save</button>
+        </Modal>
+    }
+    <table id="WordsTable" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Word</th>
+                <th>
+                    <div class="row">
+                        <div class="col mr-auto">Actions</div>
+                        <div class="col text-right">
+                            <button type="button" class="btn btn-primary adjustable-font-size-small" style="line-height: 1;" @onclick="() => { _showCreateNewWord = true; }">Add New Word</button>
+                        </div>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
 
 @code {
-    private List<string> _allWords;
-    private List<string> _searchedWords;
-    private HashSet<string> _loweredWords;
-    private string _searchTerm = "";
-
     private bool _showCreateNewWord = false;
     private string _createNewWordErrorMessage;
     private string NewWord { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        _allWords = JsonConvert.DeserializeObject<IEnumerable<string>>(await Http.GetStringAsync("api/Word/List")).ToList();
-        _loweredWords = _allWords.Select(w => w.ToLowerInvariant()).ToHashSet();
-        _searchedWords = _allWords;
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnAfterRenderAsync(firstRender);
-        if (_showCreateNewWord)
+        await JSRuntime.InvokeVoidAsync("cryptonyms.initialiseWordsDataTable");
+
+        if (!firstRender && _showCreateNewWord)
         {
             await JSRuntime.InvokeVoidAsync("cryptonyms.setFocus", "newWord");
         }
@@ -85,19 +79,6 @@ else
         }
     }
 
-    private void SearchWords(string newSearchTerm)
-    {
-        _searchTerm = newSearchTerm;
-        if (!string.IsNullOrEmpty(_searchTerm))
-        {
-            _searchedWords = _allWords.Where(w => w.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-        else
-        {
-            _searchedWords = _allWords;
-        }
-    }
-
     private void OnNewWordPopupClosed()
     {
         _showCreateNewWord = false;
@@ -107,13 +88,12 @@ else
 
     private async Task AddNewWordAsync()
     {
-        var validationMessage = GetValidationMessage(NewWord);
+        var validationMessage = await GetValidationMessage(NewWord);
 
         if (validationMessage == null)
         {
-            _allWords.Add(NewWord);
-            _loweredWords.Add(NewWord.ToLowerInvariant());
             await Http.PutJsonAsync("api/Word/New", NewWord);
+            await JSRuntime.InvokeVoidAsync("cryptonyms.reloadDataTable", "WordsTable");
             OnNewWordPopupClosed();
         }
         else
@@ -122,28 +102,31 @@ else
         }
     }
 
-    public void RemoveWord(string word)
-    {
-        _allWords.Remove(word);
-        _loweredWords.Remove(word.ToLowerInvariant());
-        StateHasChanged();
-    }
-
-    public void AddEditedWord(string word)
-    {
-        _allWords.Add(word);
-        _loweredWords.Add(word.ToLowerInvariant());
-    }
-
-    public string GetValidationMessage(string word)
+    public async Task<string> GetValidationMessage(string word)
     {
         if (string.IsNullOrWhiteSpace(word))
         {
             return "Please enter a non-empty word!";
         }
-        else if (_loweredWords.Contains(word.ToLowerInvariant()))
+        else if (word.Length > 20)
+        {
+            return "This word is too long - try to keep it below 20 characters.";
+        }
+        else if (await JSRuntime.InvokeAsync<bool>("cryptonyms.validateNewWord", word))
         {
             return $"'{word}' is already in the list!";
+        }
+        else if (!word.All(c => char.IsLetter(c) || c == '\'' || c == '-' || c == ' '))
+        {
+            return "Permitted characters are A-Z, a-z, - and '";
+        }
+        else if (Regex.IsMatch(word, @"(.)\1\1"))
+        {
+            return "That doesn't look like a word...";
+        }
+        else if (await Http.PostJsonAsync<bool>("api/Word/ProfanityCheck", new { Word = word }))
+        {
+            return "Please don't use profanities!";
         }
         else
         {

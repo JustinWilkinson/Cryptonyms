@@ -9,14 +9,15 @@ namespace Cryptonyms.Server.Repository
 {
     public abstract class Repository
     {
-        public const string Database = "Cryptonyms.sqlite";
-        public const string ConnectionString = "DataSource=Cryptonyms.sqlite";
+        private static string _connectionString;
 
-        static Repository()
+        public static void CreateDatabase(string connectionString)
         {
-            if (!File.Exists(Database))
+            _connectionString = connectionString;
+            var path = new SQLiteConnectionStringBuilder(_connectionString).DataSource;
+            if (!File.Exists(path))
             {
-                SQLiteConnection.CreateFile(Database);
+                SQLiteConnection.CreateFile(path);
             }
         }
 
@@ -29,7 +30,7 @@ namespace Cryptonyms.Server.Repository
 
         protected SQLiteConnection GetOpenConnection()
         {
-            var connection = new SQLiteConnection(ConnectionString);
+            var connection = new SQLiteConnection(_connectionString);
             connection.Open();
             return connection;
         }

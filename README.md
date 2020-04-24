@@ -1,14 +1,16 @@
 # Cryptonyms
-An unofficial online game inspired by the popular [Codenames board game](https://czechgames.com/en/codenames/) implemented using Blazor WebAssembly.
+An online game inspired by the popular [Codenames board game](https://czechgames.com/en/codenames/), implemented using Blazor WebAssembly.
 
-## Cryptonyms.Client
-The client-side Blazor WebAssembly application, which communicates with the server over HTTP and SignalR.
+## Code
 
-## Cryptonyms.Server
-The server project with API Controllers to serve client requests, and a SignalR Hub to push changes to the client.
+### Cryptonyms.Client
+A client-side Blazor WebAssembly application, which communicates with the server over HTTP and SignalR.
 
-## Cryptonyms.Shared
+### Cryptonyms.Server
+A Blazor Server project with API Controllers to serve client requests, and a SignalR Hub to push changes to connected clients.
+
+### Cryptonyms.Shared
 A project containing abstractions shared between the client and the server.
 
-## Cryptonyms.Test
+### Cryptonyms.Test
 An NUnit Test project containing tests for the solution.
