@@ -6,6 +6,21 @@
 <h1>Words</h1>
 
 <div class="content">
+    <div class="row pl-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="adjustable-font-size">
+                    <li>Cryptonyms comes with 1000 built in words, you can view all the words in its dictionary below.</li>
+                    <li>Each game uses 25 of these words selected at random.</li>
+                    <li>If the original words aren't enough for you, you can add/remove your own words here!</li>
+                </ul>
+                <p class="adjustable-font-size mb-0"><strong>P.S.</strong> please be sensible with any words you add - keep it clean, keep it brief.</p>
+            </div>
+        </div>
+    </div>
     @if (_showCreateNewWord)
     {
         <Modal Show="_showCreateNewWord" Header="Create New Word" OnPopupClosed="OnNewWordPopupClosed">
@@ -26,7 +41,7 @@
                 <th>
                     <div class="row">
                         <div class="col mr-auto">Actions</div>
-                        <div class="col">
+                        <div class="col text-right">
                             <button type="button" class="btn btn-primary adjustable-font-size-small" style="line-height: 1;" @onclick="() => { _showCreateNewWord = true; }">Add New Word</button>
                         </div>
                     </div>
@@ -90,6 +105,10 @@
         if (string.IsNullOrWhiteSpace(word))
         {
             return "Please enter a non-empty word!";
+        }
+        else if (word.Length > 20)
+        {
+            return "This word is too long - try to keep it below 20 characters.";
         }
         else if (await JSRuntime.InvokeAsync<bool>("cryptonyms.validateNewWord", word))
         {

@@ -15,8 +15,6 @@ namespace Cryptonyms.Server.Repository
     {
         void CreateWord(string word);
 
-        void EditWord(string originalWord, string updatedWord);
-
         IEnumerable<EditableWord> ListWords();
 
         int GetCount();
@@ -69,22 +67,6 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void EditWord(string originalWord, string updatedWord)
-        {
-            try
-            {
-                var command = new SQLiteCommand("UPDATE Words SET Word = @UpdateWord WHERE Word = @OriginalWord");
-                command.AddParameter("@OriginalWord", originalWord);
-                command.AddParameter("@UpdateWord", updatedWord);
-                Execute(command);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"An error occurred modifying word '{originalWord}' to '{updatedWord}'.");
-                throw;
-            }
-        }
-
         public int GetCount()
         {
             try
@@ -115,7 +97,7 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                var command = new SQLiteCommand("DELETE FROM Words WHERE Word = @Word");
+                var command = new SQLiteCommand("DELETE FROM Words WHERE Word = @Word AND IsSeed = 0;");
                 command.AddParameter("@Word", word);
                 Execute(command);
             }

@@ -41,7 +41,29 @@
     runAfterTimeout: function (functionToRun, param, timeout) {
         setTimeout(() => this[functionToRun](param), timeout);
     },
-    initialiseWordsDataTable: function (url) {
+    initialiseGamesDataTable: function () {
+        $('#GamesTable').DataTable({
+            retrieve: true,
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            ordering: false,
+            columnDefs: [
+                {
+                    targets: 0,
+                    searchable: true
+                },
+                {
+                    targets: '_all',
+                    searchable: false
+                }
+            ],
+            language: {
+                info: "Showing _START_ to _END_ of _TOTAL_ games."
+            }
+        });
+    },
+    initialiseWordsDataTable: function () {
         $('#WordsTable').DataTable({
             ajax: {
                 url: 'api/Word/List',
@@ -60,7 +82,7 @@
                         if (data) {
                             return `<button class="btn btn-danger adjustable-font-size-small" onclick="cryptonyms.removeWord('${row.Text}');">Remove</button>`;
                         } else {
-                            return 'This word is not editable';
+                            return 'This word cannot be removed';
                         }
                     },
                     orderable: false,
@@ -74,7 +96,7 @@
             ordering: true,
             order: [0, 'asc'],
             language: {
-                info: "Showing _START_ to _END_ of _TOTAL_ entries."
+                info: "Showing _START_ to _END_ of _TOTAL_ words."
             }
         });
     },
