@@ -349,7 +349,7 @@ else
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.BlueWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Blue team's turn started.";
                     }
                     else
                     {
