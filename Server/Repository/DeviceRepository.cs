@@ -1,6 +1,8 @@
 ﻿using Cryptonyms.Server.Extensions;
+using Cryptonyms.Shared;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 
 namespace Cryptonyms.Server.Repository
@@ -8,6 +10,10 @@ namespace Cryptonyms.Server.Repository
     public interface IDeviceRepository
     {
         void AddOrUpdateDevice(string deviceId);
+
+        IEnumerable<Device> GetDevices();
+
+        void DeleteDevices(IEnumerable<string> deviceIds);
     }
 
     public class DeviceRepository : Repository, IDeviceRepository
@@ -39,6 +45,40 @@ namespace Cryptonyms.Server.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred updating the last seen time for device '{deviceId}'.");
+                throw;
+            }
+        }
+
+        public IEnumerable<Device> GetDevices()
+        {
+            try
+            {
+                return Execute("SELECT * FROM Devices", reader => new Device { DeviceId = reader["DeviceId"].ToString(), LastSeenUtc = Convert.ToDateTime(reader["LastSeenUtc"]) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred retrieving list of devices.");
+                throw;
+            }
+        }
+
+        public void DeleteDevices(IEnumerable<string> deviceIds)
+        {
+            try
+            {
+                ExecuteInTransaction(connection =>
+                {
+                    foreach (var deviceId in deviceIds)
+                    {
+                        var command = new SQLiteCommand("DELETE FROM Devices WHERE DeviceId = @DeviceId", connection);
+                        command.AddParameter("@DeviceId", deviceId);
+                        command.ExecuteNonQuery();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred deleting old devices.");
                 throw;
             }
         }

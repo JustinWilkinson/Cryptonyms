@@ -21,6 +21,8 @@ namespace Cryptonyms.Server.Repository
         Player GetPlayer(string deviceId, string name);
 
         IEnumerable<Player> GetPlayers(string deviceId);
+
+        void DeletePlayersForDevices(IEnumerable<string> deviceIds);
     }
 
     public class PlayerRepository : Repository, IPlayerRepository
@@ -135,6 +137,27 @@ namespace Cryptonyms.Server.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred deleting player '{name}' for device '{deviceId}'.");
+                throw;
+            }
+        }
+
+        public void DeletePlayersForDevices(IEnumerable<string> deviceIds)
+        {
+            try
+            {
+                ExecuteInTransaction(connection => 
+                {
+                    foreach(var deviceId in deviceIds)
+                    {
+                        var command = new SQLiteCommand("DELETE FROM Players WHERE DeviceId = @DeviceId", connection);
+                        command.AddParameter("@DeviceId", deviceId);
+                        command.ExecuteNonQuery();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred deleting players on old devices.");
                 throw;
             }
         }

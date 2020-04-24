@@ -17,10 +17,12 @@ namespace Cryptonyms.Server
             var logger = NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
             try
             {
+                var webHost = CreateHostBuilder(args).Build();
+
                 var jobScheduler = await JobScheduler.GetSchedulerAsync();
                 await jobScheduler.ScheduleDailyJobAsync<CleanUpJob>("CleanUp", "DailyCleanUpTrigger");
 
-                CreateHostBuilder(args).Build().Run();
+                webHost.Run();
             }
             catch (Exception ex)
             {
