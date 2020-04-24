@@ -16,70 +16,93 @@ namespace Cryptonyms.Server.Controllers
     {
         private readonly ILogger<PlayerController> _logger;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IDeviceRepository _deviceRepository;
 
-        public PlayerController(ILogger<PlayerController> logger, IPlayerRepository PlayerRepository)
+        public PlayerController(ILogger<PlayerController> logger, IPlayerRepository playerRepository, IDeviceRepository deviceRepository)
         {
             _logger = logger;
-            _playerRepository = PlayerRepository;
+            _playerRepository = playerRepository;
+            _deviceRepository = deviceRepository;
         }
 
         [HttpPut("New")]
-        public void New(JsonElement json) => _playerRepository.AddPlayer(json.GetStringProperty("DeviceId"), json.DeserializeStringProperty<Player>("Player"));
+        public void New(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.DeserializeStringProperty<Player>("Player"));
 
         [HttpPost("Update")]
-        public void Update(JsonElement json) => _playerRepository.UpdatePlayer(json.GetStringProperty("DeviceId"), json.DeserializeStringProperty<Player>("Player"));
+        public void Update(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.DeserializeStringProperty<Player>("Player"));
 
         [HttpGet("Get")]
-        public string Get(string deviceId, string name) => _playerRepository.GetPlayer(deviceId, name).Serialize();
+        public string Get(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name).Serialize(), deviceId, name);
 
         [HttpGet("List")]
-        public string List(string deviceId) => _playerRepository.GetPlayers(deviceId).Serialize();
+        public string List(string deviceId) => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId).Serialize(), deviceId);
 
         [HttpDelete("Delete")]
-        public void Delete(string deviceId, string name) => _playerRepository.DeletePlayer(deviceId, name);
+        public void Delete(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayer(deviceId, name), deviceId, name);
 
         [HttpPost("RandomiseTeams")]
         public string RandomiseTeams(string deviceId)
         {
-            var currentPlayers = _playerRepository.GetPlayers(deviceId).ToList();
-            var minPlayersPerTeam = (int)Math.Round(currentPlayers.Count / 2d);
-            var random = new Random();
-
-            var modifiedPlayers = new List<Player>();
-            foreach (var player in currentPlayers)
+            return UpdateDeviceLastSeenAndExecute(deviceId =>
             {
-                var modifiedPlayer = new Player
-                {
-                    Name = player.Name,
-                    Team = (Team)random.Next(0, 2),
-                    IsSpymaster = false,
-                    Identified = player.Identified
-                };
+                var currentPlayers = _playerRepository.GetPlayers(deviceId).ToList();
+                var minPlayersPerTeam = (int)Math.Round(currentPlayers.Count / 2d);
+                var random = new Random();
 
-                if (modifiedPlayers.Count(x => x.Team == modifiedPlayer.Team) >= minPlayersPerTeam)
+                var modifiedPlayers = new List<Player>();
+                foreach (var player in currentPlayers)
                 {
-                    modifiedPlayer.Team = (Team)(1 - modifiedPlayer.Team);
+                    var modifiedPlayer = new Player
+                    {
+                        Name = player.Name,
+                        Team = (Team)random.Next(0, 2),
+                        IsSpymaster = false,
+                        Identified = player.Identified
+                    };
+
+                    if (modifiedPlayers.Count(x => x.Team == modifiedPlayer.Team) >= minPlayersPerTeam)
+                    {
+                        modifiedPlayer.Team = (Team)(1 - modifiedPlayer.Team);
+                    }
+
+                    modifiedPlayers.Add(modifiedPlayer);
                 }
 
-                modifiedPlayers.Add(modifiedPlayer);
-            }
+                var redTeam = modifiedPlayers.Where(x => x.Team == Team.Red).ToArray();
+                var blueTeam = modifiedPlayers.Where(x => x.Team == Team.Blue).ToArray();
 
-            var redTeam = modifiedPlayers.Where(x => x.Team == Team.Red).ToArray();
-            var blueTeam = modifiedPlayers.Where(x => x.Team == Team.Blue).ToArray();
+                if (redTeam.Length > 0)
+                {
+                    redTeam[random.Next(0, redTeam.Length)].IsSpymaster = true;
+                }
 
-            if (redTeam.Length > 0)
-            {
-                redTeam[random.Next(0, redTeam.Length)].IsSpymaster = true;
-            }
+                if (blueTeam.Length > 0)
+                {
+                    blueTeam[random.Next(0, blueTeam.Length)].IsSpymaster = true;
+                }
 
-            if (blueTeam.Length > 0)
-            {
-                blueTeam[random.Next(0, blueTeam.Length)].IsSpymaster = true;
-            }
+                _playerRepository.ReplacePlayers(deviceId, modifiedPlayers);
 
-            _playerRepository.ReplacePlayers(deviceId, modifiedPlayers);
+                return modifiedPlayers.Serialize();
+            }, deviceId);
+        }
 
-            return modifiedPlayers.Serialize();
+        private void UpdateDeviceLastSeenAndExecute<T>(Action<string, T> action, string deviceId, T input)
+        {
+            _deviceRepository.AddOrUpdateDevice(deviceId);
+            action(deviceId, input);
+        }
+
+        private TReturn UpdateDeviceLastSeenAndExecute<TReturn>(Func<string, TReturn> func, string deviceId)
+        {   
+            _deviceRepository.AddOrUpdateDevice(deviceId);
+            return func(deviceId);
+        }
+
+        private TReturn UpdateDeviceLastSeenAndExecute<T, TReturn>(Func<string, T, TReturn> func, string deviceId, T input)
+        {
+            _deviceRepository.AddOrUpdateDevice(deviceId);
+            return func(deviceId, input);
         }
     }
 }
