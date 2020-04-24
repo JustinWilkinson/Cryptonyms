@@ -22,5 +22,16 @@
     <ProjectReference Include="..\Shared\Cryptonyms.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\Profanities.txt">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\SeedWords.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 
 </Project>

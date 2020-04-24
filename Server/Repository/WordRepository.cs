@@ -1,6 +1,6 @@
 ﻿using Cryptonyms.Server.Configuration;
 using Cryptonyms.Server.Extensions;
-using Cryptonyms.Server.FileReaders;
+using Cryptonyms.Server.Services;
 using Cryptonyms.Shared;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -34,7 +34,7 @@ namespace Cryptonyms.Server.Repository
             {
                 if (ExecuteScalar("SELECT COUNT(*) AS WordCount FROM Words", Convert.ToInt32) == 0)
                 {
-                    ExecuteInTransaction((connection) => 
+                    ExecuteInTransaction((connection) =>
                     {
                         foreach (var word in fileReader.ReadFileLines(options.Value.SeedWordsPath))
                         {
@@ -84,7 +84,7 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                return Execute("SELECT * FROM Words", reader => new EditableWord { Text = reader["Word"].ToString(), Editable = Convert.ToInt32(reader["IsSeed"]) == 0 } );
+                return Execute("SELECT * FROM Words", reader => new EditableWord { Text = reader["Word"].ToString(), Editable = Convert.ToInt32(reader["IsSeed"]) == 0 });
             }
             catch (Exception ex)
             {

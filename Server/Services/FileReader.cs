@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace Cryptonyms.Server.FileReaders
+namespace Cryptonyms.Server.Services
 {
     public interface IFileReader
     {

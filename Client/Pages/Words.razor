@@ -1,5 +1,7 @@
 ﻿@page "/Words"
 
+@using System.Text.RegularExpressions;
+
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
@@ -113,6 +115,18 @@
         else if (await JSRuntime.InvokeAsync<bool>("cryptonyms.validateNewWord", word))
         {
             return $"'{word}' is already in the list!";
+        }
+        else if (!word.All(c => char.IsLetter(c) || c == '\'' || c == '-' || c == ' '))
+        {
+            return "Permitted characters are A-Z, a-z, - and '";
+        }
+        else if (Regex.IsMatch(word, @"(.)\1\1"))
+        {
+            return "That doesn't look like a word...";
+        }
+        else if (await Http.PostJsonAsync<bool>("api/Word/ProfanityCheck", new { Word = word }))
+        {
+            return "Please don't use profanities!";
         }
         else
         {

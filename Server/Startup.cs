@@ -1,8 +1,8 @@
 using AspNetCoreRateLimit;
 using Cryptonyms.Server.Configuration;
-using Cryptonyms.Server.FileReaders;
 using Cryptonyms.Server.Hubs;
 using Cryptonyms.Server.Repository;
+using Cryptonyms.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -43,9 +43,6 @@ namespace Cryptonyms.Server
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
             services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));
 
-            // File Reader
-            services.AddSingleton<IFileReader, FileReader>();
-
             // Repositories
             services.AddSingleton<IGameCountRepository, GameCountRepository>();
             services.AddSingleton<IGameRepository, GameRepository>();
@@ -59,6 +56,10 @@ namespace Cryptonyms.Server
             services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+            // Additional Services
+            services.AddSingleton<IFileReader, FileReader>();
+            services.AddSingleton<IProfanityFilter, ProfanityFilter>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

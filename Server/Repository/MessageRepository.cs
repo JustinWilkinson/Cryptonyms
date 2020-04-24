@@ -1,8 +1,6 @@
-﻿using Cryptonyms.Server.Configuration;
-using Cryptonyms.Server.Extensions;
+﻿using Cryptonyms.Server.Extensions;
 using Cryptonyms.Shared;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;

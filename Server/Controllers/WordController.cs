@@ -1,4 +1,6 @@
-﻿using Cryptonyms.Server.Repository;
+﻿using Cryptonyms.Server.Extensions;
+using Cryptonyms.Server.Repository;
+using Cryptonyms.Server.Services;
 using Cryptonyms.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,11 +15,13 @@ namespace Cryptonyms.Server.Controllers
     {
         private readonly ILogger<GameController> _logger;
         private readonly IWordRepository _wordRepository;
+        private readonly IProfanityFilter _profanityFilter;
 
-        public WordController(ILogger<GameController> logger, IWordRepository wordRepository)
+        public WordController(ILogger<GameController> logger, IWordRepository wordRepository, IProfanityFilter profanityFilter)
         {
             _logger = logger;
             _wordRepository = wordRepository;
+            _profanityFilter = profanityFilter;
         }
 
         [HttpPut("New")]
@@ -31,5 +35,8 @@ namespace Cryptonyms.Server.Controllers
 
         [HttpDelete("Delete")]
         public void Delete(string word) => _wordRepository.DeleteWord(word);
+
+        [HttpPost("ProfanityCheck")]
+        public bool ProfanityCheck(JsonElement json) => _profanityFilter.ContainsProfanity(json.GetStringProperty("Word"));
     }
 }

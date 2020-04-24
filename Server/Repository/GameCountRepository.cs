@@ -1,6 +1,4 @@
-﻿using Cryptonyms.Server.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 
