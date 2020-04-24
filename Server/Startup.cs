@@ -1,3 +1,5 @@
+using Cryptonyms.Server.Configuration;
+using Cryptonyms.Server.FileReaders;
 using Cryptonyms.Server.Hubs;
 using Cryptonyms.Server.Repository;
 using Microsoft.AspNetCore.Builder;
@@ -5,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Database = Cryptonyms.Server.Repository.Repository;
 
 namespace Cryptonyms.Server
 {
@@ -28,6 +31,12 @@ namespace Cryptonyms.Server
             });
             services.AddSignalR();
 
+            var appSection = Configuration.GetSection("Application");
+            Database.CreateDatabase(appSection.Get<ApplicationOptions>().ConnectionString);
+
+            services.Configure<ApplicationOptions>(appSection);
+
+            services.AddSingleton<IFileReader, FileReader>();
             services.AddSingleton<IGameCountRepository, GameCountRepository>();
             services.AddSingleton<IGameRepository, GameRepository>();
             services.AddSingleton<IPlayerRepository, PlayerRepository>();

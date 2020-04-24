@@ -1,6 +1,8 @@
-﻿using Cryptonyms.Server.Extensions;
-using Cryptonyms.Shared;
+﻿using Cryptonyms.Server.Configuration;
+using Cryptonyms.Server.Extensions;
+using Cryptonyms.Server.FileReaders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -25,7 +27,7 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<WordRepository> _logger;
 
-        public WordRepository(ILogger<WordRepository> logger) : base("CREATE TABLE IF NOT EXISTS Words (Word text PRIMARY KEY)")
+        public WordRepository(ILogger<WordRepository> logger, IFileReader fileReader, IOptions<ApplicationOptions> options) : base("CREATE TABLE IF NOT EXISTS Words (Word text PRIMARY KEY)")
         {
             _logger = logger;
 
@@ -35,7 +37,7 @@ namespace Cryptonyms.Server.Repository
                 {
                     ExecuteInTransaction((connection) => 
                     {
-                        foreach (var word in Data.SeedWords)
+                        foreach (var word in fileReader.ReadFileLines(options.Value.SeedWordsPath))
                         {
                             var command = new SQLiteCommand("INSERT INTO Words (Word) VALUES(@Word)", connection);
                             command.AddParameter("@Word", word);
