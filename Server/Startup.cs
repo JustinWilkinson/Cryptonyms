@@ -47,6 +47,7 @@ namespace Cryptonyms.Server
             services.AddSingleton<IGameCountRepository, GameCountRepository>();
             services.AddSingleton<IGameRepository, GameRepository>();
             services.AddSingleton<IPlayerRepository, PlayerRepository>();
+            services.AddSingleton<IDeviceRepository, DeviceRepository>();
             services.AddSingleton<IWordRepository, WordRepository>();
             services.AddSingleton<IMessageRepository, MessageRepository>();
 
