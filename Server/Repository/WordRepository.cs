@@ -1,6 +1,7 @@
 ﻿using Cryptonyms.Server.Configuration;
 using Cryptonyms.Server.Extensions;
 using Cryptonyms.Server.FileReaders;
+using Cryptonyms.Shared;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -16,7 +17,7 @@ namespace Cryptonyms.Server.Repository
 
         void EditWord(string originalWord, string updatedWord);
 
-        IEnumerable<string> ListWords();
+        IEnumerable<EditableWord> ListWords();
 
         int GetCount();
 
@@ -27,7 +28,7 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<WordRepository> _logger;
 
-        public WordRepository(ILogger<WordRepository> logger, IFileReader fileReader, IOptions<ApplicationOptions> options) : base("CREATE TABLE IF NOT EXISTS Words (Word text PRIMARY KEY)")
+        public WordRepository(ILogger<WordRepository> logger, IFileReader fileReader, IOptions<ApplicationOptions> options) : base("CREATE TABLE IF NOT EXISTS Words (Word text PRIMARY KEY, IsSeed integer NOT NULL CHECK (IsSeed IN (0,1)))")
         {
             _logger = logger;
 
@@ -39,7 +40,7 @@ namespace Cryptonyms.Server.Repository
                     {
                         foreach (var word in fileReader.ReadFileLines(options.Value.SeedWordsPath))
                         {
-                            var command = new SQLiteCommand("INSERT INTO Words (Word) VALUES(@Word)", connection);
+                            var command = new SQLiteCommand("INSERT INTO Words (Word, IsSeed) VALUES(@Word, 1)", connection);
                             command.AddParameter("@Word", word);
                             command.ExecuteNonQuery();
                         }
@@ -57,7 +58,7 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                var command = new SQLiteCommand("INSERT INTO Words (Word) VALUES(@Word)");
+                var command = new SQLiteCommand("INSERT INTO Words (Word, IsSeed) VALUES(@Word, 0)");
                 command.AddParameter("@Word", word);
                 Execute(command);
             }
@@ -97,11 +98,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public IEnumerable<string> ListWords()
+        public IEnumerable<EditableWord> ListWords()
         {
             try
             {
-                return Execute("SELECT * FROM Words", reader => reader["Word"].ToString());
+                return Execute("SELECT * FROM Words", reader => new EditableWord { Text = reader["Word"].ToString(), Editable = Convert.ToInt32(reader["IsSeed"]) == 0 } );
             }
             catch (Exception ex)
             {

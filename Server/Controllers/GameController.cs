@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 
 namespace Cryptonyms.Server.Controllers
@@ -29,7 +30,7 @@ namespace Cryptonyms.Server.Controllers
         [HttpPut("New")]
         public Guid New(JsonElement json)
         {
-            var game = Game.NewGame(json.GetStringProperty("GameName"), _wordRepository.ListWords());
+            var game = Game.NewGame(json.GetStringProperty("GameName"), _wordRepository.ListWords().Select(w => w.Text));
             game.Players.AddRange(json.DeserializeStringProperty<IEnumerable<Player>>("Players"));
             _gameRepository.CreateGame(game, json.GetBooleanProperty("PrivateGame"));
             _gameCountRepository.IncrementGameCount();

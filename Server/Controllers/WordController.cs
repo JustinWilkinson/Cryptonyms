@@ -1,5 +1,6 @@
 ﻿using Cryptonyms.Server.FileReaders;
 using Cryptonyms.Server.Repository;
+using Cryptonyms.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace Cryptonyms.Server.Controllers
         public int Count() => _wordRepository.GetCount();
 
         [HttpGet("List")]
-        public IEnumerable<string> List() => _wordRepository.ListWords();
+        public IEnumerable<EditableWord> List() => _wordRepository.ListWords();
 
         [HttpPost("Save")]
         public void Save(JsonElement wordsArray)

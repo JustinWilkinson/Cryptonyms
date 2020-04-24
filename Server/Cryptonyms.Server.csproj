@@ -21,11 +21,5 @@
     <ProjectReference Include="..\Shared\Cryptonyms.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Data\SeedWords.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 
 </Project>

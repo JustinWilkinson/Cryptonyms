@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace Cryptonyms.Server.FileReaders
 {
     public interface IFileReader
     {
+        string GetFullPath(string relativePath);
+
         IEnumerable<string> ReadFileLines(string path);
 
         IEnumerable<string> ReadFile(string path, string separator);
@@ -14,8 +17,12 @@ namespace Cryptonyms.Server.FileReaders
 
     public class FileReader : IFileReader
     {
-        public IEnumerable<string> ReadFileLines(string path) => File.ReadLines(path);
+        private static readonly string _basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        public IEnumerable<string> ReadFile(string path, string separator) => File.ReadAllText(path).Split(separator, StringSplitOptions.RemoveEmptyEntries);
+        public string GetFullPath(string relativePath) => Path.Combine(_basePath, relativePath);
+
+        public IEnumerable<string> ReadFileLines(string path) => File.ReadLines(GetFullPath(path));
+
+        public IEnumerable<string> ReadFile(string path, string separator) => File.ReadAllText(GetFullPath(path)).Split(separator, StringSplitOptions.RemoveEmptyEntries);
     }
 }
