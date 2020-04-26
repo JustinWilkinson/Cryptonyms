@@ -1,5 +1,6 @@
 ﻿using Cryptonyms.Server.Configuration;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,7 +13,7 @@ namespace Cryptonyms.Server.Services
 
     public class ProfanityFilter : IProfanityFilter
     {
-        private readonly HashSet<string> _profanities = new HashSet<string>();
+        private readonly HashSet<string> _profanities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         public ProfanityFilter(IFileReader fileReader, IOptions<ApplicationOptions> options)
         {
@@ -25,7 +26,7 @@ namespace Cryptonyms.Server.Services
                 }
                 else if (profanity.EndsWith('s'))
                 {
-                    _profanities.Add($"{profanity[0..^1]}es");
+                    _profanities.Add($"{profanity}es");
                 }
                 else if (profanity.EndsWith("ey"))
                 {
@@ -35,9 +36,13 @@ namespace Cryptonyms.Server.Services
                 {
                     _profanities.Add($"{profanity[0..^1]}ies");
                 }
+                else
+                {
+                    _profanities.Add($"{profanity}s");
+                }
             }
         }
 
-        public bool ContainsProfanity(string str) => str.Split(' ').Any(word => _profanities.Contains(word)) || _profanities.Contains(str.Replace(" ", "").Replace("-", "").Replace("'", ""));
+        public bool ContainsProfanity(string str) => str.ToLower().Split(' ').Any(word => _profanities.Contains(word)) || _profanities.Contains(str.Replace(" ", "").Replace("-", "").Replace("'", ""));
     }
 }

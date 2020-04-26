@@ -6,6 +6,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Cryptonyms.Test.Server.Extensions
 {
+    [TestFixture]
     public class JsonExtensionsTest
     {
 
