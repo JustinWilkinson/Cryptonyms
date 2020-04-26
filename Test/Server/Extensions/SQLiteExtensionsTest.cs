@@ -5,6 +5,7 @@ using System.Data.SQLite;
 
 namespace Cryptonyms.Test.Server.Extensions
 {
+    [TestFixture]
     public class SQLiteExtensionsTest
     {
         [TestCase("@Value", "Value")]
