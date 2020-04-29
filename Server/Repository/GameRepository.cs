@@ -60,7 +60,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred creating a saving game '{game.GameId}'.");
+                _logger.LogError(ex, $"An error occurred saving game '{game.GameId}'.");
                 throw;
             }
         }
@@ -95,7 +95,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred creating a identifying player '{player.Name}' in game '{gameId}'.");
+                _logger.LogError(ex, $"An error occurred identifying player '{player.Name}' in game '{gameId}'.");
                 throw;
             }
         }
@@ -123,7 +123,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred listing games.");
+                _logger.LogError(ex, "An error occurred listing games.");
                 throw;
             }
         }
@@ -144,7 +144,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred clearing old games.");
+                _logger.LogError(ex, "An error occurred clearing old games.");
                 throw;
             }
         }
