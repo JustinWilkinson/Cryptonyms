@@ -1,7 +1,6 @@
 using Cloudcrate.AspNetCore.Blazor.Browser.Storage;
 using Cryptonyms.Client.Services;
 using Cryptonyms.Client.Services.SignalR;
-using Cryptonyms.Shared;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
