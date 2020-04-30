@@ -1,10 +1,10 @@
-using Cloudcrate.AspNetCore.Blazor.Browser.Storage;
 using Cryptonyms.Client.Services;
 using Cryptonyms.Client.Services.SignalR;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace Cryptonyms.Client
 {
@@ -15,12 +15,12 @@ namespace Cryptonyms.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
-            builder.Services.AddBaseAddressHttpClient();
-            builder.Services.AddStorage();
+            builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddGameStorage();
             builder.Services.AddBlazorTimer();
             builder.Services.AddHubCommunicator<GameHubCommunicator>();
 
-            await builder.Build().UseLocalTimeZone().RunAsync();
+            await builder.Build().RunAsync();
         }
     }
 }

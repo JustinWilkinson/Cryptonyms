@@ -21,7 +21,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var gameCount = await Http.GetJsonAsync<int>("api/Game/Count");
+        var gameCount = await Http.GetFromJsonAsync<int>("api/Game/Count");
         _gameCountString = $"We have currently hosted {gameCount.ToString("N0")} game{(gameCount == 1 ? "" : "s")}!";
     }
 }

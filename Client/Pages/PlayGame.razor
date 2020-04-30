@@ -1,7 +1,7 @@
 ﻿@page "/PlayGame/{GameId}"
 
 @inject HttpClient Http
-@inject LocalStorage Storage
+@inject GameStorage Storage
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject BlazorTimer Timer
@@ -199,7 +199,7 @@ else
             _globalChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global"));
 
             await ConfigureHubAsync();
-            IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
+            IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
             if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
             {
                 await IdentifyPlayerInGameAsync();
@@ -211,7 +211,7 @@ else
     {
         IdentifiedPlayer.Identified = true;
         await Task.WhenAll(
-            Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            Http.PostAsJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
             GameHub.AddToGroupAsync(RoleChatId)
         );
@@ -225,19 +225,19 @@ else
         Timer.StopTimer();
         IdentifiedPlayer.Identified = false;
         await Task.WhenAll(
-            Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            Http.PostAsJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, false),
             GameHub.RemoveFromGroupAsync(RoleChatId)
         );
         await UpdateGameLogAsync("has left the game.");
-        Storage.RemoveItem("playerName");
+        Storage.PlayerName = null;
         IdentifiedPlayer = null;
     }
 
     public async Task AddPlayerToGameAsync()
     {
         await Task.WhenAll(
-            Http.PostJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            Http.PostAsJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
             GameHub.AddNewPlayerToGameAsync(GameId, IdentifiedPlayer)
         );
         StateHasChanged();
@@ -468,7 +468,7 @@ else
         var gameLogMessage = new GameMessage(IdentifiedPlayer.Name, logMessage);
         _gameLogMessages.Add(gameLogMessage);
         await Task.WhenAll(
-            Http.PutJsonAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = JsonConvert.SerializeObject(gameLogMessage) }),
+            Http.PutAsJsonAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = JsonConvert.SerializeObject(gameLogMessage) }),
             GameHub.SendGameMessageAsync(GameId, "NewGameLogMessage", gameLogMessage));
         await JSRuntime.InvokeVoidAsync("cryptonyms.scrollToBottomOfElement", "GameLog");
     }
@@ -476,7 +476,7 @@ else
     private async Task UpdateGameAsync(string logMessage)
     {
         var serializedGame = JsonConvert.SerializeObject(Game);
-        await Task.WhenAll(Http.PostJsonAsync("api/Game/Save", serializedGame), GameHub.UpdateGameAsync(GameId, serializedGame), UpdateGameLogAsync(logMessage));
+        await Task.WhenAll(Http.PostAsJsonAsync("api/Game/Save", serializedGame), GameHub.UpdateGameAsync(GameId, serializedGame), UpdateGameLogAsync(logMessage));
     }
 
     private async Task ToggleTopRowAsync()
