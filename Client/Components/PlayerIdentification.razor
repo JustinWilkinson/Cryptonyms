@@ -1,6 +1,6 @@
 ﻿@using Cryptonyms.Client.Pages;
 
-@inject LocalStorage Storage
+@inject GameStorage Storage
 
 <h1>Identify Yourself</h1>
 
@@ -27,12 +27,11 @@
                         <td class="align-middle">
                             @if (!player.Identified)
                             {
-                                var playerName = Storage.GetItem("playerName");
-                                if (playerName == null)
+                                if (Storage.PlayerName == null)
                                 {
                                     <button class="btn btn-success" @onclick="() => ToggleIdentifyPlayer(player, true)">Identify as @player.Name</button>
                                 }
-                                else if (playerName == player.Name)
+                                else if (Storage.PlayerName == player.Name)
                                 {
                                     <button class="btn btn-danger" @onclick="() => ToggleIdentifyPlayer(player, false)">Unidentify as @player.Name</button>
                                 }
@@ -90,19 +89,19 @@ else
 
     protected override void OnInitialized()
     {
-        Storage.RemoveItem("playerName");
+        Storage.PlayerName = null;
     }
 
     private void ToggleIdentifyPlayer(Player player, bool identified)
     {
         if (identified)
         {
-            Storage.SetItem("playerName", player.Name);
+            Storage.PlayerName = player.Name;
             Parent.IdentifiedPlayer = player;
         }
         else
         {
-            Storage.RemoveItem("playerName");
+            Storage.PlayerName = null;
             Parent.IdentifiedPlayer = null;
         }
     }
@@ -116,7 +115,7 @@ else
         }
         else
         {
-            Storage.RemoveItem("playerName");
+            Storage.PlayerName = null;
         }
     }
 
@@ -130,7 +129,7 @@ else
                 var team = Parent.Game.Players.GroupBy(x => x.Team).OrderBy(g => g.Count()).ThenBy(x => random.Next()).First().Key;
 
                 Parent.IdentifiedPlayer = new Player { Name = NewPlayerName, Identified = true, Team = team };
-                Storage.SetItem("playerName", Parent.IdentifiedPlayer.Name);
+                Storage.PlayerName = Parent.IdentifiedPlayer.Name;
                 Parent.Game.Players.Add(Parent.IdentifiedPlayer);
 
                 await Parent.AddPlayerToGameAsync();

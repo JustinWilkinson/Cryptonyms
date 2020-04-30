@@ -1,13 +1,13 @@
-﻿@inject LocalStorage Storage
+﻿@inject GameStorage Storage
 
 <li class="draggable list-group-item" draggable="true" @ondragstart="@(() => HandleDragStart(Player))">
     <h3 class="float-left mb-0">@Player.Name</h3>
     <div class="float-right">
-        @if (Storage.GetItem("playerName") == null && !Player.Identified)
+        @if (Storage.PlayerName == null && !Player.Identified)
         {
             <button class="btn btn-success adjustable-font-size" @onclick="() => ToggleIdentifyPlayerAsync(Player, true)">Identify as @Player.Name</button>
         }
-        else if (Storage.GetItem("playerName") == Player.Name)
+        else if (Storage.PlayerName == Player.Name)
         {
             <button class="btn btn-danger adjustable-font-size" @onclick="() => ToggleIdentifyPlayerAsync(Player, false)">Unidentify as @Player.Name</button>
         }
@@ -42,11 +42,11 @@
     {
         if (identified)
         {
-            Storage.SetItem("playerName", player.Name);
+            Storage.PlayerName = player.Name;
         }
         else
         {
-            Storage.RemoveItem("playerName");
+            Storage.PlayerName = null;
         }
         player.Identified = identified;
         await Container.UpdatePlayerAsync(player);

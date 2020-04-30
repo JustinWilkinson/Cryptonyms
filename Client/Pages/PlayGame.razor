@@ -1,7 +1,7 @@
 ﻿@page "/PlayGame/{GameId}"
 
 @inject HttpClient Http
-@inject LocalStorage Storage
+@inject GameStorage Storage
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject BlazorTimer Timer
@@ -199,7 +199,7 @@ else
             _globalChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global"));
 
             await ConfigureHubAsync();
-            IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.GetItem("playerName"));
+            IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
             if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
             {
                 await IdentifyPlayerInGameAsync();
@@ -230,7 +230,7 @@ else
             GameHub.RemoveFromGroupAsync(RoleChatId)
         );
         await UpdateGameLogAsync("has left the game.");
-        Storage.RemoveItem("playerName");
+        Storage.PlayerName = null;
         IdentifiedPlayer = null;
     }
 

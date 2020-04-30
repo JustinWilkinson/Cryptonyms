@@ -1,4 +1,3 @@
-using Cloudcrate.AspNetCore.Blazor.Browser.Storage;
 using Cryptonyms.Client.Services;
 using Cryptonyms.Client.Services.SignalR;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -16,7 +15,7 @@ namespace Cryptonyms.Client
             builder.RootComponents.Add<App>("app");
 
             builder.Services.AddBaseAddressHttpClient();
-            builder.Services.AddStorage();
+            builder.Services.AddGameStorage();
             builder.Services.AddBlazorTimer();
             builder.Services.AddHubCommunicator<GameHubCommunicator>();
 

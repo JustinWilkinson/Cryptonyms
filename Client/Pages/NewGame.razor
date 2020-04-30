@@ -2,7 +2,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
-@inject LocalStorage Storage
+@inject GameStorage Storage
 @inject IJSRuntime JSRuntime
 
 <div class="row w-100">
@@ -59,7 +59,7 @@ else
             </div>
         </Modal>
         <div class="row" style="height: 72vh;">
-            <TeamContainer Players="_players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@_deviceId">
+            <TeamContainer Players="_players" OnPlayerUpdated="StateHasChanged" OnPlayerDeleted="player => HandleDeletedPlayer(player)" DeviceId="@Storage.DeviceId">
                 <div class="col-sm-6 col-lg-6 border p-3" style="height: calc(94% + 1em);">
                     <PlayerList Team="null" />
                 </div>
@@ -92,22 +92,19 @@ else
     private string _createNewPlayerErrorMessage;
 
     private List<string> _validationErrors = new List<string>();
-    private string _deviceId;
     private bool _makePrivateGame;
     private string _newGameName;
 
     protected override async Task OnInitializedAsync()
     {
-        _deviceId = Storage.GetItem("deviceId");
-        if (_deviceId == null)
+        if (Storage.DeviceId == null)
         {
-            _deviceId = Guid.NewGuid().ToString();
-            Storage.SetItem("deviceId", _deviceId);
+            Storage.DeviceId = Guid.NewGuid().ToString();
             _players = new List<Player>();
         }
         else
         {
-            _players = JsonConvert.DeserializeObject<IEnumerable<Player>>(await Http.GetStringAsync($"api/Player/List?deviceId={_deviceId}")).ToList();
+            _players = JsonConvert.DeserializeObject<IEnumerable<Player>>(await Http.GetStringAsync($"api/Player/List?deviceId={Storage.DeviceId}")).ToList();
         }
         RemoveIdentificationIfNotFound();
     }
@@ -138,7 +135,7 @@ else
             {
                 var player = new Player { Name = NewPlayerName };
                 _players.Add(player);
-                await Http.PutJsonAsync("api/Player/New", new { DeviceId = _deviceId, Player = JsonConvert.SerializeObject(player) });
+                await Http.PutJsonAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = JsonConvert.SerializeObject(player) });
                 OnNewPlayerPopupClosed();
             }
             else
@@ -154,7 +151,7 @@ else
 
     private async Task RandomiseTeamsAsync()
     {
-        _players = await Http.PostJsonAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={_deviceId}", null);
+        _players = await Http.PostJsonAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={Storage.DeviceId}", null);
     }
 
     private bool TeamsValid()
@@ -193,9 +190,9 @@ else
 
     private void RemoveIdentificationIfNotFound()
     {
-        if (!_players.Any(x => x.Name == Storage.GetItem("playerName")))
+        if (!_players.Any(x => x.Name == Storage.PlayerName))
         {
-            Storage.RemoveItem("playerName");
+            Storage.PlayerName = null;
         }
     }
 
