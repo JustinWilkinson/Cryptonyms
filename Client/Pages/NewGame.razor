@@ -122,7 +122,8 @@ else
     {
         if (TeamsValid())
         {
-            var gameId = await Http.PutJsonAsync<Guid>("api/Game/New", new { Players = JsonConvert.SerializeObject(_players.Where(x => x.Team != null)), PrivateGame = _makePrivateGame, GameName = _newGameName });
+            var gameInfo = new { Players = JsonConvert.SerializeObject(_players.Where(x => x.Team != null)), PrivateGame = _makePrivateGame, GameName = _newGameName };
+            var gameId = await (await Http.PutAsJsonAsync("api/Game/New", gameInfo)).Content.ReadFromJsonAsync<Guid>();
             NavigationManager.NavigateTo($"PlayGame/{gameId}");
         }
     }
@@ -135,7 +136,7 @@ else
             {
                 var player = new Player { Name = NewPlayerName };
                 _players.Add(player);
-                await Http.PutJsonAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = JsonConvert.SerializeObject(player) });
+                await Http.PutAsJsonAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = JsonConvert.SerializeObject(player) });
                 OnNewPlayerPopupClosed();
             }
             else
@@ -151,7 +152,7 @@ else
 
     private async Task RandomiseTeamsAsync()
     {
-        _players = await Http.PostJsonAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={Storage.DeviceId}", null);
+        _players = await (await Http.PostAsJsonAsync($"api/Player/RandomiseTeams?deviceId={Storage.DeviceId}", JsonConvert.SerializeObject(null))).Content.ReadFromJsonAsync<List<Player>>();
     }
 
     private bool TeamsValid()
