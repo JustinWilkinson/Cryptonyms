@@ -204,11 +204,11 @@ else
             IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
             if (IdentifiedPlayer != null)
             {
-                _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
                 if (!IdentifiedPlayer.Identified)
                 {
                     await IdentifyPlayerInGameAsync();
                 }
+                _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
             }
         }
     }
