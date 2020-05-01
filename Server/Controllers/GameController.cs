@@ -31,7 +31,7 @@ namespace Cryptonyms.Server.Controllers
         public Guid New(JsonElement json)
         {
             var game = Game.NewGame(json.GetStringProperty("GameName"), _wordRepository.ListWords().Select(w => w.Text));
-            game.Players.AddRange(json.DeserializeStringProperty<IEnumerable<Player>>("Players"));
+            game.Players.AddRange(json.GetObjectProperty<IEnumerable<Player>>("Players"));
             _gameRepository.CreateGame(game, json.GetBooleanProperty("PrivateGame"));
             _gameCountRepository.IncrementGameCount();
             return game.GameId;

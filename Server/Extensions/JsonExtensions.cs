@@ -30,26 +30,6 @@ namespace Cryptonyms.Server.Extensions
             }
         }
 
-        public static T DeserializeStringProperty<T>(this JsonElement json, string propertyName)
-        {
-            if (json.ValueKind == JsonValueKind.Object)
-            {
-                if (json.TryGetProperty(propertyName, out var property))
-                {
-                    return JsonConvert.DeserializeObject<T>(property.GetString());
-                }
-                else
-                {
-                    propertyName = propertyName.Length > 1 ? $"{char.ToLowerInvariant(propertyName[0])}{propertyName.Substring(1)}" : propertyName.ToLowerInvariant();
-                    return json.TryGetProperty(propertyName, out property) ? JsonConvert.DeserializeObject<T>(property.GetString()) : default;
-                }
-            }
-            else
-            {
-                return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(JObject.Parse(json.GetString()).GetValue(propertyName)));
-            }
-        }
-
         public static string GetStringProperty(this JsonElement json, string propertyName)
         {
             if (json.TryGetProperty(propertyName, out var property))

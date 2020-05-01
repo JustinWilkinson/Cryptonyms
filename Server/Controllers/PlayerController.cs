@@ -26,10 +26,10 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("New")]
-        public void New(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.DeserializeStringProperty<Player>("Player"));
+        public void New(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpPost("Update")]
-        public void Update(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.DeserializeStringProperty<Player>("Player"));
+        public void Update(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Get")]
         public string Get(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name).Serialize(), deviceId, name);
@@ -94,7 +94,7 @@ namespace Cryptonyms.Server.Controllers
         }
 
         private TReturn UpdateDeviceLastSeenAndExecute<TReturn>(Func<string, TReturn> func, string deviceId)
-        {   
+        {
             _deviceRepository.AddOrUpdateDevice(deviceId);
             return func(deviceId);
         }

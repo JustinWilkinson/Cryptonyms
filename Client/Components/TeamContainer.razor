@@ -24,7 +24,7 @@
 
     public async Task UpdatePlayerAsync(Player player)
     {
-        await Http.PostAsync("api/Player/Update", new { DeviceId = DeviceId, Player = JsonConvert.SerializeObject(player) });
+        await Http.PostAsync("api/Player/Update", new { DeviceId = DeviceId, Player = player });
         await OnPlayerUpdated.InvokeAsync(null);
     }
 

@@ -122,7 +122,7 @@ else
     {
         if (TeamsValid())
         {
-            var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = JsonConvert.SerializeObject(_players.Where(x => x.Team != null)), PrivateGame = _makePrivateGame, GameName = _newGameName });
+            var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = _players.Where(x => x.Team != null), PrivateGame = _makePrivateGame, GameName = _newGameName });
             NavigationManager.NavigateTo($"PlayGame/{gameId}");
         }
     }
@@ -135,7 +135,7 @@ else
             {
                 var player = new Player { Name = NewPlayerName };
                 _players.Add(player);
-                await Http.PutAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = JsonConvert.SerializeObject(player) });
+                await Http.PutAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = player });
                 OnNewPlayerPopupClosed();
             }
             else

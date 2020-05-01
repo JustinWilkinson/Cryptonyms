@@ -34,7 +34,7 @@ namespace Cryptonyms.Server.Repository
                     var selectCommand = new SQLiteCommand("SELECT COUNT(*) AS Count FROM Devices WHERE DeviceId = @DeviceId", connection);
                     selectCommand.AddParameter("@DeviceId", deviceId);
 
-                    var insertOrUpdateCommand = Convert.ToInt32(selectCommand.ExecuteScalar()) == 0 ? 
+                    var insertOrUpdateCommand = Convert.ToInt32(selectCommand.ExecuteScalar()) == 0 ?
                         new SQLiteCommand("INSERT INTO Devices (DeviceId, LastSeenUtc) VALUES (@DeviceId, @LastSeenUtc)", connection) :
                         new SQLiteCommand("UPDATE Devices SET LastSeenUtc = @LastSeenUtc WHERE DeviceId = @DeviceId", connection);
                     insertOrUpdateCommand.AddParameter("@DeviceId", deviceId);

@@ -145,9 +145,9 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                ExecuteInTransaction(connection => 
+                ExecuteInTransaction(connection =>
                 {
-                    foreach(var deviceId in deviceIds)
+                    foreach (var deviceId in deviceIds)
                     {
                         var command = new SQLiteCommand("DELETE FROM Players WHERE DeviceId = @DeviceId", connection);
                         command.AddParameter("@DeviceId", deviceId);
