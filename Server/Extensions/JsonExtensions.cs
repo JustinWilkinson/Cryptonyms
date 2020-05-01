@@ -36,15 +36,7 @@ namespace Cryptonyms.Server.Extensions
         {
             if (json.ValueKind == JsonValueKind.Object)
             {
-                if (json.TryGetProperty(propertyName, out var property))
-                {
-                    return JsonConvert.DeserializeObject<T>(property.ToString());
-                }
-                else
-                {
-                    propertyName = propertyName.Length > 1 ? $"{char.ToLowerInvariant(propertyName[0])}{propertyName.Substring(1)}" : propertyName.ToLowerInvariant();
-                    return json.TryGetProperty(propertyName, out property) ? JsonConvert.DeserializeObject<T>(property.ToString()) : default;
-                }
+                return GetProperty(json, propertyName, property => JsonConvert.DeserializeObject<T>(property.ToString()));
             }
             else
             {
@@ -58,7 +50,7 @@ namespace Cryptonyms.Server.Extensions
         /// <typeparam name="T">Type to extract property as</typeparam>
         /// <param name="json">JsonElement with the required property</param>
         /// <returns>A new instance of T extracted from the JsonElement property.</returns>
-        public static T GetObjectProperty<T>(this JsonElement json, string propertyName, Func<JsonElement, T> propertyConverter)
+        public static T GetProperty<T>(this JsonElement json, string propertyName, Func<JsonElement, T> propertyConverter)
         {
             if (json.TryGetProperty(propertyName, out var property))
             {
@@ -76,14 +68,14 @@ namespace Cryptonyms.Server.Extensions
         /// </summary>
         /// <param name="json">JsonElement with the required property</param>
         /// <returns>The string value of the specified property.</returns>
-        public static string GetStringProperty(this JsonElement json, string propertyName) => GetObjectProperty(json, propertyName, property => property.GetString());
+        public static string GetStringProperty(this JsonElement json, string propertyName) => GetProperty(json, propertyName, property => property.GetString());
 
         /// <summary>
         /// Extracts the value of a JsonElement's property as a boolean this check is case insensitive.
         /// </summary>
         /// <param name="json">JsonElement with the required property</param>
         /// <returns>The boolean value of the specified property.</returns>
-        public static bool GetBooleanProperty(this JsonElement json, string propertyName) => GetObjectProperty(json, propertyName, property => property.GetBoolean());
+        public static bool GetBooleanProperty(this JsonElement json, string propertyName) => GetProperty(json, propertyName, property => property.GetBoolean());
 
         /// <summary>
         /// Serializes the object provided using Newtonsoft Json and an indented format for easy readability.
