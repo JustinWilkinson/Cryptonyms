@@ -47,11 +47,7 @@ namespace Cryptonyms.Server.Controllers
         public void Save(JsonElement gameJson) => _gameRepository.SaveGame(gameJson.Deserialize<Game>());
 
         [HttpPost("UpdatePlayerInGame")]
-        public void UpdatePlayerInGame(JsonElement gameJson)
-        {
-            var playerInGame = gameJson.Deserialize<PlayerInGame>();
-            _gameRepository.AddOrUpdatePlayerInGame(playerInGame.GameId, playerInGame.Player);
-        }
+        public void UpdatePlayerInGame(JsonElement gameJson) => _gameRepository.AddOrUpdatePlayerInGame(gameJson.GetStringProperty("GameId"), gameJson.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Count")]
         public int Get() => _gameCountRepository.GetGameCount();

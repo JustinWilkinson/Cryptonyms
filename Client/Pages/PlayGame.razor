@@ -1,6 +1,6 @@
 ﻿@page "/PlayGame/{GameId}"
 
-@inject HttpClient Http
+@inject IHttpService Http
 @inject GameStorage Storage
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -154,68 +154,68 @@ else
 }
 
 @code {
-    public Player IdentifiedPlayer { get; set; }
-    public Game Game { get; private set; }
+        public Player IdentifiedPlayer { get; set; }
+        public Game Game { get; private set; }
 
-    private List<GameMessage> _gameLogMessages;
-    private List<GameMessage> _globalChatMessages;
-    private List<GameMessage> _roleChatMessages;
-    private int _unreadGameLogMessageCount = 0;
-    private int _unreadGlobalMessageCount = 0;
-    private int _unreadRoleMessageCount = 0;
-    private string _selectedTab = "GameLogTab";
+        private List<GameMessage> _gameLogMessages;
+        private List<GameMessage> _globalChatMessages;
+        private List<GameMessage> _roleChatMessages;
+        private int _unreadGameLogMessageCount = 0;
+        private int _unreadGlobalMessageCount = 0;
+        private int _unreadRoleMessageCount = 0;
+        private string _selectedTab = "GameLogTab";
 
-    private bool _showCompletionMessage;
-    private string _currentClue = null;
-    private int _currentNumberOfWordsLinked = 0;
-    private string _clueErrorMessage;
-    private bool _topRowCollapsed = false;
-    private bool _endGameAnimationRun = false;
-    private bool _urlWrong = false;
+        private bool _showCompletionMessage;
+        private string _currentClue = null;
+        private int _currentNumberOfWordsLinked = 0;
+        private string _clueErrorMessage;
+        private bool _topRowCollapsed = false;
+        private bool _endGameAnimationRun = false;
+        private bool _urlWrong = false;
 
-    private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
-    private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
-    private int WordsRemainingForCurrentTeam => Game.CurrentTurn.Team == Team.Red ? RedWordsRemaining : BlueWordsRemaining;
-    private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
-    private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
-    private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
-    private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
-    private string TeamButtonClass => $"btn btn-{(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary")}";
+        private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
+        private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
+        private int WordsRemainingForCurrentTeam => Game.CurrentTurn.Team == Team.Red ? RedWordsRemaining : BlueWordsRemaining;
+        private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
+        private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
+        private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
+        private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
+        private string TeamButtonClass => $"btn btn-{(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary")}";
 
-    [Parameter]
-    public string GameId { get; set; }
+        [Parameter]
+        public string GameId { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        Game = JsonConvert.DeserializeObject<Game>(await Http.GetStringAsync($"api/Game/Get?id={GameId}"));
-
-        if (Game == null)
+        protected override async Task OnInitializedAsync()
         {
-            _urlWrong = true;
-        }
-        else
-        {
-            _gameLogMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-GameLog"));
-            _globalChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global"));
+            Game = await Http.GetAsync<Game>($"api/Game/Get?id={GameId}");
 
-            await ConfigureHubAsync();
-            IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
-            if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
+            if (Game == null)
             {
-                await IdentifyPlayerInGameAsync();
+                _urlWrong = true;
+            }
+            else
+            {
+                _gameLogMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-GameLog");
+                _globalChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global");
+
+                await ConfigureHubAsync();
+                IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
+                if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
+                {
+                    await IdentifyPlayerInGameAsync();
+                }
             }
         }
-    }
 
-    public async Task IdentifyPlayerInGameAsync()
-    {
-        IdentifiedPlayer.Identified = true;
-        await Task.WhenAll(
-            Http.PostAsJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+        public async Task IdentifyPlayerInGameAsync()
+        {
+            IdentifiedPlayer.Identified = true;
+            await Task.WhenAll(
+                Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
             GameHub.AddToGroupAsync(RoleChatId)
         );
-        _roleChatMessages = JsonConvert.DeserializeObject<List<GameMessage>>(await Http.GetStringAsync($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}"));
+        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
         await UpdateGameLogAsync("has joined the game.");
         StartTopRowToggleTimer();
     }
@@ -225,7 +225,7 @@ else
         Timer.StopTimer();
         IdentifiedPlayer.Identified = false;
         await Task.WhenAll(
-            Http.PostAsJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, false),
             GameHub.RemoveFromGroupAsync(RoleChatId)
         );
@@ -237,7 +237,7 @@ else
     public async Task AddPlayerToGameAsync()
     {
         await Task.WhenAll(
-            Http.PostAsJsonAsync("api/Game/UpdatePlayerInGame", JsonConvert.SerializeObject(new PlayerInGame { GameId = GameId, Player = IdentifiedPlayer })),
+            Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
             GameHub.AddNewPlayerToGameAsync(GameId, IdentifiedPlayer)
         );
         StateHasChanged();
@@ -468,7 +468,7 @@ else
         var gameLogMessage = new GameMessage(IdentifiedPlayer.Name, logMessage);
         _gameLogMessages.Add(gameLogMessage);
         await Task.WhenAll(
-            Http.PutAsJsonAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = JsonConvert.SerializeObject(gameLogMessage) }),
+            Http.PutAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = JsonConvert.SerializeObject(gameLogMessage) }),
             GameHub.SendGameMessageAsync(GameId, "NewGameLogMessage", gameLogMessage));
         await JSRuntime.InvokeVoidAsync("cryptonyms.scrollToBottomOfElement", "GameLog");
     }
@@ -476,7 +476,7 @@ else
     private async Task UpdateGameAsync(string logMessage)
     {
         var serializedGame = JsonConvert.SerializeObject(Game);
-        await Task.WhenAll(Http.PostAsJsonAsync("api/Game/Save", serializedGame), GameHub.UpdateGameAsync(GameId, serializedGame), UpdateGameLogAsync(logMessage));
+        await Task.WhenAll(Http.PostAsync("api/Game/Save", serializedGame), GameHub.UpdateGameAsync(GameId, serializedGame), UpdateGameLogAsync(logMessage));
     }
 
     private async Task ToggleTopRowAsync()

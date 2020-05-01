@@ -1,6 +1,6 @@
 ﻿@page "/About"
 
-@inject HttpClient Http
+@inject IHttpService Http
 
 <div class="container-fluid">
     <h1>About Cryptonyms</h1>
@@ -181,7 +181,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var gameCount = await Http.GetFromJsonAsync<int>("api/Game/Count");
-        _gameCountString = $"{gameCount.ToString("N0")} game{(gameCount == 1 ? "" : "s")}, with {(await Http.GetFromJsonAsync<int>("api/Word/Count")).ToString("N0")} different words";
+        var gameCount = await Http.GetAsync<int>("api/Game/Count");
+        _gameCountString = $"{gameCount.ToString("N0")} game{(gameCount == 1 ? "" : "s")}, with {(await Http.GetAsync<int>("api/Word/Count")).ToString("N0")} different words";
     }
 }

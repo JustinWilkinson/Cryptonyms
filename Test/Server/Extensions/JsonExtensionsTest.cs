@@ -16,6 +16,9 @@ namespace Cryptonyms.Test.Server.Extensions
         private static readonly TestSerializerClass _complexTestObject = new TestSerializerClass { IntValue = 1, StringValue = JsonConvert.SerializeObject(_testObject), camelCaseStringValue = JsonConvert.SerializeObject(_testObject) };
         private static readonly JsonElement _complexObjectJsonElement = JsonDocument.Parse(JsonSerializer.Serialize(_complexTestObject)).RootElement;
 
+        private static readonly TestWithObjectProperty _testWithObjectProperty = new TestWithObjectProperty { ObjectProperty = _testObject, camelCaseObjectProperty = _testObject };
+        private static readonly JsonElement _testWithObjectPropertyJsonElement = JsonDocument.Parse(JsonSerializer.Serialize(_testWithObjectProperty)).RootElement;
+
         [Test]
         public void GetStringProperty_ValidJsonElementObjectPascalCase_ExtractsStringPropertySuccessfully()
         {
@@ -27,6 +30,26 @@ namespace Cryptonyms.Test.Server.Extensions
         {
             Assert.AreEqual("value", _objectJsonElement.GetStringProperty("camelCaseStringValue"));
             Assert.AreEqual("value", _objectJsonElement.GetStringProperty("CamelCaseStringValue"));
+        }
+
+        [Test]
+        public void GetObjectProperty_ValidJsonElementObjectPascalCase_ExtractsObjectPropertySuccessfully()
+        {
+            var result = _testWithObjectPropertyJsonElement.GetObjectProperty<TestSerializerClass>("ObjectProperty");
+            Assert.IsInstanceOf<TestSerializerClass>(result);
+            Assert.IsTrue(result.ValueEquals(_testObject));
+        }
+
+        [Test]
+        public void GetObjectProperty_ValidJsonElementObjectCamelCase_ExtractsObjectPropertySuccessfully()
+        {
+            var result1 = _testWithObjectPropertyJsonElement.GetObjectProperty<TestSerializerClass>("camelCaseObjectProperty");
+            var result2 = _testWithObjectPropertyJsonElement.GetObjectProperty<TestSerializerClass>("CamelCaseObjectProperty");
+
+            Assert.IsInstanceOf<TestSerializerClass>(result1);
+            Assert.IsTrue(result1.ValueEquals(_testObject));
+            Assert.IsInstanceOf<TestSerializerClass>(result2);
+            Assert.IsTrue(result2.ValueEquals(_testObject));
         }
 
         [Test]
@@ -93,7 +116,17 @@ namespace Cryptonyms.Test.Server.Extensions
 
             public string camelCaseStringValue { get; set; }
 
-            public bool ValueEquals(TestSerializerClass other) => IntValue == other.IntValue && StringValue == other.StringValue && camelCaseStringValue == other.camelCaseStringValue;
+            public bool ValueEquals(TestSerializerClass other)
+            {
+                return IntValue == other.IntValue && StringValue == other.StringValue && camelCaseStringValue == other.camelCaseStringValue;
+            }
+        }
+
+        private class TestWithObjectProperty
+        {
+            public object ObjectProperty { get; set; }
+
+            public object camelCaseObjectProperty { get; set; }
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿@page "/Games"
 
-@inject HttpClient Http
+@inject IHttpService Http
 @inject IJSRuntime JSRuntime
 
 <div class="row">
@@ -78,7 +78,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _games = JsonConvert.DeserializeObject<IEnumerable<Game>>(await Http.GetStringAsync("api/Game/List"));
+        _games = await Http.GetAsync<IEnumerable<Game>>("api/Game/List");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

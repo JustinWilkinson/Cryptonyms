@@ -1,4 +1,4 @@
-﻿@inject HttpClient Http
+﻿@inject IHttpService Http
 @inject IJSRuntime JSRuntime
 
 @if (ChatMessages == null)
@@ -73,7 +73,7 @@ else
             var chatMessage = new GameMessage(Player.Name, _newMessage);
             ChatMessages.Add(chatMessage);
             await Task.WhenAll(
-                Http.PutAsJsonAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
+                Http.PutAsync("api/Message/AddMessage", new { MessageBoardId = ChatId, GameMessage = JsonConvert.SerializeObject(chatMessage) }),
                 HubCommunicator.SendGameMessageAsync(OverrideHubGroup ?? ChatId, Id, chatMessage));
             await JSRuntime.InvokeVoidAsync("cryptonyms.scrollToBottomOfElement", Id);
             _newMessage = null;
