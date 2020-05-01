@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the GameCount table.
+    /// </summary>
     public interface IGameCountRepository
     {
         int GetGameCount();
@@ -11,6 +14,9 @@ namespace Cryptonyms.Server.Repository
         void IncrementGameCount();
     }
 
+    /// <summary>
+    /// Manages the GameCount table.
+    /// </summary>
     public class GameCountRepository : Repository, IGameCountRepository
     {
         private readonly ILogger<GameCountRepository> _logger;

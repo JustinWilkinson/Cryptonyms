@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the Messages table.
+    /// </summary>
     public interface IMessageRepository
     {
         void AddMessage(string messageBoardId, GameMessage message);

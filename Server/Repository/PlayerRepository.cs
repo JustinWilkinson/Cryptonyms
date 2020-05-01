@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the Players table.
+    /// </summary>
     public interface IPlayerRepository
     {
         void AddPlayer(string deviceId, Player Player);
@@ -25,6 +28,9 @@ namespace Cryptonyms.Server.Repository
         void DeletePlayersForDevices(IEnumerable<string> deviceIds);
     }
 
+    /// <summary>
+    /// Manages the players table.
+    /// </summary>
     public class PlayerRepository : Repository, IPlayerRepository
     {
         private readonly ILogger<PlayerRepository> _logger;
@@ -145,9 +151,9 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                ExecuteInTransaction(connection => 
+                ExecuteInTransaction(connection =>
                 {
-                    foreach(var deviceId in deviceIds)
+                    foreach (var deviceId in deviceIds)
                     {
                         var command = new SQLiteCommand("DELETE FROM Players WHERE DeviceId = @DeviceId", connection);
                         command.AddParameter("@DeviceId", deviceId);

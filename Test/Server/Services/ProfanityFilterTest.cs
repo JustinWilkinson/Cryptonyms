@@ -8,7 +8,7 @@ namespace Cryptonyms.Test.Server.Services
 {
     [TestFixture]
     public class ProfanityFilterTest
-    { 
+    {
         private readonly Mock<IFileReader> _mockFileReader = new Mock<IFileReader>();
         private readonly Mock<IOptions<ApplicationOptions>> _mockOptions = new Mock<IOptions<ApplicationOptions>>();
         private ProfanityFilter _profanityFilter;

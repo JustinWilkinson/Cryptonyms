@@ -7,6 +7,9 @@ using System.Data.SQLite;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the Devices table.
+    /// </summary>
     public interface IDeviceRepository
     {
         void AddOrUpdateDevice(string deviceId);
@@ -16,6 +19,9 @@ namespace Cryptonyms.Server.Repository
         void DeleteDevices(IEnumerable<string> deviceIds);
     }
 
+    /// <summary>
+    /// Manages the Devices table.
+    /// </summary>
     public class DeviceRepository : Repository, IDeviceRepository
     {
         private readonly ILogger<DeviceRepository> _logger;
@@ -34,7 +40,7 @@ namespace Cryptonyms.Server.Repository
                     var selectCommand = new SQLiteCommand("SELECT COUNT(*) AS Count FROM Devices WHERE DeviceId = @DeviceId", connection);
                     selectCommand.AddParameter("@DeviceId", deviceId);
 
-                    var insertOrUpdateCommand = Convert.ToInt32(selectCommand.ExecuteScalar()) == 0 ? 
+                    var insertOrUpdateCommand = Convert.ToInt32(selectCommand.ExecuteScalar()) == 0 ?
                         new SQLiteCommand("INSERT INTO Devices (DeviceId, LastSeenUtc) VALUES (@DeviceId, @LastSeenUtc)", connection) :
                         new SQLiteCommand("UPDATE Devices SET LastSeenUtc = @LastSeenUtc WHERE DeviceId = @DeviceId", connection);
                     insertOrUpdateCommand.AddParameter("@DeviceId", deviceId);

@@ -1,6 +1,6 @@
 ﻿@page "/NewGame"
 
-@inject HttpClient Http
+@inject IHttpService Http
 @inject NavigationManager NavigationManager
 @inject GameStorage Storage
 @inject IJSRuntime JSRuntime
@@ -104,7 +104,7 @@ else
         }
         else
         {
-            _players = JsonConvert.DeserializeObject<IEnumerable<Player>>(await Http.GetStringAsync($"api/Player/List?deviceId={Storage.DeviceId}")).ToList();
+            _players = await Http.GetAsync<List<Player>>($"api/Player/List?deviceId={Storage.DeviceId}");
         }
         RemoveIdentificationIfNotFound();
     }
@@ -122,8 +122,7 @@ else
     {
         if (TeamsValid())
         {
-            var gameInfo = new { Players = JsonConvert.SerializeObject(_players.Where(x => x.Team != null)), PrivateGame = _makePrivateGame, GameName = _newGameName };
-            var gameId = await (await Http.PutAsJsonAsync("api/Game/New", gameInfo)).Content.ReadFromJsonAsync<Guid>();
+            var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = _players.Where(x => x.Team != null), PrivateGame = _makePrivateGame, GameName = _newGameName });
             NavigationManager.NavigateTo($"PlayGame/{gameId}");
         }
     }
@@ -136,7 +135,7 @@ else
             {
                 var player = new Player { Name = NewPlayerName };
                 _players.Add(player);
-                await Http.PutAsJsonAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = JsonConvert.SerializeObject(player) });
+                await Http.PutAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = player });
                 OnNewPlayerPopupClosed();
             }
             else
@@ -152,7 +151,7 @@ else
 
     private async Task RandomiseTeamsAsync()
     {
-        _players = await (await Http.PostAsJsonAsync($"api/Player/RandomiseTeams?deviceId={Storage.DeviceId}", JsonConvert.SerializeObject(null))).Content.ReadFromJsonAsync<List<Player>>();
+        _players = await Http.PostAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={Storage.DeviceId}", null);
     }
 
     private bool TeamsValid()
