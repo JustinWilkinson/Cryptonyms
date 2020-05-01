@@ -208,7 +208,7 @@ else
                 {
                     await IdentifyPlayerInGameAsync();
                 }
-                _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
+                _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId-{RoleChatId}");
             }
         }
     }
