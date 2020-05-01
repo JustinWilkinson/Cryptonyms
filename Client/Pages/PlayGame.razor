@@ -202,9 +202,13 @@ else
 
             await ConfigureHubAsync();
             IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
-            if (IdentifiedPlayer != null && !IdentifiedPlayer.Identified)
+            if (IdentifiedPlayer != null)
             {
-                await IdentifyPlayerInGameAsync();
+                if (!IdentifiedPlayer.Identified)
+                {
+                    await IdentifyPlayerInGameAsync();
+                }
+                _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
             }
         }
     }
@@ -214,10 +218,9 @@ else
         IdentifiedPlayer.Identified = true;
         await Task.WhenAll(
             Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
-        GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
-        GameHub.AddToGroupAsync(RoleChatId)
-    );
-        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
+            GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
+            GameHub.AddToGroupAsync(RoleChatId)
+        );
         await UpdateGameLogAsync("has joined the game.");
         StartTopRowToggleTimer();
     }
@@ -362,12 +365,12 @@ else
                     if (Game.CurrentTurn.Team == Team.Red && !Game.RedWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Blue };
-                        messageSuffix = $" incorrectly {(Game.BlueWords.Contains(wordIndex) ? "(red)" : "(neutral)")}. Blue team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.BlueWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Blue team's turn started.";
                     }
                     else if (Game.CurrentTurn.Team == Team.Blue && !Game.BlueWords.Contains(wordIndex))
                     {
                         Game.CurrentTurn = new Turn { Team = Team.Red };
-                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(blue)" : "(neutral)")}. Red team's turn started.";
+                        messageSuffix = $" incorrectly {(Game.RedWords.Contains(wordIndex) ? "(red)" : "(neutral)")}. Red team's turn started.";
                     }
                     else
                     {
