@@ -3,6 +3,7 @@ using Cryptonyms.Server.Repository;
 using Cryptonyms.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace Cryptonyms.Server.Controllers
@@ -24,6 +25,6 @@ namespace Cryptonyms.Server.Controllers
         public void AddMessage(JsonElement json) => _chatRepository.AddMessage(json.GetStringProperty("MessageBoardId"), json.GetObjectProperty<GameMessage>("GameMessage"));
 
         [HttpGet("GetGameMessagesForGroup")]
-        public string Get(string messageBoardId) => _chatRepository.GetGameMessagesForGroup(messageBoardId).Serialize();
+        public IEnumerable<GameMessage> Get(string messageBoardId) => _chatRepository.GetGameMessagesForGroup(messageBoardId);
     }
 }

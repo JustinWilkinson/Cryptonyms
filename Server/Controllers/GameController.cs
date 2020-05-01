@@ -37,9 +37,11 @@ namespace Cryptonyms.Server.Controllers
             return game.GameId;
         }
 
+        // Needs to return a string as System.Text.Json.JsonSerializer cannot handle the Dictionary<int, string> of words.
         [HttpGet("Get")]
         public string Get(string id) => _gameRepository.GetGame(id).Serialize();
 
+        // Needs to return a string as System.Text.Json.JsonSerializer cannot handle the Dictionary<int, string> of words.
         [HttpGet("List")]
         public string List() => _gameRepository.ListGames().Serialize();
 
