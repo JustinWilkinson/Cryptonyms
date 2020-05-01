@@ -7,6 +7,9 @@ using System.Data.SQLite;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the Devices table.
+    /// </summary>
     public interface IDeviceRepository
     {
         void AddOrUpdateDevice(string deviceId);
@@ -16,6 +19,9 @@ namespace Cryptonyms.Server.Repository
         void DeleteDevices(IEnumerable<string> deviceIds);
     }
 
+    /// <summary>
+    /// Manages the Devices table.
+    /// </summary>
     public class DeviceRepository : Repository, IDeviceRepository
     {
         private readonly ILogger<DeviceRepository> _logger;

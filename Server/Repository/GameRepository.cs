@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the Games table.
+    /// </summary>
     public interface IGameRepository
     {
         void CreateGame(Game game, bool privateGame);
@@ -23,6 +26,9 @@ namespace Cryptonyms.Server.Repository
         void DeleteGames(IEnumerable<Guid> gameIds);
     }
 
+    /// <summary>
+    /// Manages the Games table.
+    /// </summary>
     public class GameRepository : Repository, IGameRepository
     {
         private readonly ILogger<GameRepository> _logger;

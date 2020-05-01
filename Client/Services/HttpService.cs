@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Cryptonyms.Client.Services
 {
+    /// <summary>
+    /// Provides an interface for interacting with the server over HTTP.
+    /// </summary>
     public interface IHttpService
     {
         Task<T> GetAsync<T>(string requestUri);
@@ -21,7 +24,9 @@ namespace Cryptonyms.Client.Services
         Task DeleteAsync(string requestUri);
     }
 
-
+    /// <summary>
+    /// Class used for interacting with the server over HTTP.
+    /// </summary>
     public class HttpService : IHttpService
     {
         private readonly HttpClient _client;

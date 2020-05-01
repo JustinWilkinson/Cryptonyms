@@ -11,6 +11,9 @@ using System.Linq;
 
 namespace Cryptonyms.Server.Repository
 {
+    /// <summary>
+    /// Interface for managing the Words table.
+    /// </summary>
     public interface IWordRepository
     {
         void CreateWord(string word);
@@ -22,6 +25,9 @@ namespace Cryptonyms.Server.Repository
         void DeleteWord(string word);
     }
 
+    /// <summary>
+    /// Manages the Words table.
+    /// </summary>
     public class WordRepository : Repository, IWordRepository
     {
         private readonly ILogger<WordRepository> _logger;

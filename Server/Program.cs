@@ -19,6 +19,7 @@ namespace Cryptonyms.Server
             {
                 var webHost = CreateHostBuilder(args).Build();
 
+                // Schedule clean up - this needs to take place after the Build() method which initializes the Database.
                 var jobScheduler = await JobScheduler.GetSchedulerAsync();
                 await jobScheduler.ScheduleDailyJobAsync<CleanUpJob>("CleanUp", "DailyCleanUpTrigger");
 
