@@ -75,10 +75,10 @@ else
         </div>
         <div class="row">
             <div class="form-inline">
-                <button type="button" class="btn btn-primary mr-2 " @onclick="() => { _showCreateNewPlayer = true; }">Add new player</button>
-                <button type="button" class="btn btn-primary mr-2 " @onclick="RandomiseTeamsAsync">Random teams</button>
-                <button type="button" class="btn btn-primary mr-2 " @onclick="() => { _makePrivateGame = !_makePrivateGame; }">Make game @(_makePrivateGame ? "public" : "private")</button>
-                <button type="button" class="btn btn-primary mr-2 " @onclick="StartGameAsync">Start game</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { _showCreateNewPlayer = true; }">Add new player</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="RandomiseTeamsAsync">Random teams</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { _makePrivateGame = !_makePrivateGame; }">Make game @(_makePrivateGame ? "public" : "private")</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="StartGameAsync">Start game</button>
             </div>
         </div>
     </div>
