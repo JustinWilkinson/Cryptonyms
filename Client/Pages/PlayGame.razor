@@ -102,7 +102,7 @@ else
             }
             @if (Game.CurrentTurn.Clue == null && IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
             {
-                <div class="row p-3 ">
+                <div class="row p-3">
                     <div class="form-inline">
                         <div class="form-group mr-2">
                             <label for="Clue" class="font-weight-bold mr-2">Clue:</label>
@@ -112,7 +112,7 @@ else
                             <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
                             <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" value="0" @oninput="e => HandleNumberOfGuessesInput(e.Value.ToString())" class="form-control " />
                         </div>
-                        <button type="button" class="@TeamButtonClass " @onclick="GiveClueAsync">Give clue</button>
+                        <button type="button" class="@TeamButtonClass" @onclick="GiveClueAsync">Give clue</button>
                         @if (_clueErrorMessage != null)
                         {
                             <label class="text-danger ml-2">@_clueErrorMessage</label>
