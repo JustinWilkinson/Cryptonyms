@@ -68,7 +68,7 @@ else
                                 if (IdentifiedAsCurrentTeamGuesserWithClue)
                                 {
                                     <div class="d-inline-block ml-2">
-                                        <button class="@TeamButtonClass " style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
+                                        <button class="@TeamButtonClass" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
                                     </div>
                                 }
                             }
@@ -210,7 +210,7 @@ else
                 }
                 else
                 {
-                    _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId-{RoleChatId}");
+                    _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
                     StartTopRowToggleTimer();
                 }
             }
@@ -225,7 +225,7 @@ else
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
             GameHub.AddToGroupAsync(RoleChatId)
         );
-        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId-{RoleChatId}");
+        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
         await UpdateGameLogAsync("has joined the game.");
         StartTopRowToggleTimer();
     }
