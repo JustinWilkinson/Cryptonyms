@@ -13,14 +13,14 @@
             {
                 <div class="form-inline col-sm-9 col-lg-8">
                     <div class="form-group row w-100" title="Provide a name for your public game to make it more recognizable.">
-                        <label class="col-form-label mr-2 adjustable-font-size">Game Name: (optional)</label>
-                        <input type="text" class="form-control col-sm-8 col-lg-4 adjustable-font-size" placeholder="Enter a game name..." @bind="_newGameName" />
+                        <label class="col-form-label mr-2 ">Game Name: (optional)</label>
+                        <input type="text" class="form-control col-sm-8 col-lg-4 " placeholder="Enter a game name..." @bind="_newGameName" />
                     </div>
                 </div>
             }
         </div>
         <div class="row pl-3 mb-3">
-            <p class="mb-0 adjustable-font-size">
+            <p class="mb-0">
                 Create players for your game, and assign them to teams here by dragging and dropping them in the relevant area.<br>
                 Alternatively, use the random teams button to assign players for you!
             </p>
@@ -75,10 +75,10 @@ else
         </div>
         <div class="row">
             <div class="form-inline">
-                <button type="button" class="btn btn-primary mr-2 adjustable-font-size" @onclick="() => { _showCreateNewPlayer = true; }">Add new player</button>
-                <button type="button" class="btn btn-primary mr-2 adjustable-font-size" @onclick="RandomiseTeamsAsync">Random teams</button>
-                <button type="button" class="btn btn-primary mr-2 adjustable-font-size" @onclick="() => { _makePrivateGame = !_makePrivateGame; }">Make game @(_makePrivateGame ? "public" : "private")</button>
-                <button type="button" class="btn btn-primary mr-2 adjustable-font-size" @onclick="StartGameAsync">Start game</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { _showCreateNewPlayer = true; }">Add new player</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="RandomiseTeamsAsync">Random teams</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { _makePrivateGame = !_makePrivateGame; }">Make game @(_makePrivateGame ? "public" : "private")</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="StartGameAsync">Start game</button>
             </div>
         </div>
     </div>
