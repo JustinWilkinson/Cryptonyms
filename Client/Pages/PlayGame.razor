@@ -34,26 +34,26 @@ else
         </span>
     </div>
     <div id="topRow" class="row pl-2">
-        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded p-1 adjustable-font-size">
+        <div class="col-sm-auto col-lg-auto mr-auto @(IdentifiedPlayer.Team == Team.Red ? "bg-danger" : "bg-primary") rounded p-1 ">
             <p class="text-white mb-0 d-inline-block">Hi @IdentifiedPlayer.Name, you are playing as @(IdentifiedPlayer.IsSpymaster ? "the spymaster" : "a guesser") on the @IdentifiedPlayer.Team team.</p>
-            <button class="@TeamButtonClass d-inline-block adjustable-font-size" style="line-height: 1em;" @onclick="UnidentifyPlayerInGameAsync">Click here to re-identify</button>
+            <button class="@TeamButtonClass d-inline-block " style="line-height: 1em;" @onclick="UnidentifyPlayerInGameAsync">Click here to re-identify</button>
         </div>
-        <div class="col-sm-auto col-lg-auto p-1 adjustable-font-size align-text-top">
+        <div class="col-sm-auto col-lg-auto p-1 align-text-top">
             <p class="mb-0">Game started at @Game.StartedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
         </div>
     </div>
     <div class="row">
-        <div class="w-75 pl-2 pr-2 mr-auto">
+        <div class="w-75 pl-2 pr-2 ml-auto mr-auto">
             @if (Game.CompletedMessage != null)
             {
                 <Modal Header="Game Over!" Show="_showCompletionMessage">
                     <h6>@Game.CompletedMessage</h6>
                 </Modal>
             }
-            <div class="row adjustable-font-size">
+            <div class="row ">
                 <CascadingValue Value="Game.Players">
                     <TeamInfo Team="Team.Blue" WordsRemaining="BlueWordsRemaining" />
-                    <div class="col card border border-secondary rounded padded-card adjustable-font-size p-1">
+                    <div class="col card border border-secondary rounded padded-card p-1">
                         <div class="card-body text-center font-weight-bold">
                             @if (!Game.CompletedAtUtc.HasValue)
                             {
@@ -68,7 +68,7 @@ else
                                 if (IdentifiedAsCurrentTeamGuesserWithClue)
                                 {
                                     <div class="d-inline-block ml-2">
-                                        <button class="@TeamButtonClass adjustable-font-size" style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
+                                        <button class="@TeamButtonClass " style="line-height: 1em;" @onclick="PassTurnAsync">Pass</button>
                                     </div>
                                 }
                             }
@@ -89,11 +89,11 @@ else
                         var wordIndex = 5 * i + j;
                         if (!Game.WinnningTeam.HasValue && Game.GuessedWords.Contains(wordIndex))
                         {
-                            <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card adjustable-font-size"></div>
+                            <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card "></div>
                         }
                         else
                         {
-                            <div class="col card padded-card @GetBackgroundColourClassForVisibleWord(wordIndex) adjustable-font-size @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" : "")" @onclick="e => HandleWordGuessedAsync(wordIndex)">
+                            <div class="col card padded-card @GetBackgroundColourClassForVisibleWord(wordIndex) @(IdentifiedAsCurrentTeamGuesserWithClue ? "pointer" : "")" @onclick="e => HandleWordGuessedAsync(wordIndex)">
                                 <div class="card-body text-center font-weight-bold bg-light" style="padding: 0.25em 0;">@Game.Words[wordIndex]</div>
                             </div>
                         }
@@ -102,17 +102,17 @@ else
             }
             @if (Game.CurrentTurn.Clue == null && IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
             {
-                <div class="row p-3 adjustable-font-size">
+                <div class="row p-3 ">
                     <div class="form-inline">
                         <div class="form-group mr-2">
                             <label for="Clue" class="font-weight-bold mr-2">Clue:</label>
-                            <input id="Clue" type="text" @bind="_currentClue" class="form-control adjustable-font-size" autocomplete="off" />
+                            <input id="Clue" type="text" @bind="_currentClue" class="form-control " autocomplete="off" />
                         </div>
                         <div class="form-group mr-3">
                             <label for="NumberOfGuesses" class="font-weight-bold mr-2">Number of words linked:</label>
-                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" value="0" @oninput="e => HandleNumberOfGuessesInput(e.Value.ToString())" class="form-control adjustable-font-size" />
+                            <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" value="0" @oninput="e => HandleNumberOfGuessesInput(e.Value.ToString())" class="form-control " />
                         </div>
-                        <button type="button" class="@TeamButtonClass adjustable-font-size" @onclick="GiveClueAsync">Give clue</button>
+                        <button type="button" class="@TeamButtonClass " @onclick="GiveClueAsync">Give clue</button>
                         @if (_clueErrorMessage != null)
                         {
                             <label class="text-danger ml-2">@_clueErrorMessage</label>
@@ -208,7 +208,11 @@ else
                 {
                     await IdentifyPlayerInGameAsync();
                 }
-                _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId-{RoleChatId}");
+                else
+                {
+                    _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId-{RoleChatId}");
+                    StartTopRowToggleTimer();
+                }
             }
         }
     }
@@ -221,6 +225,7 @@ else
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
             GameHub.AddToGroupAsync(RoleChatId)
         );
+        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId-{RoleChatId}");
         await UpdateGameLogAsync("has joined the game.");
         StartTopRowToggleTimer();
     }
@@ -314,7 +319,7 @@ else
             var updatedPlayer = Game.Players.SingleOrDefault(p => p.Name == playerName);
             if (updatedPlayer != null)
             {
-                updatedPlayer.Identified = true;
+                updatedPlayer.Identified = identified;
             }
         });
         GameHub.RegisterHandler<Player>("AddNewPlayerToGame", (player) =>

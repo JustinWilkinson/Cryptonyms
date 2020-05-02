@@ -195,95 +195,72 @@ app {
     }
 }
 
-@media (min-width: 480px) {
+@media (min-width: 480px) and (min-height: 320px) {
     .screen-too-small {
         display: none;
     }
 
     .padded-card {
-        padding: 2em;
-        margin: 1em;
+        padding: 2rem;
+        margin: 0.5rem;
     }
 
     .empty-padded-card {
-        padding: 3em 2em;
-        margin: 1em;
+        padding: 3rem 2rem;
+        margin: 0.5rem;
     }
 
-    .adjustable-font-size {
-        font-size: x-small;
+    html, body {
+        font-size: 8px;
     }
 
     .adjustable-font-size-small {
-        font-size: xx-small;
-    }
-
-    h1 {
-        font-size: 1.6em;
-    }
-
-    h2 {
-        font-size: 1.4em;
-    }
-
-    h3 {
-        font-size: 1.2em;
-    }
-
-    h4 {
-        font-size: 1em;
+        font-size: 80% !important;
     }
 }
 
-@media(min-width: 1140px) {    
-    .adjustable-font-size {
-        font-size: small;
-    }
-
-    .adjustable-font-size-small {
-        font-size: x-small;
-    }
-
-    h1 {
-        font-size: 2em;
-    }
-
-    h2 {
-        font-size: 1.6em;
-    }
-
-    h3 {
-        font-size: 1.4em;
-    }
-
-    h4 {
-        font-size: 1.2em;
+@media(min-width: 980px) and (min-height: 480px) {
+    html, body {
+        font-size: 10px;
     }
 }
 
-@media(min-width: 1540px) {
-    .adjustable-font-size {
-        font-size: inherit;
+@media(min-width: 1140px) and (min-height: 560px) {
+    html, body {
+        font-size: 12px;
+    }
+}
+
+@media(min-width: 1200px) and (min-height: 640px) {
+    html, body {
+        font-size: 13px;
+    }
+}
+
+@media(min-width: 1440px) and (min-height: 720px) {
+    html, body {
+        font-size: 14px;
     }
 
-    .adjustable-font-size-small {
-        font-size: smaller;
+    .padded-card {
+        margin: 1rem;
     }
 
-    h1 {
-        font-size: 2.5em;
+    .empty-padded-card {
+        margin: 1rem;
     }
+}
 
-    h2 {
-        font-size: 2em;
+@media(min-width: 1540px) and (min-height: 800px) {
+    html, body {
+        font-size: 15px;
     }
+}
 
-    h3 {
-        font-size: 1.75em;
-    }
 
-    h4 {
-        font-size: 1.5em;
+@media(min-width: 1700px) and (min-height: 900px) {
+    html, body {
+        font-size: 16px;
     }
 }
 

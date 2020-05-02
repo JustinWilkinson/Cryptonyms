@@ -5,24 +5,24 @@
     <div class="float-right">
         @if (Storage.PlayerName == null && !Player.Identified)
         {
-            <button class="btn btn-success adjustable-font-size" @onclick="() => ToggleIdentifyPlayerAsync(Player, true)">Identify as @Player.Name</button>
+            <button class="btn btn-success adjustable-font-size-small" @onclick="() => ToggleIdentifyPlayerAsync(Player, true)">Identify as @Player.Name</button>
         }
         else if (Storage.PlayerName == Player.Name)
         {
-            <button class="btn btn-danger adjustable-font-size" @onclick="() => ToggleIdentifyPlayerAsync(Player, false)">Unidentify as @Player.Name</button>
+            <button class="btn btn-danger adjustable-font-size-small" @onclick="() => ToggleIdentifyPlayerAsync(Player, false)">Unidentify as @Player.Name</button>
         }
         @if (Player.Team.HasValue)
         {
             if (Player.IsSpymaster)
             {
-                <button class="btn btn-danger adjustable-font-size" @onclick="() => ToggleSpymasterAsync(Player, false)">Unset as Spymaster</button>
+                <button class="btn btn-danger adjustable-font-size-small" @onclick="() => ToggleSpymasterAsync(Player, false)">Unset as Spymaster</button>
             }
             else if (!Container.Players.Any(p => p.IsSpymaster && p.Team == Player.Team))
             {
-                <button class="btn btn-success adjustable-font-size" @onclick="() => ToggleSpymasterAsync(Player, true)">Set as Spymaster</button>
+                <button class="btn btn-success adjustable-font-size-small" @onclick="() => ToggleSpymasterAsync(Player, true)">Set as Spymaster</button>
             }
         }
-        <button class="btn btn-danger adjustable-font-size" @onclick="() => RemovePlayerAsync(Player)">Remove</button>
+        <button class="btn btn-danger adjustable-font-size-small" @onclick="() => RemovePlayerAsync(Player)">Remove</button>
     </div>
 </li>
 

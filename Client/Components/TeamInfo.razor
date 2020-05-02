@@ -1,4 +1,4 @@
-﻿<div class="col card @(Team == Team.Red ? "bg-danger" : "bg-primary") padded-card adjustable-font-size p-1">
+﻿<div class="col card @(Team == Team.Red ? "bg-danger" : "bg-primary") padded-card p-1">
     <div class="card-body text-white text-center p-0">
         <div class="font-weight-bold">@WordsRemaining @(WordsRemaining == 1 ? "word" : "words") left</div>
         <div class="small">Spymaster: @Players.Single(x => x.Team == Team && x.IsSpymaster).Name</div>
