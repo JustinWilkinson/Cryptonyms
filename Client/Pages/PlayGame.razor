@@ -129,7 +129,7 @@ else
                             <ul class="list-group">
                                 @foreach (var gameLogMessage in _gameLogMessages.OrderBy(c => c.SentAt))
                                 {
-                                    <li class="list-group-item adjustable-font-size-small pt-2 pb-2">
+                                    <li class="list-group-item adjustable-font-size-small pt-2 pb-2" title="At @gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
                                         <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
                                     </li>
                                 }
