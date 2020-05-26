@@ -1,13 +1,11 @@
 ﻿@page "/PlayGame/{GameId}"
 
-@using Newtonsoft.Json
-
 @inject IHttpService Http
-@inject GameStorage Storage
-@inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-@inject BlazorTimer Timer
+@inject IBlazorTimer Timer
+@inject NavigationManager NavigationManager
 @inject GameHubCommunicator GameHub
+@inject GameStorage Storage
 
 @if (Game == null)
 {
