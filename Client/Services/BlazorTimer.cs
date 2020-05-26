@@ -3,7 +3,16 @@ using System.Timers;
 
 namespace Cryptonyms.Client.Services
 {
-    public class BlazorTimer
+    public interface IBlazorTimer
+    {
+        public event Action OnElapsed;
+
+        public void SetTimer(double interval);
+
+        public void StopTimer();
+    }
+
+    public class BlazorTimer : IBlazorTimer
     {
         private Timer _timer;
 
