@@ -200,6 +200,10 @@ html, body {
     font-size: 8px;
 }
 
+.adjustable-font-size-small {
+    font-size: 80% !important;
+}
+
 @media (min-width: 480px) and (min-height: 320px) {
     .screen-too-small {
         display: none;
