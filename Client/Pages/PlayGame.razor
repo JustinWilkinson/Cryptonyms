@@ -9,7 +9,7 @@
 
 @if (Game == null)
 {
-    @if (_urlWrong)
+    if (_urlWrong)
     {
         <p>Sorry, it doesn't look like this is a valid game - please make sure your URL is correct and retry.</p>
     }
@@ -120,34 +120,39 @@ else
             }
         </div>
         <div class="mt-3" style="width: 22%;">
-            <TabControl AdditionalButtonGroupClasses="w-100" AdditionalButtonClasses="adjustable-font-size-small" OnTabSelected="HandleTabSelectedAsync">
-                <TabPage ButtonId="GameLogTab" Title="Game Log" OnTabSelected="() => _unreadGameLogMessageCount = 0">
-                    <div class="card border rounded">
-                        <div id="GameLog" class="card-body overflow-auto p-0" style="height: 75vh;">
-                            <ul class="list-group">
-                                @foreach (var gameLogMessage in _gameLogMessages.OrderBy(c => c.SentAt))
-                                {
-                                    <li class="list-group-item adjustable-font-size-small pt-2 pb-2" title="At @gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
-                                        <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
-                                    </li>
-                                }
-                            </ul>
+            <TabControl OnTabSelected="HandleTabSelectedAsync">
+                <TabHeader>
+                    <TabHeaderTemplate ButtonClass="btn adjustable-font-size-small" ButtonGroupClass="w-100" />
+                </TabHeader>
+                <TabItems> 
+                    <TabItem ButtonId="GameLogTab" Title="Game Log" OnTabSelected="() => _unreadGameLogMessageCount = 0">
+                        <div class="card border rounded">
+                            <div id="GameLog" class="card-body overflow-auto p-0" style="height: 75vh;">
+                                <ul class="list-group">
+                                    @foreach (var gameLogMessage in _gameLogMessages.OrderBy(c => c.SentAt))
+                                    {
+                                        <li class="list-group-item adjustable-font-size-small pt-2 pb-2" title="At @gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm:ss")">
+                                            <strong>@gameLogMessage.SentAt.ToLocalTime().ToString("HH:mm"):</strong> @gameLogMessage.PlayerName @gameLogMessage.Message
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
                         </div>
-                    </div>
-                </TabPage>
-                <CascadingValue Value="GameHub">
-                    <CascadingValue Value="IdentifiedPlayer">
-                        <TabPage ButtonId="GlobalChatTab" Title="Global Chat" OnTabSelected="() => _unreadGlobalMessageCount = 0">
-                            <Chat Id="GlobalChat" ChatId="@($"{GameId}-Global")" OverrideHubGroup="@GameId" ChatMessages="_globalChatMessages" />
-                        </TabPage>
-                        @if (ShowRoleChat)
-                        {
-                            <TabPage ButtonId="RoleChatTab" Title="@RoleChatName" OnTabSelected="() => _unreadRoleMessageCount = 0">
-                                <Chat Id="RoleChat" ChatId="@RoleChatId" ChatMessages="_roleChatMessages" />
-                            </TabPage>
-                        }
+                    </TabItem>
+                    <CascadingValue Value="GameHub">
+                        <CascadingValue Value="IdentifiedPlayer">
+                            <TabItem ButtonId="GlobalChatTab" Title="Global Chat" OnTabSelected="() => _unreadGlobalMessageCount = 0">
+                                <Chat Id="GlobalChat" ChatId="@($"{GameId}-Global")" OverrideHubGroup="@GameId" ChatMessages="_globalChatMessages" />
+                            </TabItem>
+                            @if (ShowRoleChat)
+                            {
+                                <TabItem ButtonId="RoleChatTab" Title="@RoleChatName" OnTabSelected="() => _unreadRoleMessageCount = 0">
+                                    <Chat Id="RoleChat" ChatId="@RoleChatId" ChatMessages="_roleChatMessages" />
+                                </TabItem>
+                            }
+                        </CascadingValue>
                     </CascadingValue>
-                </CascadingValue>
+                </TabItems>
             </TabControl>
         </div>
     </div>
@@ -268,7 +273,7 @@ else
         }
     }
 
-    private async Task HandleTabSelectedAsync(TabPage page)
+    private async Task HandleTabSelectedAsync(TabItem page)
     {
         _selectedTab = page.ButtonId;
         await JSRuntime.InvokeVoidAsync("cryptonyms.replaceContent", page.ButtonId, @"\s\(\d+\)", "");
