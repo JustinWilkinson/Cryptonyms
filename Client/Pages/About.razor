@@ -35,70 +35,75 @@
         <div class="card-body">
             <p>Click the tabs below to show documentation on the relevant subject.</p>
             <div class="card border rounded">
-                <TabControl AdditionalButtonGroupClasses="card-header">
-                    <TabPage Title="New Games">
-                        <div class="card-body">
-                            <ul class="mb-0">
-                                <li>A <strong>host</strong> can create a game by navigating to the <NavLink href="NewGame" Match="NavLinkMatch.All">New Game page</NavLink> and setting up a game (with at least 4 players).</li>
-                                <li>Players will need to be assigned to teams, and a <strong>Spymaster</strong> for each team will need selecting. This can be done manually, or randomly depending on the host's preference.</li>
-                                <li>Cryptonyms will remember players on a given device, so a host need only create each player once if playing multiple games.</li>
-                                <li>Games can also be made either public, or private by the host. Public games will be visible on the <NavLink href="Games" Match="NavLinkMatch.All">Games page</NavLink>, whereas private games will not.</li>
-                                <li>Once a game is created, the host should distribute the URL to the relevant parties. If the game is public, it will also be available on the <NavLink href="Games" Match="NavLinkMatch.All">Games page</NavLink>.</li>
-                            </ul>
-                            <div class="row mt-2">
-                                <div class="col text-center">
-                                    <img src="/images/gifs/new-game-new-player.gif" class="img-about" />
-                                </div>
-                                <div class="col text-center">
-                                    <img src="/images/gifs/new-game-random-teams.gif" class="img-about" />
-                                </div>
-                            </div>
-                        </div>
-                    </TabPage>
-                    <TabPage Title="Player Identification">
-                        <div class="card-body">
-                            <ul class="mb-0">
-                                <li>In order to participate in a game, players will need to identify themselves.</li>
-                                <li>This identification enables Cryptonyms to customise the player's experience depending on which <strong>role</strong> they have, namely which team they are on, and whether they are the <strong>Spymaster</strong> or a <strong>Guesser</strong>.</li>
-                                <li>In order to identify players without requiring a user account to be created, Cryptonyms makes use of local storage, if you experience issues identifying please ensure that <a href="https://mid.as/kb/00103/enable-disable-or-clear-web-storage-cache" target="_blank">storage is enabled in your browser</a>.</li>
-                                <li>Upon navigating to the URL of a game, a player will be shown a table of players, and the player's <strong>role</strong> in the game.</li>
-                                <li>If playing multiple consecutive games, a user will remain identified with the same name, and so can automatically join games where a player of that name has been created.</li>
-                                <li>If all players in a game have been identified, a new player can still join if they have the appropriate URL. They just need to provide themselves with a name, and they will be assigned to the team with the fewest guessers (or at random if the teams are of equal size).</li>
-                                <li>If a player accidentally identifies themselves incorrectly, then they can expand the dropdown in the game and re-identify themselves correctly.</li>
-                            </ul>
-                            <div class="row mt-2">
-                                <div class="col text-center">
-                                    <img src="/images/gifs/player-identification.gif" class="img-about" />
-                                </div>
-                                <div class="col text-center">
-                                    <img src="/images/gifs/player-reidentification.gif" class="img-about" />
+                <TabControl>
+                    <TabHeader>
+                        <TabHeaderTemplate ButtonGroupClass="card-header w-100"/>
+                    </TabHeader>
+                    <TabItems>
+                        <TabItem Title="New Games">
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>A <strong>host</strong> can create a game by navigating to the <NavLink href="NewGame" Match="NavLinkMatch.All">New Game page</NavLink> and setting up a game (with at least 4 players).</li>
+                                    <li>Players will need to be assigned to teams, and a <strong>Spymaster</strong> for each team will need selecting. This can be done manually, or randomly depending on the host's preference.</li>
+                                    <li>Cryptonyms will remember players on a given device, so a host need only create each player once if playing multiple games.</li>
+                                    <li>Games can also be made either public, or private by the host. Public games will be visible on the <NavLink href="Games" Match="NavLinkMatch.All">Games page</NavLink>, whereas private games will not.</li>
+                                    <li>Once a game is created, the host should distribute the URL to the relevant parties. If the game is public, it will also be available on the <NavLink href="Games" Match="NavLinkMatch.All">Games page</NavLink>.</li>
+                                </ul>
+                                <div class="row mt-2">
+                                    <div class="col text-center">
+                                        <img src="/images/gifs/new-game-new-player.gif" class="img-about" />
+                                    </div>
+                                    <div class="col text-center">
+                                        <img src="/images/gifs/new-game-random-teams.gif" class="img-about" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </TabPage>
-                    <TabPage Title="Gameplay">
-                        <div class="card-body">
-                            <ul class="mb-0">
-                                <li>Once a player has succesfully identified themselves in a game, they will be shown a view of the board and chats relevant to their role.</li>
-                                <li>The <strong>Spymaster</strong> on the relevant team will be prompted to give a clue.</li>
-                                <li>Once a clue has been provided guessers on the relevant team will be able to click on the cards in the boad to reveal their colours.</li>
-                                <li>If the guessers are unable to make any more guesses, they can then pass their turn, using the Pass button.</li>
-                                <li>Note that any user action that does not fit into the current poisition in the gameplay are disabled - i.e. users on the opposing team, will not be able to perform actions until it is their turn.</li>
-                                <li>All actions should be synchronised across all player's screens, but occasional issues may require a refresh to resolve.</li>
-                                <li>Each user action will also be added to the <strong>Game Log</strong>, to allow players to view previous actions.</li>
-                                <li>Once a game has ended, players can create a new game by navigating to the <NavLink href="NewGame" Match="NavLinkMatch.All">New Game page</NavLink>.</li>
-                                <li>Note that completed games will be automatically cleaned up at 00:00 (UTC), whilst games which are in progress will be cleaned up after 5 days if not completed.</li>
-                            </ul>
-                            <div class="row mt-2">
-                                <div class="col text-center">
-                                    <img src="/images/gifs/play-game-give-clue.gif" class="img-about" />
-                                </div>
-                                <div class="col text-center">
-                                    <img src="/images/gifs/play-game-make-guesses.gif" class="img-about" />
+                        </TabItem>
+                        <TabItem Title="Player Identification">
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>In order to participate in a game, players will need to identify themselves.</li>
+                                    <li>This identification enables Cryptonyms to customise the player's experience depending on which <strong>role</strong> they have, namely which team they are on, and whether they are the <strong>Spymaster</strong> or a <strong>Guesser</strong>.</li>
+                                    <li>In order to identify players without requiring a user account to be created, Cryptonyms makes use of local storage, if you experience issues identifying please ensure that <a href="https://mid.as/kb/00103/enable-disable-or-clear-web-storage-cache" target="_blank">storage is enabled in your browser</a>.</li>
+                                    <li>Upon navigating to the URL of a game, a player will be shown a table of players, and the player's <strong>role</strong> in the game.</li>
+                                    <li>If playing multiple consecutive games, a user will remain identified with the same name, and so can automatically join games where a player of that name has been created.</li>
+                                    <li>If all players in a game have been identified, a new player can still join if they have the appropriate URL. They just need to provide themselves with a name, and they will be assigned to the team with the fewest guessers (or at random if the teams are of equal size).</li>
+                                    <li>If a player accidentally identifies themselves incorrectly, then they can expand the dropdown in the game and re-identify themselves correctly.</li>
+                                </ul>
+                                <div class="row mt-2">
+                                    <div class="col text-center">
+                                        <img src="/images/gifs/player-identification.gif" class="img-about" />
+                                    </div>
+                                    <div class="col text-center">
+                                        <img src="/images/gifs/player-reidentification.gif" class="img-about" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </TabPage>
+                        </TabItem>
+                        <TabItem Title="Gameplay">
+                            <div class="card-body">
+                                <ul class="mb-0">
+                                    <li>Once a player has succesfully identified themselves in a game, they will be shown a view of the board and chats relevant to their role.</li>
+                                    <li>The <strong>Spymaster</strong> on the relevant team will be prompted to give a clue.</li>
+                                    <li>Once a clue has been provided guessers on the relevant team will be able to click on the cards in the boad to reveal their colours.</li>
+                                    <li>If the guessers are unable to make any more guesses, they can then pass their turn, using the Pass button.</li>
+                                    <li>Note that any user action that does not fit into the current poisition in the gameplay are disabled - i.e. users on the opposing team, will not be able to perform actions until it is their turn.</li>
+                                    <li>All actions should be synchronised across all player's screens, but occasional issues may require a refresh to resolve.</li>
+                                    <li>Each user action will also be added to the <strong>Game Log</strong>, to allow players to view previous actions.</li>
+                                    <li>Once a game has ended, players can create a new game by navigating to the <NavLink href="NewGame" Match="NavLinkMatch.All">New Game page</NavLink>.</li>
+                                    <li>Note that completed games will be automatically cleaned up at 00:00 (UTC), whilst games which are in progress will be cleaned up after 5 days if not completed.</li>
+                                </ul>
+                                <div class="row mt-2">
+                                    <div class="col text-center">
+                                        <img src="/images/gifs/play-game-give-clue.gif" class="img-about" />
+                                    </div>
+                                    <div class="col text-center">
+                                        <img src="/images/gifs/play-game-make-guesses.gif" class="img-about" />
+                                    </div>
+                                </div>
+                            </div>
+                        </TabItem>
+                    </TabItems>
                 </TabControl>
             </div>
         </div>
@@ -128,6 +133,7 @@
                                     <li>Green Sock's <a href="https://greensock.com/standard-license/" target="_blank">GSAP</a> v3.2.6</li>
                                     <li>JamesNK's <a href="https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md" target="_blank">NewtonSoft.Json</a> v12.0.3</li>
                                     <li><a href="https://jquery.org/license/" target="_blank">jQuery</a> JavaScript Library v3.5.0</li>
+                                    <li>Justin Wilkinson's <a href="https://github.com/JustinWilkinson/RazorTabs/blob/master/LICENSE" target="_blank">RazorTabs</a> v1.0.3</li>
                                     <li><a href="https://www.useiconic.com/open" target="_blank">Open Iconic</a></li>
                                     <li>SpryMedia Ltd's <a href="https://datatables.net/license/mit" target="_blank">DataTables</a> v1.10.20</li>
                                     <li>Twitter's <a href="https://github.com/twbs/bootstrap/blob/v4.0.0/LICENSE" target="_blank">Bootstrap</a> v4.3.1</li>
