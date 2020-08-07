@@ -23,5 +23,7 @@ namespace Cryptonyms.Client.Services.SignalR
         public async Task UpdatePlayerIdentificationAsync(string gameId, string playerName, bool identified) => await _hubConnection.InvokeAsync("UpdatePlayerIdentificationAsync", gameId, playerName, identified);
 
         public async Task AddNewPlayerToGameAsync(string gameId, Player player) => await _hubConnection.InvokeAsync("AddNewPlayerToGameAsync", gameId, player);
+
+        public async Task NewGameAddedAsync() => await _hubConnection.InvokeAsync("NewGameAddedAsync");
     }
 }

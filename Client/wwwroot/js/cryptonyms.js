@@ -43,19 +43,54 @@
     },
     initialiseGamesDataTable: function () {
         $('#GamesTable').DataTable({
+            ajax: {
+                url: '/api/Game/List',
+                dataSrc: function (res) {
+                    console.log(res);
+                    return res;
+                }
+            },
             retrieve: true,
             paging: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            ordering: false,
-            columnDefs: [
+            order: [[1, 'desc']],
+            columns: [
                 {
-                    targets: 0,
+                    data: 'Name',
                     searchable: true
                 },
                 {
+                    data: 'StartedAtUtc',
+                    render: data => data ? new Date(data).toLocaleString('en-GB') : 'Not yet started'
+                },
+                {
+                    data: 'CompletedAtUtc',
+                    render: (data, type, row) => data ? new Date(data).toLocaleString('en-GB') : 'In Progress'
+                },
+                {
+                    data: 'Players',
+                    render: data => data ? data.length : 0
+                },
+                {
+                    data: 'WinningTeam',
+                    render: (data, type, row) => data ? data : 'Undecided'
+                },
+                {
+                    data: 'CompletedMessage'
+                },
+                {
+                    data: 'Id',
+                    render: (data, type, row) => row.CompletedAtUtc ? 'Game Completed' : `<a href="PlayGame/${data}"><span class="oi oi-list-rich" aria-hidden="true"></span> Go to game</a>`,
+                    orderable: false
+                }
+            ],
+            columnDefs: [
+                {
                     targets: '_all',
-                    searchable: false
+                    className: 'align-middle',
+                    searchable: false,
+                    orderable: true
                 }
             ],
             language: {
@@ -63,6 +98,7 @@
             }
         });
     },
+    reloadGamesDataTable: () => $('#GamesTable').DataTable().ajax.reload(),
     initialiseWordsDataTable: function () {
         $('#WordsTable').DataTable({
             ajax: {

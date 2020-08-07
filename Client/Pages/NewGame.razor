@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject GameStorage Storage
 @inject IJSRuntime JSRuntime
+@inject GameHubCommunicator GameHub
 
 <div class="row w-100">
     <div class="col-11">
@@ -107,6 +108,7 @@ else
             _players = await Http.GetAsync<List<Player>>($"api/Player/List?deviceId={Storage.DeviceId}");
         }
         RemoveIdentificationIfNotFound();
+        await GameHub.StartAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -123,6 +125,12 @@ else
         if (TeamsValid())
         {
             var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = _players.Where(x => x.Team != null), PrivateGame = _makePrivateGame, GameName = _newGameName });
+
+            if (!_makePrivateGame)
+            {
+                await GameHub.NewGameAddedAsync();
+            }
+
             NavigationManager.NavigateTo($"PlayGame/{gameId}");
         }
     }

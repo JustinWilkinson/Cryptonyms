@@ -17,5 +17,7 @@ namespace Cryptonyms.Server.Hubs
         public async Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage) => await Clients.OthersInGroup(chatId).SendAsync(eventName, chatMessage);
 
         public async Task AddNewPlayerToGameAsync(string gameId, Player player) => await Clients.OthersInGroup(gameId).SendAsync("AddNewPlayerToGame", player);
+
+        public async Task NewGameAddedAsync() => await Clients.Group("GamesPage").SendAsync("NewGameAdded");
     }
 }

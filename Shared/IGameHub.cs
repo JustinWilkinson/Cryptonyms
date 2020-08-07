@@ -15,5 +15,7 @@ namespace Cryptonyms.Shared
         Task SendGameMessageAsync(string chatId, string eventName, GameMessage chatMessage);
 
         Task AddNewPlayerToGameAsync(string gameId, Player player);
+
+        Task NewGameAddedAsync();
     }
 }

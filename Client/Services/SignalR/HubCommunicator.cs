@@ -23,6 +23,8 @@ namespace Cryptonyms.Client.Services.SignalR
             _hubConnection = new HubConnectionBuilder().WithUrl(navigationManager.ToAbsoluteUri(relativeUri)).WithAutomaticReconnect().Build();
         }
 
+        public void RegisterHandler(string name, Action handler) => _hubConnection.On(name, handler);
+
         public void RegisterHandler<T>(string name, Action<T> handler) => _hubConnection.On(name, handler);
 
         public void RegisterHandler<S, T>(string name, Action<S, T> handler) => _hubConnection.On(name, handler);
