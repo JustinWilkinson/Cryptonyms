@@ -80,7 +80,7 @@
                     data: 'CompletedMessage'
                 },
                 {
-                    data: 'Id',
+                    data: 'GameId',
                     render: (data, type, row) => row.CompletedAtUtc ? 'Game Completed' : `<a href="PlayGame/${data}"><span class="oi oi-list-rich" aria-hidden="true"></span> Go to game</a>`,
                     orderable: false
                 }
