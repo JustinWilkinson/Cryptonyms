@@ -205,6 +205,7 @@ else
 
             await ConfigureHubAsync();
             IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
+
             if (IdentifiedPlayer != null)
             {
                 if (!IdentifiedPlayer.Identified)
@@ -226,10 +227,11 @@ else
         await Task.WhenAll(
             Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
-            GameHub.AddToGroupAsync(RoleChatId)
+            GameHub.AddToGroupAsync(RoleChatId),
+            UpdateGameLogAsync("has joined the game.")
         );
+
         _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
-        await UpdateGameLogAsync("has joined the game.");
         StartTopRowToggleTimer();
     }
 
@@ -240,9 +242,10 @@ else
         await Task.WhenAll(
             Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, false),
-            GameHub.RemoveFromGroupAsync(RoleChatId)
+            GameHub.RemoveFromGroupAsync(RoleChatId),
+            UpdateGameLogAsync("has left the game.")
         );
-        await UpdateGameLogAsync("has left the game.");
+        _roleChatMessages = new List<GameMessage>();
         Storage.PlayerName = null;
         IdentifiedPlayer = null;
     }
@@ -324,6 +327,7 @@ else
             {
                 updatedPlayer.Identified = identified;
             }
+            StateHasChanged();
         });
         GameHub.RegisterHandler<Player>("AddNewPlayerToGame", (player) =>
         {
@@ -451,37 +455,44 @@ else
         {
             _clueErrorMessage = "Clue cannot be blank!";
         }
-        else if (Game.Words.Any(x => x.Value.ToLower() == _currentClue.ToLower() && !Game.GuessedWords.Contains(x.Key)))
-        {
-            _clueErrorMessage = "Clue cannot be an uncovered word!";
-        }
-        else if (_currentClue.Contains(' '))
-        {
-            _clueErrorMessage = "Clue must be a single word!";
-        }
         else if (_currentNumberOfWordsLinked < 1 || _currentNumberOfWordsLinked > WordsRemainingForCurrentTeam)
         {
             _clueErrorMessage = $"Number of words linked must be between 1 and {WordsRemainingForCurrentTeam}!";
         }
         else
         {
-            Game.CurrentTurn.Clue = _currentClue;
-            Game.CurrentTurn.InitialNumberOfGuesses = _currentNumberOfWordsLinked + 1;
-            Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.InitialNumberOfGuesses;
-            await UpdateGameAsync($"gave clue: {_currentClue} for {_currentNumberOfWordsLinked}.");
-            _currentClue = null;
-            _currentNumberOfWordsLinked = 0;
-            _clueErrorMessage = null;
+            var trimmedClue = _currentClue.Trim();
+            if (trimmedClue.Contains(' '))
+            {
+                _clueErrorMessage = "Clue must be a single word!";
+            }
+            else if (Game.Words.Any(x => x.Value.ToLowerInvariant() == trimmedClue.ToLowerInvariant() && !Game.GuessedWords.Contains(x.Key)))
+            {
+                _clueErrorMessage = "Clue cannot be an uncovered word!";
+            }
+            else if (trimmedClue.Any(c => !char.IsLetterOrDigit(c) && c != '\'') || trimmedClue.Count(c => c == '\'') > 1)
+            {
+                _clueErrorMessage = "Clue cannot contain punctuation other than a single apostrophe!";
+            }
+            else
+            {
+                Game.CurrentTurn.Clue = trimmedClue;
+                Game.CurrentTurn.InitialNumberOfGuesses = _currentNumberOfWordsLinked + 1;
+                Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.InitialNumberOfGuesses;
+                await UpdateGameAsync($"gave clue: {trimmedClue} for {_currentNumberOfWordsLinked}.");
+                _currentClue = null;
+                _currentNumberOfWordsLinked = 0;
+                _clueErrorMessage = null;
+            }
         }
     }
 
     private async Task UpdateGameLogAsync(string logMessage)
     {
-        var gameLogId = $"{GameId}-GameLog";
         var gameLogMessage = new GameMessage(IdentifiedPlayer.Name, logMessage);
         _gameLogMessages.Add(gameLogMessage);
         await Task.WhenAll(
-            Http.PutAsync("api/Message/AddMessage", new { MessageBoardId = gameLogId, GameMessage = gameLogMessage }),
+            Http.PutAsync("api/Message/AddMessage", new { MessageBoardId = $"{GameId}-GameLog", GameMessage = gameLogMessage }),
             GameHub.SendGameMessageAsync(GameId, "NewGameLogMessage", gameLogMessage));
         await JSRuntime.InvokeVoidAsync("cryptonyms.scrollToBottomOfElement", "GameLog");
     }
