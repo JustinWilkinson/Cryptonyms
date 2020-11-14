@@ -14,7 +14,7 @@ namespace Cryptonyms.Server
     {
         public static async Task Main(string[] args)
         {
-            var logger = NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
+            var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
             try
             {
                 var webHost = CreateHostBuilder(args).Build();
