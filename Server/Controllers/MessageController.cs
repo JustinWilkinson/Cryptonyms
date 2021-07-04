@@ -22,9 +22,9 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("AddMessage")]
-        public void AddMessage(JsonElement json) => _chatRepository.AddMessage(json.GetStringProperty("MessageBoardId"), json.GetObjectProperty<GameMessage>("GameMessage"));
+        public void AddMessage(JsonElement json) => _chatRepository.AddMessageAsync(json.GetStringProperty("MessageBoardId"), json.GetObjectProperty<GameMessage>("GameMessage"));
 
         [HttpGet("GetGameMessagesForGroup")]
-        public IEnumerable<GameMessage> Get(string messageBoardId) => _chatRepository.GetGameMessagesForGroup(messageBoardId);
+        public IAsyncEnumerable<GameMessage> Get(string messageBoardId) => _chatRepository.GetGameMessagesForGroupAsync(messageBoardId);
     }
 }

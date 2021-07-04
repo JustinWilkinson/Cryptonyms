@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -7,11 +6,7 @@ namespace Cryptonyms.Server.Services
 {
     public interface IFileReader
     {
-        string GetFullPath(string relativePath);
-
-        IEnumerable<string> ReadFileLines(string path);
-
-        IEnumerable<string> ReadFile(string path, string separator);
+        IAsyncEnumerable<string> ReadLinesAsync(string path);
     }
 
 
@@ -19,10 +14,18 @@ namespace Cryptonyms.Server.Services
     {
         private static readonly string _basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        public string GetFullPath(string relativePath) => Path.Combine(_basePath, relativePath);
+        public async IAsyncEnumerable<string> ReadLinesAsync(string path)
+        {
+            await using var file = File.OpenRead(GetFullPath(path));
+            using var reader = new StreamReader(file);
 
-        public IEnumerable<string> ReadFileLines(string path) => File.ReadLines(GetFullPath(path));
+            string line;
+            while ((line = await reader.ReadLineAsync()) is not null)
+            {
+                yield return line;
+            }
+        }
 
-        public IEnumerable<string> ReadFile(string path, string separator) => File.ReadAllText(GetFullPath(path)).Split(separator, StringSplitOptions.RemoveEmptyEntries);
+        private static string GetFullPath(string relativePath) => Path.Combine(_basePath, relativePath);
     }
 }
