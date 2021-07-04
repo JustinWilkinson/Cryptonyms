@@ -27,7 +27,7 @@
                         <td class="align-middle">
                             @if (!player.Identified)
                             {
-                                if (Storage.PlayerName == null)
+                                if (Storage.PlayerName is null)
                                 {
                                     <button class="btn btn-success" @onclick="() => ToggleIdentifyPlayer(player, true)">Identify as @player.Name</button>
                                 }
@@ -49,7 +49,7 @@
                 }
             </tbody>
         </table>
-        <button class="btn btn-primary" @onclick="ConfirmAsync" disabled="@(Parent.IdentifiedPlayer == null)">Confirm</button>
+        <button class="btn btn-primary" @onclick="ConfirmAsync" disabled="@(Parent.IdentifiedPlayer is null)">Confirm</button>
     </div>
 }
 else
@@ -63,7 +63,7 @@ else
             <div class="form-inline">
                 <label class="d-inline-block mr-2" for="newPlayerName">Name:</label>
                 <input id="newPlayerName" type="text" class="form-control mr-2" @bind="NewPlayerName" placeholder="Enter your name here..." autocomplete="off"/>
-                @if (_createNewPlayerErrorMessage != null)
+                @if (_createNewPlayerErrorMessage is not null)
                 {
                     <label class="text-danger">@_createNewPlayerErrorMessage</label>
                 }
@@ -108,7 +108,7 @@ else
 
     private async Task ConfirmAsync()
     {
-        if (Parent.IdentifiedPlayer != null)
+        if (Parent.IdentifiedPlayer is not null)
         {
             await Parent.IdentifyPlayerInGameAsync();
             OnPlayerIdentified.Invoke();

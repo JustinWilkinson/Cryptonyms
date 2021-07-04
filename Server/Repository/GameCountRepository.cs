@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Cryptonyms.Server.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
 {
@@ -9,9 +11,9 @@ namespace Cryptonyms.Server.Repository
     /// </summary>
     public interface IGameCountRepository
     {
-        int GetGameCount();
+        Task<int> GetGameCountAsync();
 
-        void IncrementGameCount();
+        Task IncrementGameCountAsync();
     }
 
     /// <summary>
@@ -21,14 +23,21 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<GameCountRepository> _logger;
 
-        public GameCountRepository(ILogger<GameCountRepository> logger) : base("CREATE TABLE IF NOT EXISTS GameCount (GameCount integer)")
+        protected override string CreateStatement { get; } = "CREATE TABLE IF NOT EXISTS GameCount (GameCount integer)";
+
+        public GameCountRepository(ILogger<GameCountRepository> logger)
         {
             _logger = logger;
+        }
+
+        protected override async Task InitializeAsync()
+        {
             try
             {
-                if (ExecuteScalar("SELECT COUNT(*) AS Count FROM GameCount", Convert.ToInt32) == 0)
+                await base.InitializeAsync();
+                if (await ExecuteScalarAsync("SELECT COUNT(*) AS Count FROM GameCount", Convert.ToInt32) == 0)
                 {
-                    Execute("INSERT INTO GameCount VALUES (0)");
+                    await ExecuteAsync("INSERT INTO GameCount VALUES (0)");
                 }
             }
             catch (Exception ex)
@@ -38,11 +47,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public int GetGameCount()
+        public async Task<int> GetGameCountAsync()
         {
             try
             {
-                return Execute("SELECT * FROM GameCount", GetColumnValue("GameCount", Convert.ToInt32)).Single();
+                return await ExecuteAsync("SELECT * FROM GameCount", GetColumnValue("GameCount", Convert.ToInt32)).SingleAsync();
             }
             catch (Exception ex)
             {
@@ -51,11 +60,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void IncrementGameCount()
+        public async Task IncrementGameCountAsync()
         {
             try
             {
-                Execute("UPDATE GameCount SET GameCount = GameCount + 1");
+                await ExecuteAsync("UPDATE GameCount SET GameCount = GameCount + 1");
             }
             catch (Exception ex)
             {

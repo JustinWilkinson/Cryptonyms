@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
 {
@@ -13,6 +14,10 @@ namespace Cryptonyms.Server.Repository
     public abstract class Repository
     {
         private static string _connectionString;
+        private bool _initializing;
+        private bool _initialized;
+
+        protected abstract string CreateStatement { get; }
 
         /// <summary>
         /// Creates the database if it doesn't exist, and stores the connection string in memory to limit hits on config file.
@@ -29,42 +34,25 @@ namespace Cryptonyms.Server.Repository
         }
 
         /// <summary>
-        /// Intended to allow inheriting repositories to remove boilerplate, use this to create the database table for the repository.
+        /// Performs any necessary asynchronous initialization for the repository.
         /// </summary>
-        /// <param name="createTable">Command to run on instantiation</param>
-        protected Repository(string createTable)
-        {
-            using var connection = GetOpenConnection();
-            var command = new SQLiteCommand(createTable, connection);
-            command.ExecuteNonQuery();
-        }
-
-        /// <summary>
-        /// Returns an open SQLiteConnection.
-        /// </summary>
-        protected SQLiteConnection GetOpenConnection()
-        {
-            var connection = new SQLiteConnection(_connectionString);
-            connection.Open();
-            return connection;
-        }
-
+        protected virtual Task InitializeAsync() => ExecuteAsync(CreateStatement);
 
         /// <summary>
         /// Creates a SQLiteCommand from the provided string and executes it using a new connection.
         /// </summary>
         /// <param name="commandString">Command text to execute</param>
-        protected void Execute(string commandString) => Execute(new SQLiteCommand(commandString));
+        protected Task ExecuteAsync(string commandString) => ExecuteAsync(new SQLiteCommand(commandString));
 
         /// <summary>
         /// Executes the provided command using a new connection.
         /// </summary>
         /// <param name="command">Command to execute</param>
-        protected void Execute(SQLiteCommand command)
+        protected async Task ExecuteAsync(SQLiteCommand command)
         {
-            using var connection = GetOpenConnection();
+            using var connection = await GetOpenConnectionAsync();
             command.Connection = connection;
-            command.ExecuteNonQuery();
+            await command.ExecuteNonQueryAsync();
         }
 
         /// <summary>
@@ -74,7 +62,7 @@ namespace Cryptonyms.Server.Repository
         /// <param name="commandString">Command text to execute</param>
         /// <param name="converter">Conversion method for returned value</param>
         /// <returns>An instance of T created by converting the returned value with the specified converter.</returns>
-        protected T ExecuteScalar<T>(string commandString, Func<object, T> converter = null) => ExecuteScalar(new SQLiteCommand(commandString), converter);
+        protected Task<T> ExecuteScalarAsync<T>(string commandString, Func<object, T> converter = null) => ExecuteScalarAsync(new SQLiteCommand(commandString), converter);
 
         /// <summary>
         /// Executes the provided SQLiteCommand using a new connection, returning a scalar value using the specified converter.
@@ -83,12 +71,12 @@ namespace Cryptonyms.Server.Repository
         /// <param name="command">Command text to execute</param>
         /// <param name="converter">Conversion method for returned value</param>
         /// <returns>An instance of T created by converting the returned value with the specified converter.</returns>
-        protected T ExecuteScalar<T>(SQLiteCommand command, Func<object, T> converter = null)
+        protected async Task<T> ExecuteScalarAsync<T>(SQLiteCommand command, Func<object, T> converter = null)
         {
-            using var connection = GetOpenConnection();
+            using var connection = await GetOpenConnectionAsync();
             command.Connection = connection;
-            var scalar = command.ExecuteScalar();
-            return converter != null ? converter(scalar) : (T)scalar;
+            var scalar = await command.ExecuteScalarAsync();
+            return converter is not null ? converter(scalar) : (T)scalar;
         }
 
         /// <summary>
@@ -98,7 +86,7 @@ namespace Cryptonyms.Server.Repository
         /// <param name="commandString">Command text to execute</param>
         /// <param name="converter">Conversion method for rows</param>
         /// <returns>An IEnumerable of T created by converting the returned rows to T using the specified converter.</returns>
-        protected IEnumerable<T> Execute<T>(string commandString, Func<SQLiteDataReader, T> converter) => Execute(new SQLiteCommand(commandString), converter);
+        protected IAsyncEnumerable<T> ExecuteAsync<T>(string commandString, Func<SQLiteDataReader, T> converter) => ExecuteAsync(new SQLiteCommand(commandString), converter);
 
         /// <summary>
         /// Executes the provided SQLiteCommand using a new connection, returning an IEnumerable of T generated from each row in the result set using the specified converter.
@@ -107,9 +95,9 @@ namespace Cryptonyms.Server.Repository
         /// <param name="command">Command to execute</param>
         /// <param name="converter">Conversion method for rows</param>
         /// <returns>An IEnumerable of T created by converting the returned rows to T using the specified converter.</returns>
-        protected IEnumerable<T> Execute<T>(SQLiteCommand command, Func<SQLiteDataReader, T> converter)
+        protected async IAsyncEnumerable<T> ExecuteAsync<T>(SQLiteCommand command, Func<SQLiteDataReader, T> converter)
         {
-            using var connection = GetOpenConnection();
+            using var connection = await GetOpenConnectionAsync();
             command.Connection = connection;
             using var reader = command.ExecuteReader();
             while (reader.Read())
@@ -123,9 +111,9 @@ namespace Cryptonyms.Server.Repository
         /// </summary>
         /// <param name="action">Action to run in transaction</param>
         /// <param name="isolationLevel">Isolation Level of the transaction, defaults to Serializable</param>
-        protected void ExecuteInTransaction(Action<SQLiteConnection> action, IsolationLevel isolationLevel = IsolationLevel.Serializable)
+        protected async Task ExecuteInTransactionAsync(Action<SQLiteConnection> action, IsolationLevel isolationLevel = IsolationLevel.Serializable)
         {
-            using var connection = GetOpenConnection();
+            using var connection = await GetOpenConnectionAsync();
             var transaction = connection.BeginTransaction(isolationLevel);
             try
             {
@@ -155,5 +143,23 @@ namespace Cryptonyms.Server.Repository
         /// <param name="converter">Conversion function</param>
         /// <returns>Value from named column as type T</returns>
         protected Func<SQLiteDataReader, T> GetColumnValue<T>(string columnName, Func<object, T> converter) => reader => converter(reader[columnName]);
+
+        private async Task<SQLiteConnection> GetOpenConnectionAsync()
+        {
+            await InitializeIfNecessaryAsync();
+            var connection = new SQLiteConnection(_connectionString);
+            await connection.OpenAsync();
+            return connection;
+        }
+
+        private async ValueTask InitializeIfNecessaryAsync()
+        {
+            if (!_initialized && !_initializing)
+            {
+                _initializing = true;
+                await InitializeAsync();
+                _initialized = true;
+            }
+        }
     }
 }

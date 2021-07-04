@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Controllers
 {
@@ -25,18 +26,18 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("New")]
-        public void New(JsonElement word) => _wordRepository.CreateWord(word.GetString());
+        public Task New(JsonElement word) => _wordRepository.CreateWordAsync(word.GetString());
 
         [HttpGet("Count")]
-        public int Count() => _wordRepository.GetCount();
+        public Task<int> Count() => _wordRepository.GetCountAsync();
 
         [HttpGet("List")]
-        public IEnumerable<EditableWord> List() => _wordRepository.ListWords();
+        public IAsyncEnumerable<EditableWord> List() => _wordRepository.ListWordsAsync();
 
         [HttpDelete("Delete")]
-        public void Delete(string word) => _wordRepository.DeleteWord(word);
+        public Task Delete(string word) => _wordRepository.DeleteWordAsync(word);
 
         [HttpPost("ProfanityCheck")]
-        public bool ProfanityCheck(JsonElement json) => _profanityFilter.ContainsProfanity(json.GetStringProperty("Word"));
+        public ValueTask<bool> ProfanityCheck(JsonElement json) => _profanityFilter.ContainsProfanityAsync(json.GetStringProperty("Word"));
     }
 }

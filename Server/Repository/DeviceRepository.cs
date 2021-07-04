@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
 {
@@ -12,11 +13,11 @@ namespace Cryptonyms.Server.Repository
     /// </summary>
     public interface IDeviceRepository
     {
-        void AddOrUpdateDevice(string deviceId);
+        Task AddOrUpdateDeviceAsync(string deviceId);
 
-        IEnumerable<Device> GetDevices();
+        IAsyncEnumerable<Device> GetDevicesAsync();
 
-        void DeleteDevices(IEnumerable<string> deviceIds);
+        Task DeleteDevicesAsync(IEnumerable<string> deviceIds);
     }
 
     /// <summary>
@@ -26,16 +27,18 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<DeviceRepository> _logger;
 
-        public DeviceRepository(ILogger<DeviceRepository> logger) : base("CREATE TABLE IF NOT EXISTS Devices (DeviceId text, LastSeenUtc text)")
+        protected override string CreateStatement { get; } = "CREATE TABLE IF NOT EXISTS Devices (DeviceId text, LastSeenUtc text)";
+
+        public DeviceRepository(ILogger<DeviceRepository> logger)
         {
             _logger = logger;
         }
 
-        public void AddOrUpdateDevice(string deviceId)
+        public async Task AddOrUpdateDeviceAsync(string deviceId)
         {
             try
             {
-                ExecuteInTransaction(connection =>
+                await ExecuteInTransactionAsync(connection =>
                 {
                     var selectCommand = new SQLiteCommand("SELECT COUNT(*) AS Count FROM Devices WHERE DeviceId = @DeviceId", connection);
                     selectCommand.AddParameter("@DeviceId", deviceId);
@@ -55,11 +58,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public IEnumerable<Device> GetDevices()
+        public IAsyncEnumerable<Device> GetDevicesAsync()
         {
             try
             {
-                return Execute("SELECT * FROM Devices", reader => new Device { DeviceId = reader["DeviceId"].ToString(), LastSeenUtc = Convert.ToDateTime(reader["LastSeenUtc"]) });
+                return ExecuteAsync("SELECT * FROM Devices", reader => new Device { DeviceId = reader["DeviceId"].ToString(), LastSeenUtc = Convert.ToDateTime(reader["LastSeenUtc"]) });
             }
             catch (Exception ex)
             {
@@ -68,11 +71,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void DeleteDevices(IEnumerable<string> deviceIds)
+        public async Task DeleteDevicesAsync(IEnumerable<string> deviceIds)
         {
             try
             {
-                ExecuteInTransaction(connection =>
+                await ExecuteInTransactionAsync(connection =>
                 {
                     foreach (var deviceId in deviceIds)
                     {

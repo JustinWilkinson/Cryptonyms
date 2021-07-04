@@ -28,7 +28,7 @@
         <Modal Show="_showCreateNewWord" Header="Create New Word" OnPopupClosed="OnNewWordPopupClosed">
             <div class="form-group">
                 <input id="newWord" type="text" class="form-control" @bind="NewWord" />
-                @if (_createNewWordErrorMessage != null)
+                @if (_createNewWordErrorMessage is not null)
                 {
                     <label class="text-danger m-2">@_createNewWordErrorMessage</label>
                 }
@@ -90,7 +90,7 @@
     {
         var validationMessage = await GetValidationMessage(NewWord);
 
-        if (validationMessage == null)
+        if (validationMessage is null)
         {
             await Http.PutAsync("api/Word/New", NewWord);
             await JSRuntime.InvokeVoidAsync("cryptonyms.reloadDataTable", "WordsTable");

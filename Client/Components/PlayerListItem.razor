@@ -3,7 +3,7 @@
 <li class="draggable list-group-item" draggable="true" @ondragstart="@(() => HandleDragStart(Player))">
     <h3 class="float-left mb-0">@Player.Name</h3>
     <div class="float-right">
-        @if (Storage.PlayerName == null)
+        @if (Storage.PlayerName is null)
         {
             <button class="btn btn-success adjustable-font-size-small" @onclick="() => ToggleIdentifyPlayerAsync(Player, true)">Identify as @Player.Name</button>
         }
@@ -48,6 +48,7 @@
         {
             Storage.PlayerName = null;
         }
+
         await Container.UpdatePlayerAsync(player);
     }
 
@@ -57,5 +58,5 @@
         await Container.UpdatePlayerAsync(player);
     }
 
-    private async Task RemovePlayerAsync(Player player) => await Container.DeletePlayerAsync(player);
+    private Task RemovePlayerAsync(Player player) => Container.DeletePlayerAsync(player);
 }

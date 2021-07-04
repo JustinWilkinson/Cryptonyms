@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
 {
@@ -13,17 +14,17 @@ namespace Cryptonyms.Server.Repository
     /// </summary>
     public interface IGameRepository
     {
-        void CreateGame(Game game, bool privateGame);
+        Task CreateGameAsync(Game game, bool privateGame);
 
-        void SaveGame(Game game);
+        Task SaveGameAsync(Game game);
 
-        void AddOrUpdatePlayerInGame(string gameId, Player player);
+        Task AddOrUpdatePlayerInGameAsync(string gameId, Player player);
 
-        Game GetGame(string id);
+        Task<Game> GetGameAsync(string id);
 
-        IEnumerable<Game> ListGames(bool includePrivate = false);
+        IAsyncEnumerable<Game> ListGamesAsync(bool includePrivate = false);
 
-        void DeleteGames(IEnumerable<Guid> gameIds);
+        Task DeleteGamesAsync(IEnumerable<Guid> gameIds);
     }
 
     /// <summary>
@@ -33,12 +34,14 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<GameRepository> _logger;
 
-        public GameRepository(ILogger<GameRepository> logger) : base("CREATE TABLE IF NOT EXISTS Games (Id text PRIMARY KEY, GameJson text NOT NULL, Private integer NOT NULL CHECK (Private IN (0,1)))")
+        protected override string CreateStatement { get; } = "CREATE TABLE IF NOT EXISTS Games (Id text PRIMARY KEY, GameJson text NOT NULL, Private integer NOT NULL CHECK (Private IN (0,1)))";
+
+        public GameRepository(ILogger<GameRepository> logger)
         {
             _logger = logger;
         }
 
-        public void CreateGame(Game game, bool privateGame)
+        public async Task CreateGameAsync(Game game, bool privateGame)
         {
             try
             {
@@ -46,7 +49,7 @@ namespace Cryptonyms.Server.Repository
                 command.AddParameter("@Id", game.GameId);
                 command.AddParameter("@Json", game.Serialize());
                 command.AddParameter("@Private", privateGame ? 1 : 0);
-                Execute(command);
+                await ExecuteAsync(command);
             }
             catch (Exception ex)
             {
@@ -55,14 +58,14 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void SaveGame(Game game)
+        public async Task SaveGameAsync(Game game)
         {
             try
             {
                 var command = new SQLiteCommand("UPDATE Games SET GameJson = @Json WHERE Id = @Id");
                 command.AddParameter("@Id", game.GameId);
                 command.AddParameter("@Json", game.Serialize());
-                Execute(command);
+                await ExecuteAsync(command);
             }
             catch (Exception ex)
             {
@@ -71,11 +74,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void AddOrUpdatePlayerInGame(string gameId, Player player)
+        public async Task AddOrUpdatePlayerInGameAsync(string gameId, Player player)
         {
             try
             {
-                ExecuteInTransaction((connection) =>
+                await ExecuteInTransactionAsync((connection) =>
                 {
                     var selectCommand = new SQLiteCommand("SELECT GameJson FROM Games WHERE Id = @Id;", connection);
                     selectCommand.AddParameter("@Id", gameId);
@@ -84,7 +87,7 @@ namespace Cryptonyms.Server.Repository
                     {
                         var game = DeserializeColumn<Game>("GameJson")(reader);
                         var existingPlayer = game.Players.SingleOrDefault(p => p.Name == player.Name);
-                        if (existingPlayer != null)
+                        if (existingPlayer is not null)
                         {
                             existingPlayer.Identified = player.Identified;
                         }
@@ -106,13 +109,13 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public Game GetGame(string id)
+        public async Task<Game> GetGameAsync(string id)
         {
             try
             {
                 var command = new SQLiteCommand("SELECT GameJson FROM Games WHERE Id = @Id");
                 command.AddParameter("@Id", id);
-                return Execute(command, DeserializeColumn<Game>("GameJson")).SingleOrDefault();
+                return await ExecuteAsync(command, DeserializeColumn<Game>("GameJson")).SingleOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -121,11 +124,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public IEnumerable<Game> ListGames(bool includePrivate = false)
+        public IAsyncEnumerable<Game> ListGamesAsync(bool includePrivate = false)
         {
             try
             {
-                return Execute($"SELECT * FROM Games{(includePrivate ? "" : " WHERE Private = 0")}", DeserializeColumn<Game>("GameJson"));
+                return ExecuteAsync($"SELECT * FROM Games{(includePrivate ? "" : " WHERE Private = 0")}", DeserializeColumn<Game>("GameJson"));
             }
             catch (Exception ex)
             {
@@ -134,11 +137,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void DeleteGames(IEnumerable<Guid> gameIds)
+        public async Task DeleteGamesAsync(IEnumerable<Guid> gameIds)
         {
             try
             {
-                ExecuteInTransaction((connection) =>
+                await ExecuteInTransactionAsync((connection) =>
                 {
                     foreach (var gameId in gameIds)
                     {

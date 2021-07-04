@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
 {
@@ -13,19 +14,19 @@ namespace Cryptonyms.Server.Repository
     /// </summary>
     public interface IPlayerRepository
     {
-        void AddPlayer(string deviceId, Player Player);
+        Task AddPlayerAsync(string deviceId, Player Player);
 
-        void UpdatePlayer(string deviceId, Player Player);
+        Task UpdatePlayerAsync(string deviceId, Player Player);
 
-        void ReplacePlayers(string deviceId, IEnumerable<Player> players);
+        Task ReplacePlayersAsync(string deviceId, IEnumerable<Player> players);
 
-        void DeletePlayer(string deviceId, string name);
+        Task DeletePlayerAsync(string deviceId, string name);
 
-        Player GetPlayer(string deviceId, string name);
+        Task<Player> GetPlayerAsync(string deviceId, string name);
 
-        IEnumerable<Player> GetPlayers(string deviceId);
+        IAsyncEnumerable<Player> GetPlayersAsync(string deviceId);
 
-        void DeletePlayersForDevices(IEnumerable<string> deviceIds);
+        Task DeletePlayersForDevicesAsync(IEnumerable<string> deviceIds);
     }
 
     /// <summary>
@@ -35,12 +36,14 @@ namespace Cryptonyms.Server.Repository
     {
         private readonly ILogger<PlayerRepository> _logger;
 
-        public PlayerRepository(ILogger<PlayerRepository> logger) : base("CREATE TABLE IF NOT EXISTS Players (DeviceId text, Name text, PlayerJson text)")
+        protected override string CreateStatement { get; } = "CREATE TABLE IF NOT EXISTS Players (DeviceId text, Name text, PlayerJson text)";
+
+        public PlayerRepository(ILogger<PlayerRepository> logger)
         {
             _logger = logger;
         }
 
-        public void AddPlayer(string deviceId, Player player)
+        public async Task AddPlayerAsync(string deviceId, Player player)
         {
             try
             {
@@ -48,7 +51,7 @@ namespace Cryptonyms.Server.Repository
                 command.AddParameter("@DeviceId", deviceId);
                 command.AddParameter("@Name", player.Name);
                 command.AddParameter("@Json", player.Serialize());
-                Execute(command);
+                await ExecuteAsync(command);
             }
             catch (Exception ex)
             {
@@ -57,7 +60,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void UpdatePlayer(string deviceId, Player player)
+        public async Task UpdatePlayerAsync(string deviceId, Player player)
         {
             try
             {
@@ -65,7 +68,7 @@ namespace Cryptonyms.Server.Repository
                 command.AddParameter("@DeviceId", deviceId);
                 command.AddParameter("@Name", player.Name);
                 command.AddParameter("@Json", player.Serialize());
-                Execute(command);
+                await ExecuteAsync(command);
             }
             catch (Exception ex)
             {
@@ -74,14 +77,14 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public Player GetPlayer(string deviceId, string name)
+        public async Task<Player> GetPlayerAsync(string deviceId, string name)
         {
             try
             {
                 var command = new SQLiteCommand("SELECT PlayerJson FROM Players WHERE DeviceId = @DeviceId AND Name = @Name");
                 command.AddParameter("@DeviceId", deviceId);
                 command.AddParameter("@Name", name);
-                return Execute(command, DeserializeColumn<Player>("PlayerJson")).SingleOrDefault();
+                return await ExecuteAsync(command, DeserializeColumn<Player>("PlayerJson")).SingleOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -90,13 +93,13 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public IEnumerable<Player> GetPlayers(string deviceId)
+        public IAsyncEnumerable<Player> GetPlayersAsync(string deviceId)
         {
             try
             {
                 var command = new SQLiteCommand("SELECT PlayerJson FROM Players WHERE DeviceId = @DeviceId");
                 command.AddParameter("@DeviceId", deviceId);
-                return Execute(command, DeserializeColumn<Player>("PlayerJson"));
+                return ExecuteAsync(command, DeserializeColumn<Player>("PlayerJson"));
             }
             catch (Exception ex)
             {
@@ -105,11 +108,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void ReplacePlayers(string deviceId, IEnumerable<Player> players)
+        public async Task ReplacePlayersAsync(string deviceId, IEnumerable<Player> players)
         {
             try
             {
-                ExecuteInTransaction((connection) =>
+                await ExecuteInTransactionAsync((connection) =>
                 {
                     var deleteCommand = new SQLiteCommand("DELETE FROM Players WHERE DeviceId = @DeviceId", connection);
                     deleteCommand.AddParameter("@DeviceId", deviceId);
@@ -131,14 +134,14 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void DeletePlayer(string deviceId, string name)
+        public async Task DeletePlayerAsync(string deviceId, string name)
         {
             try
             {
                 var command = new SQLiteCommand("DELETE FROM Players WHERE DeviceId = @DeviceId AND Name = @Name");
                 command.AddParameter("@DeviceId", deviceId);
                 command.AddParameter("@Name", name);
-                Execute(command);
+                await ExecuteAsync(command);
             }
             catch (Exception ex)
             {
@@ -147,11 +150,11 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public void DeletePlayersForDevices(IEnumerable<string> deviceIds)
+        public async Task DeletePlayersForDevicesAsync(IEnumerable<string> deviceIds)
         {
             try
             {
-                ExecuteInTransaction(connection =>
+                await ExecuteInTransactionAsync(connection =>
                 {
                     foreach (var deviceId in deviceIds)
                     {
