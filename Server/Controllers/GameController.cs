@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -40,7 +39,7 @@ namespace Cryptonyms.Server.Controllers
 
         // Needs to return a string as System.Text.Json.JsonSerializer cannot handle the Dictionary<int, string> of words.
         [HttpGet("Get")]
-        public string Get(string id) => _gameRepository.GetGameAsync(id).Serialize();
+        public async Task<string> Get(string id) => (await _gameRepository.GetGameAsync(id)).Serialize();
 
         // Needs to return a string as System.Text.Json.JsonSerializer cannot handle the Dictionary<int, string> of words.
         [HttpGet("List")]

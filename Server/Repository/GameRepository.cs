@@ -78,12 +78,12 @@ namespace Cryptonyms.Server.Repository
         {
             try
             {
-                await ExecuteInTransactionAsync((connection) =>
+                await ExecuteInTransactionAsync(async connection =>
                 {
-                    var selectCommand = new SQLiteCommand("SELECT GameJson FROM Games WHERE Id = @Id;", connection);
+                    using var selectCommand = new SQLiteCommand("SELECT GameJson FROM Games WHERE Id = @Id;", connection);
                     selectCommand.AddParameter("@Id", gameId);
                     using var reader = selectCommand.ExecuteReader();
-                    if (reader.Read())
+                    if (await reader.ReadAsync())
                     {
                         var game = DeserializeColumn<Game>("GameJson")(reader);
                         var existingPlayer = game.Players.SingleOrDefault(p => p.Name == player.Name);
@@ -95,10 +95,11 @@ namespace Cryptonyms.Server.Repository
                         {
                             game.Players.Add(player);
                         }
-                        var updateCommand = new SQLiteCommand("UPDATE Games SET GameJson = @Json WHERE Id = @Id", connection);
+
+                        using var updateCommand = new SQLiteCommand("UPDATE Games SET GameJson = @Json WHERE Id = @Id", connection);
                         updateCommand.AddParameter("@Id", game.GameId);
                         updateCommand.AddParameter("@Json", game.Serialize());
-                        updateCommand.ExecuteNonQuery();
+                        await updateCommand.ExecuteNonQueryAsync();
                     }
                 });
             }
