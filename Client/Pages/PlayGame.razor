@@ -204,7 +204,7 @@ else
             _globalChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global");
 
             await ConfigureHubAsync();
-            Console.WriteLine(JsonConvert.SerializeObject(Game.Players));
+
             IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
 
             if (IdentifiedPlayer is not null)
