@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
 
+    <IsPublishable>false</IsPublishable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -14,6 +15,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="packages.lock.json" />
+    <None Include="packages.lock.json" />
   </ItemGroup>
 
   <ItemGroup>

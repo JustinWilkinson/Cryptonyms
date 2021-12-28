@@ -5,8 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="bundleconfig.json" />
+    <Content Remove="packages.lock.json" />
     <None Include="packages.lock.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bundleconfig.json">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
