@@ -3,21 +3,41 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Services
 {
     public interface IProfanityFilter
     {
-        bool ContainsProfanity(string str);
+        ValueTask<bool> ContainsProfanityAsync(string str);
     }
 
     public class ProfanityFilter : IProfanityFilter
     {
         private readonly HashSet<string> _profanities = new(StringComparer.OrdinalIgnoreCase);
+        private readonly IFileReader _fileReader;
+        private readonly IOptions<ApplicationOptions> _options;
 
         public ProfanityFilter(IFileReader fileReader, IOptions<ApplicationOptions> options)
         {
-            foreach (var profanity in fileReader.ReadFileLines(options.Value.ProfanitiesPath))
+            _fileReader = fileReader;
+            _options = options;
+        }
+
+        public async ValueTask<bool> ContainsProfanityAsync(string str)
+        {
+            await InitializeAsync();
+            return str.Split(' ').Any(word => _profanities.Contains(word)) || _profanities.Contains(str.Replace(" ", "").Replace("-", "").Replace("'", ""));
+        }
+
+        private async ValueTask InitializeAsync()
+        {
+            if (_profanities.Count > 0)
+            {
+                return;
+            }
+
+            await foreach (var profanity in _fileReader.ReadLinesAsync(_options.Value.ProfanitiesPath))
             {
                 _profanities.Add(profanity);
                 if (profanity.EndsWith("es"))
@@ -42,7 +62,5 @@ namespace Cryptonyms.Server.Services
                 }
             }
         }
-
-        public bool ContainsProfanity(string str) => str.ToLower().Split(' ').Any(word => _profanities.Contains(word)) || _profanities.Contains(str.Replace(" ", "").Replace("-", "").Replace("'", ""));
     }
 }

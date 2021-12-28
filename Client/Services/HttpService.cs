@@ -81,8 +81,8 @@ namespace Cryptonyms.Client.Services
 
         public async Task DeleteAsync(string requestUri) => await _client.DeleteAsync(requestUri);
 
-        private JsonContent GetJsonContent(object content) => JsonContent.Create(content ?? "null", content?.GetType() ?? typeof(string));
+        private static JsonContent GetJsonContent(object content) => JsonContent.Create(content ?? "null", content?.GetType() ?? typeof(string));
 
-        private async Task<T> DeserializeResponse<T>(HttpResponseMessage response) => JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
+        private static async Task<T> DeserializeResponse<T>(HttpResponseMessage response) => JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync());
     }
 }

@@ -32,7 +32,7 @@
     </div>
 </div>
 
-@if (_players == null)
+@if (_players is null)
 {
     <p><em>Loading...</em></p>
 }
@@ -42,7 +42,7 @@ else
         <Modal Show="_showCreateNewPlayer" Header="Create New Player" OnPopupClosed="OnNewPlayerPopupClosed">
             <div class="form-group">
                 <input id="newPlayerName" type="text" class="form-control" @bind="NewPlayerName" />
-                @if (_createNewPlayerErrorMessage != null)
+                @if (_createNewPlayerErrorMessage is not null)
                 {
                     <label class="text-danger">@_createNewPlayerErrorMessage</label>
                 }
@@ -98,7 +98,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        if (Storage.DeviceId == null)
+        if (Storage.DeviceId is null)
         {
             Storage.DeviceId = Guid.NewGuid().ToString();
             _players = new List<Player>();
@@ -124,7 +124,7 @@ else
     {
         if (TeamsValid())
         {
-            var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = _players.Where(x => x.Team != null), PrivateGame = _makePrivateGame, GameName = _newGameName });
+            var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = _players.Where(x => x.Team is not null), PrivateGame = _makePrivateGame, GameName = _newGameName });
 
             if (!_makePrivateGame)
             {

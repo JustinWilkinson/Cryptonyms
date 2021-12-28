@@ -1,4 +1,5 @@
-﻿using Cryptonyms.Server.Repository;
+﻿using Cryptonyms.Server.Extensions;
+using Cryptonyms.Server.Repository;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using System;
@@ -25,23 +26,29 @@ namespace Cryptonyms.Server.Jobs
             _logger = loggerFactory.CreateLogger<CleanUpJob>();
         }
 
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
         {
             try
             {
-                var gameIdsToDelete = _gameRepository.ListGames(true).Where(x => x.CompletedAtUtc.HasValue || x.StartedAtUtc < DateTime.UtcNow.AddDays(-5)).Select(x => x.GameId);
-                _gameRepository.DeleteGames(gameIdsToDelete);
-                _messageRepository.DeleteMessagesForGames(gameIdsToDelete);
-                var devicesToDelete = _deviceRepository.GetDevices().Where(x => x.LastSeenUtc < DateTime.UtcNow.AddDays(-30)).Select(x => x.DeviceId);
-                _deviceRepository.DeleteDevices(devicesToDelete);
-                _playerRepository.DeletePlayersForDevices(devicesToDelete);
+                var gameIdsToDelete = await _gameRepository.ListGamesAsync(true)
+                    .WhereAsync(x => x.CompletedAtUtc.HasValue || x.StartedAtUtc < DateTime.UtcNow.AddDays(-5))
+                    .SelectAsync(x => x.GameId)
+                    .ToEnumerableAsync();
+
+                var devicesToDelete = await _deviceRepository.GetDevicesAsync()
+                    .WhereAsync(x => x.LastSeenUtc < DateTime.UtcNow.AddDays(-30))
+                    .SelectAsync(x => x.DeviceId)
+                    .ToEnumerableAsync();
+
+                await _gameRepository.DeleteGamesAsync(gameIdsToDelete);
+                await _messageRepository.DeleteMessagesForGamesAsync(gameIdsToDelete);
+                await _deviceRepository.DeleteDevicesAsync(devicesToDelete);
+                await _playerRepository.DeletePlayersForDevices(devicesToDelete);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred running a clean up job.");
             }
-
-            return Task.CompletedTask;
         }
     }
 }

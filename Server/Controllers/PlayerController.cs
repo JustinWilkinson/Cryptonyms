@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Controllers
 {
@@ -26,31 +27,31 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("New")]
-        public void New(JsonElement json) 
+        public Task New(JsonElement json) 
             => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpPost("Update")]
-        public void Update(JsonElement json)
+        public Task Update(JsonElement json)
             => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Get")]
-        public Player Get(string deviceId, string name) 
+        public Task<Player> Get(string deviceId, string name) 
             => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name), deviceId, name);
 
         [HttpGet("List")]
-        public IEnumerable<Player> List(string deviceId)
-            => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId), deviceId);
+        public Task<IEnumerable<Player>> List(string deviceId)
+            => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId).ToEnumerableAsync(), deviceId);
 
         [HttpDelete("Delete")]
-        public void Delete(string deviceId, string name) 
+        public Task Delete(string deviceId, string name) 
             => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayer(deviceId, name), deviceId, name);
 
         [HttpPost("RandomiseTeams")]
-        public IEnumerable<Player> RandomiseTeams(string deviceId)
+        public Task<IEnumerable<Player>> RandomiseTeams(string deviceId)
         {
-            return UpdateDeviceLastSeenAndExecute(deviceId =>
+            return UpdateDeviceLastSeenAndExecute(async deviceId =>
             {
-                var currentPlayers = _playerRepository.GetPlayers(deviceId).ToList();
+                var currentPlayers = (await _playerRepository.GetPlayers(deviceId).ToEnumerableAsync()).ToList();
                 var minPlayersPerTeam = (int)Math.Round(currentPlayers.Count / 2d);
                 var random = new Random();
 
@@ -86,28 +87,28 @@ namespace Cryptonyms.Server.Controllers
                     blueTeam[random.Next(0, blueTeam.Length)].IsSpymaster = true;
                 }
 
-                _playerRepository.ReplacePlayers(deviceId, modifiedPlayers);
+                await _playerRepository.ReplacePlayers(deviceId, modifiedPlayers);
 
-                return modifiedPlayers;
+                return modifiedPlayers.AsEnumerable();
             }, deviceId);
         }
 
-        private void UpdateDeviceLastSeenAndExecute<T>(Action<string, T> action, string deviceId, T input)
+        private async Task UpdateDeviceLastSeenAndExecute<T>(Action<string, T> action, string deviceId, T input)
         {
-            _deviceRepository.AddOrUpdateDevice(deviceId);
+            await _deviceRepository.AddOrUpdateDeviceAsync(deviceId);
             action(deviceId, input);
         }
 
-        private TReturn UpdateDeviceLastSeenAndExecute<TReturn>(Func<string, TReturn> func, string deviceId)
+        private async Task<TReturn> UpdateDeviceLastSeenAndExecute<TReturn>(Func<string, Task<TReturn>> func, string deviceId)
         {
-            _deviceRepository.AddOrUpdateDevice(deviceId);
-            return func(deviceId);
+            await _deviceRepository.AddOrUpdateDeviceAsync(deviceId);
+            return await func(deviceId);
         }
 
-        private TReturn UpdateDeviceLastSeenAndExecute<T, TReturn>(Func<string, T, TReturn> func, string deviceId, T input)
+        private async Task<TReturn> UpdateDeviceLastSeenAndExecute<T, TReturn>(Func<string, T, Task<TReturn>> func, string deviceId, T input)
         {
-            _deviceRepository.AddOrUpdateDevice(deviceId);
-            return func(deviceId, input);
+            await _deviceRepository.AddOrUpdateDeviceAsync(deviceId);
+            return await func(deviceId, input);
         }
     }
 }

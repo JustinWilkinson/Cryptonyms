@@ -9,7 +9,6 @@ namespace Cryptonyms.Client.Services.SignalR
     {
         public GameHubCommunicator(NavigationManager navigationManager) : base("/GameHub", navigationManager)
         {
-
         }
 
         public Task AddToGroupAsync(string groupId) 

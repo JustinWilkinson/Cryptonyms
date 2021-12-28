@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Controllers
 {
@@ -28,30 +28,30 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("New")]
-        public Guid New(JsonElement json)
+        public async Task<Guid> New(JsonElement json)
         {
-            var game = Game.NewGame(json.GetStringProperty("GameName"), _wordRepository.ListWords().Select(w => w.Text));
+            var game = Game.NewGame(json.GetStringProperty("GameName"), (await _wordRepository.ListWordsAsync().SelectAsync(w => w.Text).ToEnumerableAsync()));
             game.Players.AddRange(json.GetObjectProperty<IEnumerable<Player>>("Players"));
-            _gameRepository.CreateGame(game, json.GetBooleanProperty("PrivateGame"));
-            _gameCountRepository.IncrementGameCount();
+            await _gameRepository.CreateGameAsync(game, json.GetBooleanProperty("PrivateGame"));
+            await _gameCountRepository.IncrementGameCountAsync();
             return game.GameId;
         }
 
         // Needs to return a string as System.Text.Json.JsonSerializer cannot handle the Dictionary<int, string> of words.
         [HttpGet("Get")]
-        public string Get(string id) => _gameRepository.GetGame(id).Serialize();
+        public async Task<string> Get(string id) => (await _gameRepository.GetGameAsync(id)).Serialize();
 
         // Needs to return a string as System.Text.Json.JsonSerializer cannot handle the Dictionary<int, string> of words.
         [HttpGet("List")]
-        public string List() => _gameRepository.ListGames().Serialize();
+        public async Task<string> List() => (await _gameRepository.ListGamesAsync().ToEnumerableAsync()).Serialize();
 
         [HttpPost("Save")]
-        public void Save(JsonElement gameJson) => _gameRepository.SaveGame(gameJson.Deserialize<Game>());
+        public Task Save(JsonElement gameJson) => _gameRepository.SaveGameAsync(gameJson.Deserialize<Game>());
 
         [HttpPost("UpdatePlayerInGame")]
-        public void UpdatePlayerInGame(JsonElement gameJson) => _gameRepository.AddOrUpdatePlayerInGame(gameJson.GetStringProperty("GameId"), gameJson.GetObjectProperty<Player>("Player"));
+        public Task UpdatePlayerInGame(JsonElement gameJson) => _gameRepository.AddOrUpdatePlayerInGameAsync(gameJson.GetStringProperty("GameId"), gameJson.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Count")]
-        public int Get() => _gameCountRepository.GetGameCount();
+        public Task<int> Count() => _gameCountRepository.GetGameCountAsync();
     }
 }

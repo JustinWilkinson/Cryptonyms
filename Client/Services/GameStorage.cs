@@ -18,7 +18,7 @@ namespace Cryptonyms.Client.Services
             set
             {
                 _deviceId = value;
-                if (value != null)
+                if (value is not null)
                 {
                     _storage.SetItem("DeviceId", value);
                 }
@@ -36,7 +36,7 @@ namespace Cryptonyms.Client.Services
             set
             {
                 _playerName = value;
-                if (value != null)
+                if (value is not null)
                 {
                     _storage.SetItem("PlayerName", value);
                 }

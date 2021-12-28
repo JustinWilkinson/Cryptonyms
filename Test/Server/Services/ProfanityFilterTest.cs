@@ -1,7 +1,9 @@
 ﻿using Cryptonyms.Server.Configuration;
+using Cryptonyms.Server.Extensions;
 using Cryptonyms.Server.Services;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Cryptonyms.Test.Server.Services
@@ -16,7 +18,7 @@ namespace Cryptonyms.Test.Server.Services
         {
             _mockFileReader.Reset();
             _mockOptions.Reset();
-            _mockFileReader.Setup(x => x.ReadFileLines(It.IsAny<string>())).Returns(new[] { "badword", "badwordes", "yucks", "yucky", "awfuley" });
+            _mockFileReader.Setup(x => x.ReadLinesAsync(It.IsAny<string>())).Returns(new[] { "badword", "badwordes", "yucks", "yucky", "awfuley" }.ToAsyncEnumerable());
             _mockOptions.SetupGet(x => x.Value).Returns(new ApplicationOptions { ProfanitiesPath = "" });
             _profanityFilter = new ProfanityFilter(_mockFileReader.Object, _mockOptions.Object);
         }
@@ -34,7 +36,7 @@ namespace Cryptonyms.Test.Server.Services
         [InlineData("yucky", true)]
         [InlineData("yuckies", true)]
         [InlineData("awfulies", true)]
-        public void ContainsProfanity_GivenProfanityList_ReturnsExpected(string input, bool expectedResult) 
-            => Assert.Equal(expectedResult, _profanityFilter.ContainsProfanity(input));
+        public async Task ContainsProfanity_GivenProfanityList_ReturnsExpected(string input, bool expectedResult) 
+            => Assert.Equal(expectedResult, await _profanityFilter.ContainsProfanityAsync(input));
     }
 }

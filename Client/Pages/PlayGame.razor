@@ -7,7 +7,7 @@
 @inject GameHubCommunicator GameHub
 @inject GameStorage Storage
 
-@if (Game == null)
+@if (Game is null)
 {
     if (_urlWrong)
     {
@@ -18,7 +18,7 @@
         <p><em>Loading...</em></p>
     }
 }
-else if (IdentifiedPlayer == null)
+else if (IdentifiedPlayer is null)
 {
     <CascadingValue Value="this">
         <PlayerIdentification OnPlayerIdentified="StateHasChanged" />
@@ -42,7 +42,7 @@ else
     </div>
     <div class="row">
         <div class="w-75 pl-2 pr-2 ml-auto mr-auto">
-            @if (Game.CompletedMessage != null)
+            @if (Game.CompletedMessage is not null)
             {
                 <Modal Header="Game Over!" Show="_showCompletionMessage">
                     <h6>@Game.CompletedMessage</h6>
@@ -55,7 +55,7 @@ else
                         <div class="card-body text-center font-weight-bold">
                             @if (!Game.CompletedAtUtc.HasValue)
                             {
-                                if (Game.CurrentTurn.Clue != null)
+                                if (Game.CurrentTurn.Clue is not null)
                                 {
                                     <span>@Game.CurrentTurn.Team.ToString() team's turn: @GetCurrentClueInfo()</span>
                                 }
@@ -98,7 +98,7 @@ else
                     }
                 </div>
             }
-            @if (Game.CurrentTurn.Clue == null && IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
+            @if (Game.CurrentTurn.Clue is null && IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team)
             {
                 <div class="row p-3">
                     <div class="form-inline">
@@ -111,7 +111,7 @@ else
                             <input id="NumberOfGuesses" type="number" min="0" max="@WordsRemainingForCurrentTeam" value="0" @oninput="e => HandleNumberOfGuessesInput(e.Value.ToString())" class="form-control " />
                         </div>
                         <button type="button" class="@TeamButtonClass" @onclick="GiveClueAsync">Give clue</button>
-                        @if (_clueErrorMessage != null)
+                        @if (_clueErrorMessage is not null)
                         {
                             <label class="text-danger ml-2">@_clueErrorMessage</label>
                         }
@@ -184,7 +184,7 @@ else
     private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
     private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
     private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
-    private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue != null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
+    private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue is not null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
     private string TeamButtonClass => $"btn btn-{(IdentifiedPlayer.Team == Team.Red ? "danger" : "primary")}";
 
     [Parameter]
@@ -194,7 +194,7 @@ else
     {
         Game = await Http.GetAsync<Game>($"api/Game/Get?id={GameId}");
 
-        if (Game == null)
+        if (Game is null)
         {
             _urlWrong = true;
         }
@@ -204,9 +204,10 @@ else
             _globalChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global");
 
             await ConfigureHubAsync();
+
             IdentifiedPlayer = Game.Players.SingleOrDefault(x => x.Name == Storage.PlayerName);
 
-            if (IdentifiedPlayer != null)
+            if (IdentifiedPlayer is not null)
             {
                 if (!IdentifiedPlayer.Identified)
                 {
@@ -261,7 +262,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender && IdentifiedPlayer != null)
+        if (!firstRender && IdentifiedPlayer is not null)
         {
             await JSRuntime.InvokeVoidAsync("cryptonyms.scrollToBottomOfElement", "GameLog");
             await JSRuntime.InvokeVoidAsync("cryptonyms.replaceAllContent", "GameLogTab", $"Game Log{(_unreadGameLogMessageCount > 0 ? $" ({_unreadGameLogMessageCount})" : "")}");
@@ -323,7 +324,7 @@ else
         GameHub.RegisterHandler<string, bool>("UpdatePlayerIdentification", (playerName, identified) =>
         {
             var updatedPlayer = Game.Players.SingleOrDefault(p => p.Name == playerName);
-            if (updatedPlayer != null)
+            if (updatedPlayer is not null)
             {
                 updatedPlayer.Identified = identified;
             }
@@ -346,7 +347,7 @@ else
             Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses - 1;
 
             string messageSuffix;
-            if (Game.CompletedMessage == null)
+            if (Game.CompletedMessage is null)
             {
                 Game.GuessedWords.Add(wordIndex);
 
@@ -366,7 +367,7 @@ else
                     Game.WinnningTeam = Team.Red;
                 }
 
-                if (Game.CompletedMessage != null)
+                if (Game.CompletedMessage is not null)
                 {
                     _showCompletionMessage = true;
                     Game.CompletedAtUtc = DateTime.UtcNow;
