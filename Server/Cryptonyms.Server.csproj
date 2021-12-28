@@ -24,8 +24,9 @@
     <ProjectReference Include="..\Client\Cryptonyms.Client.csproj" />
     <ProjectReference Include="..\Shared\Cryptonyms.Shared.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
+    <None Include="packages.lock.json" />
     <None Include="nlog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

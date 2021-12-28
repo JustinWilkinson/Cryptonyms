@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <None Include="bundleconfig.json" />
+    <None Include="packages.lock.json" />
   </ItemGroup>
 
   <ItemGroup>
