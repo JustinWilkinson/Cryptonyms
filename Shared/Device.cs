@@ -2,7 +2,7 @@
 
 namespace Cryptonyms.Shared
 {
-    public class Device
+    public record Device
     {
         public string DeviceId { get; set; }
 

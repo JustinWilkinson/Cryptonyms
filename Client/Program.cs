@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Cryptonyms.Client
 {
-    public class Program
+    internal static class Program
     {
-        public static async Task Main(string[] args)
+        internal static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");

@@ -27,26 +27,31 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("New")]
-        public Task New(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayerAsync(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
+        public Task New(JsonElement json) 
+            => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpPost("Update")]
-        public Task Update(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayerAsync(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
+        public Task Update(JsonElement json)
+            => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Get")]
-        public Task<Player> Get(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayerAsync(deviceId, name), deviceId, name);
+        public Task<Player> Get(string deviceId, string name) 
+            => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name), deviceId, name);
 
         [HttpGet("List")]
-        public Task<IEnumerable<Player>> List(string deviceId) => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayersAsync(deviceId).ToEnumerableAsync(), deviceId);
+        public Task<IEnumerable<Player>> List(string deviceId)
+            => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId).ToEnumerableAsync(), deviceId);
 
         [HttpDelete("Delete")]
-        public Task Delete(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayerAsync(deviceId, name), deviceId, name);
+        public Task Delete(string deviceId, string name) 
+            => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayer(deviceId, name), deviceId, name);
 
         [HttpPost("RandomiseTeams")]
         public Task<IEnumerable<Player>> RandomiseTeams(string deviceId)
         {
             return UpdateDeviceLastSeenAndExecute(async deviceId =>
             {
-                var currentPlayers = (await _playerRepository.GetPlayersAsync(deviceId).ToEnumerableAsync()).ToList();
+                var currentPlayers = (await _playerRepository.GetPlayers(deviceId).ToEnumerableAsync()).ToList();
                 var minPlayersPerTeam = (int)Math.Round(currentPlayers.Count / 2d);
                 var random = new Random();
 
@@ -82,7 +87,7 @@ namespace Cryptonyms.Server.Controllers
                     blueTeam[random.Next(0, blueTeam.Length)].IsSpymaster = true;
                 }
 
-                await _playerRepository.ReplacePlayersAsync(deviceId, modifiedPlayers);
+                await _playerRepository.ReplacePlayers(deviceId, modifiedPlayers);
 
                 return modifiedPlayers.AsEnumerable();
             }, deviceId);

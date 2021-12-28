@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
@@ -14,19 +13,19 @@ namespace Cryptonyms.Server.Repository
     /// </summary>
     public interface IPlayerRepository
     {
-        Task AddPlayerAsync(string deviceId, Player Player);
+        Task AddPlayer(string deviceId, Player Player);
 
-        Task UpdatePlayerAsync(string deviceId, Player Player);
+        Task UpdatePlayer(string deviceId, Player Player);
 
-        Task ReplacePlayersAsync(string deviceId, IEnumerable<Player> players);
+        Task ReplacePlayers(string deviceId, IEnumerable<Player> players);
 
-        Task DeletePlayerAsync(string deviceId, string name);
+        Task DeletePlayer(string deviceId, string name);
 
-        Task<Player> GetPlayerAsync(string deviceId, string name);
+        Task<Player> GetPlayer(string deviceId, string name);
 
-        IAsyncEnumerable<Player> GetPlayersAsync(string deviceId);
+        IAsyncEnumerable<Player> GetPlayers(string deviceId);
 
-        Task DeletePlayersForDevicesAsync(IEnumerable<string> deviceIds);
+        Task DeletePlayersForDevices(IEnumerable<string> deviceIds);
     }
 
     /// <summary>
@@ -43,7 +42,7 @@ namespace Cryptonyms.Server.Repository
             _logger = logger;
         }
 
-        public async Task AddPlayerAsync(string deviceId, Player player)
+        public async Task AddPlayer(string deviceId, Player player)
         {
             try
             {
@@ -60,7 +59,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public async Task UpdatePlayerAsync(string deviceId, Player player)
+        public async Task UpdatePlayer(string deviceId, Player player)
         {
             try
             {
@@ -77,7 +76,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public async Task<Player> GetPlayerAsync(string deviceId, string name)
+        public async Task<Player> GetPlayer(string deviceId, string name)
         {
             try
             {
@@ -93,7 +92,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public IAsyncEnumerable<Player> GetPlayersAsync(string deviceId)
+        public IAsyncEnumerable<Player> GetPlayers(string deviceId)
         {
             try
             {
@@ -108,7 +107,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public async Task ReplacePlayersAsync(string deviceId, IEnumerable<Player> players)
+        public async Task ReplacePlayers(string deviceId, IEnumerable<Player> players)
         {
             try
             {
@@ -134,7 +133,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public async Task DeletePlayerAsync(string deviceId, string name)
+        public async Task DeletePlayer(string deviceId, string name)
         {
             try
             {
@@ -150,7 +149,7 @@ namespace Cryptonyms.Server.Repository
             }
         }
 
-        public async Task DeletePlayersForDevicesAsync(IEnumerable<string> deviceIds)
+        public async Task DeletePlayersForDevices(IEnumerable<string> deviceIds)
         {
             try
             {

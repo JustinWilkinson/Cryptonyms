@@ -3,20 +3,18 @@ using Cryptonyms.Server.Extensions;
 using Cryptonyms.Server.Services;
 using Microsoft.Extensions.Options;
 using Moq;
-using NUnit.Framework;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Cryptonyms.Test.Server.Services
 {
-    [TestFixture]
     public class ProfanityFilterTest
     {
         private readonly Mock<IFileReader> _mockFileReader = new();
         private readonly Mock<IOptions<ApplicationOptions>> _mockOptions = new();
         private ProfanityFilter _profanityFilter;
 
-        [SetUp]
-        public void SetUp()
+        public ProfanityFilterTest()
         {
             _mockFileReader.Reset();
             _mockOptions.Reset();
@@ -25,19 +23,20 @@ namespace Cryptonyms.Test.Server.Services
             _profanityFilter = new ProfanityFilter(_mockFileReader.Object, _mockOptions.Object);
         }
 
-        [TestCase("This is ok", ExpectedResult = false)]
-        [TestCase("badword", ExpectedResult = true)]
-        [TestCase("baDwOrD", ExpectedResult = true)]
-        [TestCase("badwords", ExpectedResult = true)]
-        [TestCase("badwordes", ExpectedResult = true)]
-        [TestCase("badwordeses", ExpectedResult = false)]
-        [TestCase("this has a badword", ExpectedResult = true)]
-        [TestCase("yucks", ExpectedResult = true)]
-        [TestCase("yuckses", ExpectedResult = true)]
-        [TestCase("yucky", ExpectedResult = true)]
-        [TestCase("yuckies", ExpectedResult = true)]
-        [TestCase("awfulies", ExpectedResult = true)]
-        public ValueTask<bool> ContainsProfanityAsync_GivenProfanityList_ReturnsExpected(string input) 
-            => _profanityFilter.ContainsProfanityAsync(input);
+        [Theory]
+        [InlineData("This is ok", false)]
+        [InlineData("badword", true)]
+        [InlineData("baDwOrD", true)]
+        [InlineData("badwords", true)]
+        [InlineData("badwordes", true)]
+        [InlineData("badwordeses", false)]
+        [InlineData("this has a badword", true)]
+        [InlineData("yucks", true)]
+        [InlineData("yuckses", true)]
+        [InlineData("yucky", true)]
+        [InlineData("yuckies", true)]
+        [InlineData("awfulies", true)]
+        public async Task ContainsProfanity_GivenProfanityList_ReturnsExpected(string input, bool expectedResult) 
+            => Assert.Equal(expectedResult, await _profanityFilter.ContainsProfanityAsync(input));
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Cryptonyms.Shared
 {
-    public class GameMessage
+    public record GameMessage
     {
         public DateTime SentAt { get; set; }
 
@@ -12,7 +12,6 @@ namespace Cryptonyms.Shared
 
         public GameMessage()
         {
-
         }
 
         public GameMessage(string playerName, string message)

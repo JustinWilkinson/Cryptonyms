@@ -43,7 +43,7 @@ namespace Cryptonyms.Server.Jobs
                 await _gameRepository.DeleteGamesAsync(gameIdsToDelete);
                 await _messageRepository.DeleteMessagesForGamesAsync(gameIdsToDelete);
                 await _deviceRepository.DeleteDevicesAsync(devicesToDelete);
-                await _playerRepository.DeletePlayersForDevicesAsync(devicesToDelete);
+                await _playerRepository.DeletePlayersForDevices(devicesToDelete);
             }
             catch (Exception ex)
             {
