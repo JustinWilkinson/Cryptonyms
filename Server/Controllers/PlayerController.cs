@@ -26,19 +26,24 @@ namespace Cryptonyms.Server.Controllers
         }
 
         [HttpPut("New")]
-        public void New(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
+        public void New(JsonElement json) 
+            => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpPost("Update")]
-        public void Update(JsonElement json) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
+        public void Update(JsonElement json)
+            => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Get")]
-        public Player Get(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name), deviceId, name);
+        public Player Get(string deviceId, string name) 
+            => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name), deviceId, name);
 
         [HttpGet("List")]
-        public IEnumerable<Player> List(string deviceId) => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId), deviceId);
+        public IEnumerable<Player> List(string deviceId)
+            => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId), deviceId);
 
         [HttpDelete("Delete")]
-        public void Delete(string deviceId, string name) => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayer(deviceId, name), deviceId, name);
+        public void Delete(string deviceId, string name) 
+            => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayer(deviceId, name), deviceId, name);
 
         [HttpPost("RandomiseTeams")]
         public IEnumerable<Player> RandomiseTeams(string deviceId)

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Cryptonyms.Shared
 {
-    public class Game
+    public record Game
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random _random = new();
 
         public Guid GameId { get; set; }
 
@@ -38,7 +38,7 @@ namespace Cryptonyms.Shared
         {
             var knownWordsArray = knownWords.ToArray();
             var allPossibilities = Enumerable.Range(0, knownWordsArray.Length - 1).ToList();
-            Game game = new Game
+            Game game = new()
             {
                 GameId = Guid.NewGuid(),
                 Name = name ?? "Unnamed Game",

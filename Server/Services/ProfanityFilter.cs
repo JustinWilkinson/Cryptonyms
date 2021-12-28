@@ -13,7 +13,7 @@ namespace Cryptonyms.Server.Services
 
     public class ProfanityFilter : IProfanityFilter
     {
-        private readonly HashSet<string> _profanities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _profanities = new(StringComparer.OrdinalIgnoreCase);
 
         public ProfanityFilter(IFileReader fileReader, IOptions<ApplicationOptions> options)
         {

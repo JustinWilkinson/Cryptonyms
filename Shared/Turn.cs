@@ -1,6 +1,6 @@
 ﻿namespace Cryptonyms.Shared
 {
-    public class Turn
+    public record Turn
     {
         public Team Team { get; set; }
 

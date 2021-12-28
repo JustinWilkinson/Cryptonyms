@@ -10,9 +10,9 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Cryptonyms.Server
 {
-    public class Program
+    internal static class Program
     {
-        public static async Task Main(string[] args)
+        internal static async Task Main(string[] args)
         {
             var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
             try

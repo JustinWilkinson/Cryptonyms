@@ -1,6 +1,6 @@
 ﻿namespace Cryptonyms.Server.Configuration
 {
-    public class ApplicationOptions
+    public record ApplicationOptions
     {
         public string ConnectionString { get; set; }
 

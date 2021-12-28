@@ -2,20 +2,19 @@
 using Cryptonyms.Client.Services;
 using Microsoft.JSInterop;
 using Moq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Cryptonyms.Test.Client.Services
 {
-    [TestFixture]
     public class GameStorageTest
     {
-        private readonly Mock<IJsRuntimeWrapper> _mockJSRuntime = new Mock<IJsRuntimeWrapper>();
-        private GameStorage _gameStorage;
         private const string DeviceId = "DeviceId";
         private const string PlayerName = "PlayerName";
 
-        [SetUp]
-        public void SetUp()
+        private readonly Mock<IJsRuntimeWrapper> _mockJSRuntime = new();
+        private GameStorage _gameStorage;
+
+        public GameStorageTest()
         {
             _mockJSRuntime.Reset();
             _mockJSRuntime.Setup(s => s.Invoke<string>(It.IsAny<string>(), DeviceId)).Returns(DeviceId);
@@ -23,11 +22,11 @@ namespace Cryptonyms.Test.Client.Services
             _gameStorage = new GameStorage(new LocalStorage(_mockJSRuntime.Object));
         }
 
-        [Test]
-        public void GameStorage_Caches_DeviceId()
+        [Fact]
+        public void GameStorage_NewDeviceId_CachesNewDeviceId()
         {
             // Arrange
-            var newDeviceId = "NewDeviceId";
+            const string newDeviceId = "NewDeviceId";
 
             // Act
             var callOne = _gameStorage.DeviceId;
@@ -37,13 +36,13 @@ namespace Cryptonyms.Test.Client.Services
             // Assert
             _mockJSRuntime.Verify(s => s.Invoke<string>(It.IsAny<string>(), DeviceId), Times.Once);
             _mockJSRuntime.Verify(s => s.Invoke<object>(It.IsAny<string>(), DeviceId, newDeviceId), Times.Once);
-            Assert.AreEqual(DeviceId, callOne);
-            Assert.AreEqual(newDeviceId, callTwo);
+            Assert.Equal(DeviceId, callOne);
+            Assert.Equal(newDeviceId, callTwo);
         }
 
 
-        [Test]
-        public void GameStorage_Caches_PlayerName()
+        [Fact]
+        public void GameStorage_NewPlayerName_CachesNewPlayerName()
         {
             // Arrange
             var newPlayerName = "NewPlayerName";
@@ -56,11 +55,11 @@ namespace Cryptonyms.Test.Client.Services
             // Assert
             _mockJSRuntime.Verify(s => s.Invoke<string>(It.IsAny<string>(), PlayerName), Times.Once);
             _mockJSRuntime.Verify(s => s.Invoke<object>(It.IsAny<string>(), PlayerName, newPlayerName), Times.Once);
-            Assert.AreEqual(PlayerName, callOne);
-            Assert.AreEqual(newPlayerName, callTwo);
+            Assert.Equal(PlayerName, callOne);
+            Assert.Equal(newPlayerName, callTwo);
         }
 
-        [Test]
+        [Fact]
         public void GameStorage_SettingDeviceIdToNull_RemovesDeviceId()
         {
             // Act
@@ -70,7 +69,7 @@ namespace Cryptonyms.Test.Client.Services
             _mockJSRuntime.Verify(s => s.Invoke<object>(It.IsAny<string>(), DeviceId), Times.Once);
         }
 
-        [Test]
+        [Fact]
         public void GameStorage_SettingPlayerNameToNull_RemovesPlayerName()
         {
             // Act
@@ -82,7 +81,6 @@ namespace Cryptonyms.Test.Client.Services
 
         public interface IJsRuntimeWrapper : IJSRuntime, IJSInProcessRuntime
         {
-
         }
     }
 }
