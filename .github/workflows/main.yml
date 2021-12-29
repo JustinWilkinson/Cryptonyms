@@ -56,7 +56,7 @@ jobs:
             docker build . --file Dockerfile
           fi
 
-    deploy-web-app:
+  deploy-web-app:
     needs: [build-and-unit-test]
 
     runs-on: ubuntu-latest
