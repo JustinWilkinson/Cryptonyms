@@ -1,6 +1,6 @@
 using Cryptonyms.Server.Extensions;
-using Xunit;
 using System.Text.Json;
+using Xunit;
 
 namespace Cryptonyms.Test.Server.Extensions
 {
@@ -44,7 +44,7 @@ namespace Cryptonyms.Test.Server.Extensions
         }
 
         [Fact]
-        public void GetBooleanProperty_ValidJsonElementObjectPascalCase_ExtractsBooleanPropertySuccessfully() 
+        public void GetBooleanProperty_ValidJsonElementObjectPascalCase_ExtractsBooleanPropertySuccessfully()
             => Assert.True(_objectJsonElement.GetBooleanProperty("BooleanValue"));
 
         [Fact]

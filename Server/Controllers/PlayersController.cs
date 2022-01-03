@@ -12,30 +12,31 @@ using System.Threading.Tasks;
 namespace Cryptonyms.Server.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class PlayerController : ControllerBase
+    [Route("Api/[controller]")]
+    public class PlayersController : ControllerBase
     {
-        private readonly ILogger<PlayerController> _logger;
+        private static readonly Random Random = new();
+        private readonly ILogger<PlayersController> _logger;
         private readonly IPlayerRepository _playerRepository;
         private readonly IDeviceRepository _deviceRepository;
 
-        public PlayerController(ILogger<PlayerController> logger, IPlayerRepository playerRepository, IDeviceRepository deviceRepository)
+        public PlayersController(ILogger<PlayersController> logger, IPlayerRepository playerRepository, IDeviceRepository deviceRepository)
         {
             _logger = logger;
             _playerRepository = playerRepository;
             _deviceRepository = deviceRepository;
         }
 
-        [HttpPut("New")]
-        public Task New(JsonElement json) 
+        [HttpPost("New")]
+        public Task New(JsonElement json)
             => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.AddPlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
-        [HttpPost("Update")]
+        [HttpPut("Update")]
         public Task Update(JsonElement json)
             => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.UpdatePlayer(deviceId, player), json.GetStringProperty("DeviceId"), json.GetObjectProperty<Player>("Player"));
 
         [HttpGet("Get")]
-        public Task<Player> Get(string deviceId, string name) 
+        public Task<Player> Get(string deviceId, string name)
             => UpdateDeviceLastSeenAndExecute((deviceId, name) => _playerRepository.GetPlayer(deviceId, name), deviceId, name);
 
         [HttpGet("List")]
@@ -43,7 +44,7 @@ namespace Cryptonyms.Server.Controllers
             => UpdateDeviceLastSeenAndExecute(deviceId => _playerRepository.GetPlayers(deviceId).ToEnumerableAsync(), deviceId);
 
         [HttpDelete("Delete")]
-        public Task Delete(string deviceId, string name) 
+        public Task Delete(string deviceId, string name)
             => UpdateDeviceLastSeenAndExecute((deviceId, player) => _playerRepository.DeletePlayer(deviceId, name), deviceId, name);
 
         [HttpPost("RandomiseTeams")]
@@ -58,17 +59,15 @@ namespace Cryptonyms.Server.Controllers
                 var modifiedPlayers = new List<Player>();
                 foreach (var player in currentPlayers)
                 {
-                    var modifiedPlayer = new Player
+                    var modifiedPlayer = player with
                     {
-                        Name = player.Name,
                         Team = (Team)random.Next(0, 2),
-                        IsSpymaster = false,
-                        Identified = player.Identified
+                        IsSpymaster = false
                     };
 
                     if (modifiedPlayers.Count(x => x.Team == modifiedPlayer.Team) >= minPlayersPerTeam)
                     {
-                        modifiedPlayer.Team = (Team)(1 - modifiedPlayer.Team);
+                        modifiedPlayer.Team = modifiedPlayer.Team.Value.OpposingTeam();
                     }
 
                     modifiedPlayers.Add(modifiedPlayer);
@@ -79,12 +78,12 @@ namespace Cryptonyms.Server.Controllers
 
                 if (redTeam.Length > 0)
                 {
-                    redTeam[random.Next(0, redTeam.Length)].IsSpymaster = true;
+                    redTeam[Random.Next(0, redTeam.Length)].IsSpymaster = true;
                 }
 
                 if (blueTeam.Length > 0)
                 {
-                    blueTeam[random.Next(0, blueTeam.Length)].IsSpymaster = true;
+                    blueTeam[Random.Next(0, blueTeam.Length)].IsSpymaster = true;
                 }
 
                 await _playerRepository.ReplacePlayers(deviceId, modifiedPlayers);

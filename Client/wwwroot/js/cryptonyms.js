@@ -44,9 +44,8 @@
     initialiseGamesDataTable: function () {
         $('#GamesTable').DataTable({
             ajax: {
-                url: '/api/Game/List',
+                url: 'Api/Games',
                 dataSrc: function (res) {
-                    console.log(res);
                     return res;
                 }
             },
@@ -66,7 +65,7 @@
                 },
                 {
                     data: 'CompletedAtUtc',
-                    render: (data, type, row) => data ? new Date(data).toLocaleString('en-GB') : 'In Progress'
+                    render: data => data ? new Date(data).toLocaleString('en-GB') : 'In Progress'
                 },
                 {
                     data: 'Players',
@@ -74,7 +73,7 @@
                 },
                 {
                     data: 'WinningTeam',
-                    render: (data, type, row) => data ? data : 'Undecided'
+                    render: data => data ? data : 'Undecided'
                 },
                 {
                     data: 'CompletedMessage'
@@ -102,7 +101,7 @@
     initialiseWordsDataTable: function () {
         $('#WordsTable').DataTable({
             ajax: {
-                url: 'api/Word/List',
+                url: 'Api/Words',
                 dataSrc: function (res) {
                     return res;
                 }
@@ -141,7 +140,7 @@
     },
     removeWord: function (word) {
         $.ajax({
-            url: `/api/Word/Delete?word=${word}`,
+            url: `/Api/Words/Delete?word=${word}`,
             type: 'DELETE',
             success: function () {
                 $('#WordsTable').DataTable().ajax.reload();

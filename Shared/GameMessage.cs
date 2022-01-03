@@ -4,12 +4,13 @@ namespace Cryptonyms.Shared
 {
     public record GameMessage
     {
-        public DateTime SentAt { get; set; }
+        public DateTime SentAt { get; init; }
 
-        public string PlayerName { get; set; }
+        public string PlayerName { get; init; }
 
-        public string Message { get; set; }
+        public string Message { get; init; }
 
+        [Obsolete("For use by the serializer only", true)]
         public GameMessage()
         {
         }

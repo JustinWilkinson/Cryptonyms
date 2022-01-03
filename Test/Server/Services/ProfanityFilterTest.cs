@@ -36,7 +36,7 @@ namespace Cryptonyms.Test.Server.Services
         [InlineData("yucky", true)]
         [InlineData("yuckies", true)]
         [InlineData("awfulies", true)]
-        public async Task ContainsProfanity_GivenProfanityList_ReturnsExpected(string input, bool expectedResult) 
+        public async Task ContainsProfanity_GivenProfanityList_ReturnsExpected(string input, bool expectedResult)
             => Assert.Equal(expectedResult, await _profanityFilter.ContainsProfanityAsync(input));
     }
 }

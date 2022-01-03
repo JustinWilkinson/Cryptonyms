@@ -21,6 +21,10 @@ namespace Cryptonyms.Client.Services
 
         Task PutAsync(string requestUri, object putObject);
 
+        Task PatchAsync(string requestUri, object patchObject);
+
+        Task<T> PatchAsync<T>(string requestUri, object patchObject);
+
         Task DeleteAsync(string requestUri);
     }
 
@@ -62,7 +66,7 @@ namespace Cryptonyms.Client.Services
             }
         }
 
-        public async Task PostAsync(string requestUri, object postObject) => await _client.PostAsync(requestUri, GetJsonContent(postObject)).ConfigureAwait(false);
+        public Task PostAsync(string requestUri, object postObject) => _client.PostAsync(requestUri, GetJsonContent(postObject));
 
         public async Task<T> PutAsync<T>(string requestUri, object putObject)
         {
@@ -77,9 +81,24 @@ namespace Cryptonyms.Client.Services
             }
         }
 
-        public async Task PutAsync(string requestUri, object putObject) => await _client.PutAsync(requestUri, GetJsonContent(putObject)).ConfigureAwait(false);
+        public Task PutAsync(string requestUri, object putObject) => _client.PutAsync(requestUri, GetJsonContent(putObject));
 
-        public async Task DeleteAsync(string requestUri) => await _client.DeleteAsync(requestUri);
+        public async Task<T> PatchAsync<T>(string requestUri, object patchObject)
+        {
+            var response = await _client.PatchAsync(requestUri, GetJsonContent(patchObject)).ConfigureAwait(false);
+            if (response.IsSuccessStatusCode)
+            {
+                return await DeserializeResponse<T>(response);
+            }
+            else
+            {
+                throw new HttpRequestException($"An error occurred during a PATCH Request. Received Status Code: {response.StatusCode} from {requestUri}.");
+            }
+        }
+
+        public Task PatchAsync(string requestUri, object patchObject) => _client.PatchAsync(requestUri, GetJsonContent(patchObject));
+
+        public Task DeleteAsync(string requestUri) => _client.DeleteAsync(requestUri);
 
         private static JsonContent GetJsonContent(object content) => JsonContent.Create(content ?? "null", content?.GetType() ?? typeof(string));
 

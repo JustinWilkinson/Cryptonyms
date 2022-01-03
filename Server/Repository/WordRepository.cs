@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Cryptonyms.Server.Repository
@@ -50,15 +49,16 @@ namespace Cryptonyms.Server.Repository
             {
                 await base.InitializeAsync();
 
-                if (await ExecuteScalarAsync("SELECT COUNT(*) AS WordCount FROM Words", Convert.ToInt32) == 0)
+                if (await ExecuteScalarAsync("SELECT COUNT(*) AS WordCount FROM Words", Convert.ToInt32) < 1000)
                 {
+                    await ExecuteAsync("DELETE FROM Words");
                     await ExecuteInTransactionAsync(async connection =>
                     {
                         await foreach (var word in _fileReader.ReadLinesAsync(_options.Value.SeedWordsPath))
                         {
-                            var command = new SQLiteCommand("INSERT INTO Words (Word, IsSeed) VALUES(@Word, 1)", connection);
+                            await using var command = new SQLiteCommand("INSERT INTO Words (Word, IsSeed) VALUES(@Word, 1)", connection);
                             command.AddParameter("@Word", word);
-                            command.ExecuteNonQuery();
+                            await command.ExecuteNonQueryAsync();
                         }
                     });
                 }
@@ -80,7 +80,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred creating new word '{word}'.");
+                _logger.LogError(ex, "An error occurred creating new word '{word}'.", word);
                 throw;
             }
         }
@@ -121,7 +121,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An exception occurred deleting word '{word}'.");
+                _logger.LogError(ex, "An exception occurred deleting word '{word}'.", word);
                 throw;
             }
         }
