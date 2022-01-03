@@ -1,7 +1,7 @@
 ﻿using Cryptonyms.Server.Extensions;
-using Xunit;
 using System.Data;
 using System.Data.SQLite;
+using Xunit;
 
 namespace Cryptonyms.Test.Server.Extensions
 {

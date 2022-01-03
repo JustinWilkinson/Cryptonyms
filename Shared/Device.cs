@@ -4,8 +4,8 @@ namespace Cryptonyms.Shared
 {
     public record Device
     {
-        public string DeviceId { get; set; }
+        public string DeviceId { get; init; }
 
-        public DateTime LastSeenUtc { get; set; }
+        public DateTime LastSeenUtc { get; init; }
     }
 }

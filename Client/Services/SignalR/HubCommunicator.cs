@@ -31,6 +31,10 @@ namespace Cryptonyms.Client.Services.SignalR
 
         public Task StartAsync() => _hubConnection.StartAsync();
 
-        public ValueTask DisposeAsync() => _hubConnection.DisposeAsync();
+        public ValueTask DisposeAsync()
+        {
+            GC.SuppressFinalize(this);
+            return _hubConnection.DisposeAsync();
+        }
     }
 }

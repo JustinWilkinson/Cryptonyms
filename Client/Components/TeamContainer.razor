@@ -24,13 +24,13 @@
 
     public async Task UpdatePlayerAsync(Player player)
     {
-        await Http.PostAsync("api/Player/Update", new { DeviceId = DeviceId, Player = player });
+        await Http.PutAsync("Api/Players/Update", new { DeviceId = DeviceId, Player = player });
         await OnPlayerUpdated.InvokeAsync(null);
     }
 
     public async Task DeletePlayerAsync(Player player)
     {
-        await Http.DeleteAsync($"api/Player/Delete?deviceId={DeviceId}&name={player.Name}");
+        await Http.DeleteAsync($"Api/Players/Delete?deviceId={DeviceId}&name={player.Name}");
         await OnPlayerDeleted.InvokeAsync(player);
     }
 }

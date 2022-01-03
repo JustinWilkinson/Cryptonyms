@@ -50,7 +50,7 @@ namespace Cryptonyms.Server.Repository
         /// <param name="command">Command to execute</param>
         protected async Task ExecuteAsync(SQLiteCommand command)
         {
-            using var connection = await GetOpenConnectionAsync();
+            await using var connection = await GetOpenConnectionAsync();
             command.Connection = connection;
             await command.ExecuteNonQueryAsync();
         }
@@ -73,7 +73,7 @@ namespace Cryptonyms.Server.Repository
         /// <returns>An instance of T created by converting the returned value with the specified converter.</returns>
         protected async Task<T> ExecuteScalarAsync<T>(SQLiteCommand command, Func<object, T> converter = null)
         {
-            using var connection = await GetOpenConnectionAsync();
+            await using var connection = await GetOpenConnectionAsync();
             command.Connection = connection;
             var scalar = await command.ExecuteScalarAsync();
             return converter is not null ? converter(scalar) : (T)scalar;
@@ -94,10 +94,10 @@ namespace Cryptonyms.Server.Repository
         /// <typeparam name="T">Return type</typeparam>
         /// <param name="command">Command to execute</param>
         /// <param name="converter">Conversion method for rows</param>
-        /// <returns>An IEnumerable of T created by converting the returned rows to T using the specified converter.</returns>
+        /// <returns>An IAsyncEnumerable of T created by converting the returned rows to T using the specified converter.</returns>
         protected async IAsyncEnumerable<T> ExecuteAsync<T>(SQLiteCommand command, Func<SQLiteDataReader, T> converter)
         {
-            using var connection = await GetOpenConnectionAsync();
+            await using var connection = await GetOpenConnectionAsync();
             command.Connection = connection;
             using var reader = command.ExecuteReader();
             while (reader.Read())
@@ -113,8 +113,8 @@ namespace Cryptonyms.Server.Repository
         /// <param name="isolationLevel">Isolation Level of the transaction, defaults to Serializable</param>
         protected async Task ExecuteInTransactionAsync(Action<SQLiteConnection> action, IsolationLevel isolationLevel = IsolationLevel.Serializable)
         {
-            using var connection = await GetOpenConnectionAsync();
-            var transaction = connection.BeginTransaction(isolationLevel);
+            await using var connection = await GetOpenConnectionAsync();
+            await using var transaction = connection.BeginTransaction(isolationLevel);
             try
             {
                 action(connection);

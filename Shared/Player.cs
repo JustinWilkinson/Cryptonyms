@@ -2,7 +2,7 @@
 {
     public record Player
     {
-        public string Name { get; set; }
+        public string Name { get; init; }
 
         public bool IsSpymaster { get; set; }
 

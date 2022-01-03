@@ -53,7 +53,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred updating the last seen time for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred updating the last seen time for device '{deviceId}'.", deviceId);
                 throw;
             }
         }

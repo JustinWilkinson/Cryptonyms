@@ -54,7 +54,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred creating a new player '{player.Name}' for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred creating a new player '{name}' for device '{deviceId}'.", player.Name, deviceId);
                 throw;
             }
         }
@@ -71,7 +71,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred updating player '{player.Name}' for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred updating player '{name}' for device '{deviceId}'.", player.Name, deviceId);
                 throw;
             }
         }
@@ -87,7 +87,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred retrieving player '{name}' for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred retrieving player '{name}' for device '{deviceId}'.", name, deviceId);
                 throw;
             }
         }
@@ -102,7 +102,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred retrieving players for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred retrieving players for device '{deviceId}'.", deviceId);
                 throw;
             }
         }
@@ -128,7 +128,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred replacing all players for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred replacing all players for device '{deviceId}'.", deviceId);
                 throw;
             }
         }
@@ -144,7 +144,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred deleting player '{name}' for device '{deviceId}'.");
+                _logger.LogError(ex, "An error occurred deleting player '{name}' for device '{deviceId}'.", deviceId);
                 throw;
             }
         }

@@ -58,7 +58,7 @@ namespace Cryptonyms.Server.Extensions
             }
             else
             {
-                propertyName = propertyName.Length > 1 ? $"{char.ToLowerInvariant(propertyName[0])}{propertyName.Substring(1)}" : propertyName.ToLowerInvariant();
+                propertyName = propertyName.Length > 1 ? $"{char.ToLowerInvariant(propertyName[0])}{propertyName[1..]}" : propertyName.ToLowerInvariant();
                 return json.TryGetProperty(propertyName, out property) ? propertyConverter(property) : default;
             }
         }

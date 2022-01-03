@@ -15,7 +15,7 @@ namespace Cryptonyms.Server.Extensions
         public static async ValueTask<T> SingleAsync<T>(this IAsyncEnumerable<T> source)
         {
             NullGuards(source);
-            
+
             var enumerator = source.GetAsyncEnumerator();
             if (await enumerator.MoveNextAsync())
             {

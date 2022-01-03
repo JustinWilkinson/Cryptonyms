@@ -85,7 +85,7 @@ else
                     @for (var j = 0; j < 5; j++)
                     {
                         var wordIndex = 5 * i + j;
-                        if (!Game.WinnningTeam.HasValue && Game.GuessedWords.Contains(wordIndex))
+                        if (!Game.WinningTeam.HasValue && Game.GuessedWords.Contains(wordIndex))
                         {
                             <div class="col card @GetBackgroundColourClass(wordIndex) empty-padded-card "></div>
                         }
@@ -181,7 +181,7 @@ else
     private int RedWordsRemaining => Game.RedWords.Except(Game.GuessedWords).Count();
     private int BlueWordsRemaining => Game.BlueWords.Except(Game.GuessedWords).Count();
     private int WordsRemainingForCurrentTeam => Game.CurrentTurn.Team == Team.Red ? RedWordsRemaining : BlueWordsRemaining;
-    private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Any(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster && p.Name != IdentifiedPlayer.Name);
+    private bool ShowRoleChat => IdentifiedPlayer.IsSpymaster || !IdentifiedPlayer.IsSpymaster && Game.Players.Count(p => p.Team == IdentifiedPlayer.Team && !p.IsSpymaster) > 1;
     private string RoleChatId => IdentifiedPlayer.IsSpymaster ? $"{GameId}-Spymaster" : $"{GameId}-{IdentifiedPlayer.Team}Guesser";
     private string RoleChatName => IdentifiedPlayer.IsSpymaster ? "Spymaster Chat" : $"{IdentifiedPlayer.Team} Guessers Chat";
     private bool IdentifiedAsCurrentTeamGuesserWithClue => Game.CurrentTurn.Clue is not null && !IdentifiedPlayer.IsSpymaster && IdentifiedPlayer.Team == Game.CurrentTurn.Team;
@@ -192,7 +192,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Game = await Http.GetAsync<Game>($"api/Game/Get?id={GameId}");
+        Game = await Http.GetAsync<Game>($"Api/Games/{GameId}");
 
         if (Game is null)
         {
@@ -200,8 +200,8 @@ else
         }
         else
         {
-            _gameLogMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-GameLog");
-            _globalChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={GameId}-Global");
+            _gameLogMessages = await Http.GetAsync<List<GameMessage>>($"Api/Messages/{GameId}-GameLog");
+            _globalChatMessages = await Http.GetAsync<List<GameMessage>>($"Api/Messages/{GameId}-Global");
 
             await ConfigureHubAsync();
 
@@ -215,7 +215,7 @@ else
                 }
                 else
                 {
-                    _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
+                    _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"Api/Messages/{RoleChatId}");
                     StartTopRowToggleTimer();
                 }
             }
@@ -226,13 +226,13 @@ else
     {
         IdentifiedPlayer.Identified = true;
         await Task.WhenAll(
-            Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
+            Http.PatchAsync($"Api/Games/{GameId}/UpdatePlayer", IdentifiedPlayer),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, true),
             GameHub.AddToGroupAsync(RoleChatId),
             UpdateGameLogAsync("has joined the game.")
         );
 
-        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"api/Message/GetGameMessagesForGroup?messageBoardId={RoleChatId}");
+        _roleChatMessages = await Http.GetAsync<List<GameMessage>>($"Api/Messages/{RoleChatId}");
         StartTopRowToggleTimer();
     }
 
@@ -241,7 +241,7 @@ else
         Timer.StopTimer();
         IdentifiedPlayer.Identified = false;
         await Task.WhenAll(
-            Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
+            Http.PatchAsync($"Api/Games/{GameId}/UpdatePlayer", IdentifiedPlayer),
             GameHub.UpdatePlayerIdentificationAsync(GameId, IdentifiedPlayer.Name, false),
             GameHub.RemoveFromGroupAsync(RoleChatId),
             UpdateGameLogAsync("has left the game.")
@@ -254,7 +254,7 @@ else
     public async Task AddPlayerToGameAsync()
     {
         await Task.WhenAll(
-            Http.PostAsync("api/Game/UpdatePlayerInGame", new { GameId = GameId, Player = IdentifiedPlayer }),
+            Http.PatchAsync($"Api/Games/{GameId}/UpdatePlayer", IdentifiedPlayer),
             GameHub.AddNewPlayerToGameAsync(GameId, IdentifiedPlayer)
         );
         StateHasChanged();
@@ -272,15 +272,15 @@ else
             if (_showCompletionMessage && !_endGameAnimationRun)
             {
                 _endGameAnimationRun = true;
-                await JSRuntime.InvokeVoidAsync("cryptonyms.gameCompletedAnimation", Game.WinnningTeam.Value.ToString().ToLower(), Game.GuessedWords.Contains(Game.Assassin));
+                await JSRuntime.InvokeVoidAsync("cryptonyms.gameCompletedAnimation", Game.WinningTeam.Value.ToString().ToLower(), Game.GuessedWords.Contains(Game.Assassin));
             }
         }
     }
 
-    private async Task HandleTabSelectedAsync(TabItem page)
+    private Task HandleTabSelectedAsync(TabItem page)
     {
         _selectedTab = page.ButtonId;
-        await JSRuntime.InvokeVoidAsync("cryptonyms.replaceContent", page.ButtonId, @"\s\(\d+\)", "");
+        return JSRuntime.InvokeVoidAsync("cryptonyms.replaceContent", page.ButtonId, @"\s\(\d+\)", "").AsTask();
     }
 
     private async Task ConfigureHubAsync()
@@ -288,7 +288,7 @@ else
         GameHub.RegisterHandler<string>("UpdateGame", updatedGame =>
         {
             Game = JsonConvert.DeserializeObject<Game>(updatedGame);
-            if (Game.WinnningTeam.HasValue)
+            if (Game.WinningTeam.HasValue)
             {
                 _showCompletionMessage = true;
             }
@@ -320,7 +320,7 @@ else
                 _unreadRoleMessageCount++;
             }
             StateHasChanged();
-        });
+        });  
         GameHub.RegisterHandler<string, bool>("UpdatePlayerIdentification", (playerName, identified) =>
         {
             var updatedPlayer = Game.Players.SingleOrDefault(p => p.Name == playerName);
@@ -330,7 +330,7 @@ else
             }
             StateHasChanged();
         });
-        GameHub.RegisterHandler<Player>("AddNewPlayerToGame", (player) =>
+        GameHub.RegisterHandler<Player>("AddNewPlayerToGame", player =>
         {
             Game.Players.Add(player);
             StateHasChanged();
@@ -344,7 +344,7 @@ else
     {
         if (IdentifiedAsCurrentTeamGuesserWithClue && !Game.CompletedAtUtc.HasValue)
         {
-            Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses - 1;
+            Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.NumberOfGuesses + 1;
 
             string messageSuffix;
             if (Game.CompletedMessage is null)
@@ -353,18 +353,18 @@ else
 
                 if (Game.Assassin == wordIndex)
                 {
-                    Game.WinnningTeam = (Team)(1 - Game.CurrentTurn.Team);
-                    Game.CompletedMessage = $"{IdentifiedPlayer.Name} bumped into the assassin and was killed. Team {Game.WinnningTeam.ToString().ToLower()} wins!";
+                    Game.WinningTeam = Game.CurrentTurn.Team.OpposingTeam();
+                    Game.CompletedMessage = $"{IdentifiedPlayer.Name} bumped into the assassin and was killed. Team {Game.WinningTeam.ToString().ToLower()} wins!";
                 }
                 else if (Game.BlueWords.All(bw => Game.GuessedWords.Contains(bw)))
                 {
                     Game.CompletedMessage = "Team blue wins!";
-                    Game.WinnningTeam = Team.Blue;
+                    Game.WinningTeam = Team.Blue;
                 }
                 else if (Game.RedWords.All(rw => Game.GuessedWords.Contains(rw)))
                 {
                     Game.CompletedMessage = "Team red wins!";
-                    Game.WinnningTeam = Team.Red;
+                    Game.WinningTeam = Team.Red;
                 }
 
                 if (Game.CompletedMessage is not null)
@@ -389,9 +389,9 @@ else
                     {
                         messageSuffix = " correctly";
 
-                        if (Game.CurrentTurn.NumberOfGuesses == 0)
+                        if (Game.CurrentTurn.NumberOfWordsLinked > 0 && !Game.AllowMultipleBonusGuesses && Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.NumberOfWordsLinked + 1)
                         {
-                            Game.CurrentTurn = new Turn { Team = (Team)(1 - Game.CurrentTurn.Team) };
+                            Game.CurrentTurn = new Turn { Team = Game.CurrentTurn.Team.OpposingTeam() };
                             messageSuffix += $". All guesses used up. {Game.CurrentTurn.Team} team's turn started.";
                         }
                     }
@@ -402,10 +402,10 @@ else
         }
     }
 
-    private async Task PassTurnAsync()
+    private Task PassTurnAsync()
     {
-        Game.CurrentTurn = new Turn { Team = (Team)(1 - Game.CurrentTurn.Team) };
-        await UpdateGameAsync($"passed. {Game.CurrentTurn.Team} team's turn started.");
+        Game.CurrentTurn = new Turn { Team = Game.CurrentTurn.Team.OpposingTeam() };
+        return UpdateGameAsync($"passed. {Game.CurrentTurn.Team} team's turn started.");
     }
 
     private string GetBackgroundColourClass(int wordIndex)
@@ -428,7 +428,7 @@ else
         }
     }
 
-    private string GetBackgroundColourClassForVisibleWord(int wordIndex) => (IdentifiedPlayer.IsSpymaster || Game.WinnningTeam.HasValue) ? GetBackgroundColourClass(wordIndex) : "bg-warning";
+    private string GetBackgroundColourClassForVisibleWord(int wordIndex) => (IdentifiedPlayer.IsSpymaster || Game.WinningTeam.HasValue) ? GetBackgroundColourClass(wordIndex) : "bg-warning";
 
     private void ClosePopup() => _showCompletionMessage = false;
 
@@ -436,29 +436,30 @@ else
 
     private string GetCurrentClueInfo()
     {
-        if (Game.CurrentTurn.NumberOfGuesses == 1)
+        if (Game.CurrentTurn.NumberOfGuesses == 0 || Game.AllowZeroLinks && Game.CurrentTurn.NumberOfWordsLinked == 0)
         {
-            return "Bonus Guess";
+            return $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfWordsLinked}";
         }
-        else if (Game.CurrentTurn.NumberOfGuesses == Game.CurrentTurn.InitialNumberOfGuesses)
+        else if (Game.CurrentTurn.NumberOfGuesses >= Game.CurrentTurn.NumberOfWordsLinked)
         {
-            return $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}";
+            return Game.AllowMultipleBonusGuesses ? "Bonus Guesses" : "Bonus Guess";
         }
         else
         {
-            return $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses - 1}/{Game.CurrentTurn.InitialNumberOfGuesses - 1}";
+            return $"{Game.CurrentTurn.Clue} - {Game.CurrentTurn.NumberOfGuesses}/{Game.CurrentTurn.NumberOfWordsLinked}";
         }
     }
 
     private async Task GiveClueAsync()
     {
+        var minPermitted = !Game.AllowZeroLinks ? 1 : 0;
         if (string.IsNullOrWhiteSpace(_currentClue))
         {
             _clueErrorMessage = "Clue cannot be blank!";
         }
-        else if (_currentNumberOfWordsLinked < 1 || _currentNumberOfWordsLinked > WordsRemainingForCurrentTeam)
+        else if (_currentNumberOfWordsLinked < minPermitted || _currentNumberOfWordsLinked > WordsRemainingForCurrentTeam)
         {
-            _clueErrorMessage = $"Number of words linked must be between 1 and {WordsRemainingForCurrentTeam}!";
+            _clueErrorMessage = $"Number of words linked must be between {minPermitted} and {WordsRemainingForCurrentTeam}!";
         }
         else
         {
@@ -471,6 +472,10 @@ else
             {
                 _clueErrorMessage = "Clue cannot be an uncovered word!";
             }
+            else if (trimmedClue.Length >= 4 && Game.Words.Any(x => x.Value.ToLowerInvariant().Contains(trimmedClue)))
+            {
+                _clueErrorMessage = "Clue cannot contain more than 4 consecutive letters of any uncovered word!";
+            }
             else if (trimmedClue.Any(c => !char.IsLetterOrDigit(c) && c != '\'') || trimmedClue.Count(c => c == '\'') > 1)
             {
                 _clueErrorMessage = "Clue cannot contain punctuation other than a single apostrophe!";
@@ -478,8 +483,8 @@ else
             else
             {
                 Game.CurrentTurn.Clue = trimmedClue;
-                Game.CurrentTurn.InitialNumberOfGuesses = _currentNumberOfWordsLinked + 1;
-                Game.CurrentTurn.NumberOfGuesses = Game.CurrentTurn.InitialNumberOfGuesses;
+                Game.CurrentTurn.NumberOfWordsLinked = _currentNumberOfWordsLinked;
+                Game.CurrentTurn.NumberOfGuesses = 0;
                 await UpdateGameAsync($"gave clue: {trimmedClue} for {_currentNumberOfWordsLinked}.");
                 _currentClue = null;
                 _currentNumberOfWordsLinked = 0;
@@ -493,15 +498,18 @@ else
         var gameLogMessage = new GameMessage(IdentifiedPlayer.Name, logMessage);
         _gameLogMessages.Add(gameLogMessage);
         await Task.WhenAll(
-            Http.PutAsync("api/Message/AddMessage", new { MessageBoardId = $"{GameId}-GameLog", GameMessage = gameLogMessage }),
+            Http.PostAsync($"Api/Messages/{GameId}-GameLog", gameLogMessage),
             GameHub.SendGameMessageAsync(GameId, "NewGameLogMessage", gameLogMessage));
         await JSRuntime.InvokeVoidAsync("cryptonyms.scrollToBottomOfElement", "GameLog");
     }
 
-    private async Task UpdateGameAsync(string logMessage)
+    private Task UpdateGameAsync(string logMessage)
     {
         var serializedGame = JsonConvert.SerializeObject(Game);
-        await Task.WhenAll(Http.PostAsync("api/Game/Save", serializedGame), GameHub.UpdateGameAsync(GameId, serializedGame), UpdateGameLogAsync(logMessage));
+        return Task.WhenAll(
+            Http.PutAsync("Api/Games/Save", serializedGame),
+            GameHub.UpdateGameAsync(GameId, serializedGame),
+            UpdateGameLogAsync(logMessage));
     }
 
     private async Task ToggleTopRowAsync()

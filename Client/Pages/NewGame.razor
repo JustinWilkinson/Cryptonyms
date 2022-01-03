@@ -10,7 +10,7 @@
     <div class="col-11">
         <div class="row mb-2">
             <h2 class="col-sm-3 col-lg-2 mb-0">New Game</h2>
-            @if (!_makePrivateGame)
+            @if (!Storage.MakePrivateGames)
             {
                 <div class="form-inline col-sm-9 col-lg-8">
                     <div class="form-group row w-100" title="Provide a name for your public game to make it more recognizable.">
@@ -78,7 +78,9 @@ else
             <div class="form-inline">
                 <button type="button" class="btn btn-primary mr-2" @onclick="() => { _showCreateNewPlayer = true; }">Add new player</button>
                 <button type="button" class="btn btn-primary mr-2" @onclick="RandomiseTeamsAsync">Random teams</button>
-                <button type="button" class="btn btn-primary mr-2" @onclick="() => { _makePrivateGame = !_makePrivateGame; }">Make game @(_makePrivateGame ? "public" : "private")</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { Storage.MakePrivateGames = !Storage.MakePrivateGames; }">Make game @(Storage.MakePrivateGames ? "public" : "private")</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { Storage.AllowMultipleBonusGuessesInCreatedGames = !Storage.AllowMultipleBonusGuessesInCreatedGames; }">Allow @(Storage.AllowMultipleBonusGuessesInCreatedGames  ? "single bonus guess" : "multiple bonus guesses")</button>
+                <button type="button" class="btn btn-primary mr-2" @onclick="() => { Storage.AllowZeroLinksInCreatedGames  = !Storage.AllowZeroLinksInCreatedGames; }">@(Storage.AllowZeroLinksInCreatedGames ? "Disallow" : "Allow") zero links</button>
                 <button type="button" class="btn btn-primary mr-2" @onclick="StartGameAsync">Start game</button>
             </div>
         </div>
@@ -93,7 +95,6 @@ else
     private string _createNewPlayerErrorMessage;
 
     private List<string> _validationErrors = new List<string>();
-    private bool _makePrivateGame;
     private string _newGameName;
 
     protected override async Task OnInitializedAsync()
@@ -105,7 +106,7 @@ else
         }
         else
         {
-            _players = await Http.GetAsync<List<Player>>($"api/Player/List?deviceId={Storage.DeviceId}");
+            _players = await Http.GetAsync<List<Player>>($"Api/Players/List?deviceId={Storage.DeviceId}");
         }
         RemoveIdentificationIfNotFound();
         await GameHub.StartAsync();
@@ -124,9 +125,16 @@ else
     {
         if (TeamsValid())
         {
-            var gameId = await Http.PutAsync<Guid>("api/Game/New", new { Players = _players.Where(x => x.Team is not null), PrivateGame = _makePrivateGame, GameName = _newGameName });
+            var gameId = await Http.PostAsync<Guid>("Api/Games", new GameConfiguration 
+            { 
+                Players = _players.Where(x => x.Team is not null),
+                PrivateGame = Storage.MakePrivateGames,
+                Name = _newGameName,
+                AllowMultipleBonusGuesses = Storage.AllowMultipleBonusGuessesInCreatedGames,
+                AllowZeroLinks = Storage.AllowZeroLinksInCreatedGames
+            });
 
-            if (!_makePrivateGame)
+            if (!Storage.MakePrivateGames)
             {
                 await GameHub.NewGameAddedAsync();
             }
@@ -143,7 +151,7 @@ else
             {
                 var player = new Player { Name = NewPlayerName };
                 _players.Add(player);
-                await Http.PutAsync("api/Player/New", new { DeviceId = Storage.DeviceId, Player = player });
+                await Http.PostAsync("Api/Players/New", new { DeviceId = Storage.DeviceId, Player = player });
                 OnNewPlayerPopupClosed();
             }
             else
@@ -159,7 +167,7 @@ else
 
     private async Task RandomiseTeamsAsync()
     {
-        _players = await Http.PostAsync<List<Player>>($"api/Player/RandomiseTeams?deviceId={Storage.DeviceId}", null);
+        _players = await Http.PostAsync<List<Player>>($"Api/Players/RandomiseTeams?deviceId={Storage.DeviceId}", null);
     }
 
     private bool TeamsValid()

@@ -8,5 +8,9 @@
     <Content Remove="packages.lock.json" />
     <None Include="packages.lock.json" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
   
 </Project>

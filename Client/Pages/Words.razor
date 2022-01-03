@@ -92,7 +92,7 @@
 
         if (validationMessage is null)
         {
-            await Http.PutAsync("api/Word/New", NewWord);
+            await Http.PostAsync("Api/Words/New", NewWord);
             await JSRuntime.InvokeVoidAsync("cryptonyms.reloadDataTable", "WordsTable");
             OnNewWordPopupClosed();
         }
@@ -124,7 +124,7 @@
         {
             return "That doesn't look like a word...";
         }
-        else if (await Http.PostAsync<bool>("api/Word/ProfanityCheck", new { Word = word }))
+        else if (await Http.PostAsync<bool>("Api/Words/ProfanityCheck", word))
         {
             return "Please don't use profanities!";
         }

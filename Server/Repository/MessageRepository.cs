@@ -43,7 +43,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred inserting a message '{message}' for board '{messageBoardId}'.");
+                _logger.LogError(ex, "An error occurred inserting a message for board '{messageBoardId}'.", messageBoardId);
                 throw;
             }
         }
@@ -58,7 +58,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred retrieving messages for board '{messageBoardId}'.");
+                _logger.LogError(ex, "An error occurred retrieving messages for board '{messageBoardId}'.", messageBoardId);
                 throw;
             }
         }
@@ -81,7 +81,7 @@ namespace Cryptonyms.Server.Repository
                     }
                 }
 
-                await ExecuteInTransactionAsync((connection) =>
+                await ExecuteInTransactionAsync(connection =>
                 {
                     foreach (var messageBoardId in messageBoardIdsToDelete)
                     {
@@ -93,7 +93,7 @@ namespace Cryptonyms.Server.Repository
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"An error occurred clearing messages for old games.");
+                _logger.LogError(ex, "An error occurred clearing messages for old games.");
                 throw;
             }
         }
