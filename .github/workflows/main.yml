@@ -30,8 +30,15 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
+      - name: Install libman
+        run: dotnet tool install -g Microsoft.Web.LibraryManager.CLI
+
+      - name: Install JS dependencies
+        run: libman restore
+        working-directory: "./Client"
+
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore --locked-mode
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
@@ -70,9 +77,16 @@ jobs:
          with:
             dotnet-version: 6.0.x
 
+       - name: Install libman
+         run: dotnet tool install -g Microsoft.Web.LibraryManager.CLI
+
+       - name: Restore dependencies
+         run: libman restore
+         working-directory: "./Client"
+
        - name: Build and Publish
          run: |
-           dotnet restore
+           dotnet restore --locked-mode
            dotnet build --configuration Release
            dotnet publish -c Release -o './cryptonyms'
 
@@ -85,7 +99,7 @@ jobs:
 
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
-  push-new-package:
+  push-new-image:
     needs: [build-and-unit-test, docker-test]
 
     runs-on: ubuntu-latest
