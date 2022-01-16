@@ -8,8 +8,14 @@ WORKDIR /src
 COPY ["Server/Cryptonyms.Server.csproj", "Server/"]
 COPY ["Client/Cryptonyms.Client.csproj", "Client/"]
 COPY ["Shared/Cryptonyms.Shared.csproj", "Shared/"]
-RUN dotnet restore "Server/Cryptonyms.Server.csproj"
+RUN dotnet restore "Server/Cryptonyms.Server.csproj" --locked-mode
 COPY . .
+
+WORKDIR "/src/Client"
+RUN dotnet tool install -g Microsoft.Web.LibraryManager.CLI
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN libman restore
+
 WORKDIR "/src/Server"
 RUN dotnet build "Cryptonyms.Server.csproj" -c Release -o /app/build
 
