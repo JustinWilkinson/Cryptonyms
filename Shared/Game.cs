@@ -16,7 +16,7 @@ namespace Cryptonyms.Shared
 
         public Dictionary<int, string> Words { get; init; }
 
-        public int Assassin { get; private set; }
+        public int Assassin { get; set; }
 
         public List<int> RedWords { get; init; }
 
@@ -59,22 +59,22 @@ namespace Cryptonyms.Shared
                 AllowZeroLinks = gameConfiguration.AllowZeroLinks
             };
 
-            for (int i = 0; i < 25; i++)
+            for (var i = 0; i < 25; i++)
             {
                 game.Words.Add(i, knownWordsArray[GetNextWordIndex(allPossibilities)]);
             }
 
             var redGoesFirst = Random.NextDouble() > 0.5;
-            var counts = redGoesFirst ? new { RedCount = 9, BlueCount = 8 } : new { RedCount = 8, BlueCount = 9 };
+            var (redCount, blueCount) = redGoesFirst ? (9, 8) : (8, 9);
             game.CurrentTurn = new Turn { Team = redGoesFirst ? Team.Red : Team.Blue };
 
-            var selectedWords = Enumerable.Range(0, 24).ToList();
-            for (var i = 0; i < counts.RedCount; i++)
+            var selectedWords = Enumerable.Range(0, 25).ToList();
+            for (var i = 0; i < redCount; i++)
             {
                 game.RedWords.Add(GetNextWordIndex(selectedWords));
             }
 
-            for (var i = 0; i < counts.BlueCount; i++)
+            for (var i = 0; i < blueCount; i++)
             {
                 game.BlueWords.Add(GetNextWordIndex(selectedWords));
             }
